@@ -1,13 +1,12 @@
-function handleLogin(event) {
+function handleRegistration(event) {
     event.preventDefault();
-    const email = event.target[0].value;
-    alert(`Welcome back to BookXchange, ${email}!`);
-    event.target.reset();
+    
+    // Navigate to registration2.html
+    window.location.href = 'registration2.html';
 }
 
-function handleRegister() {
-    window.location.href = 'registration.html';
-    
+function goToLogin() {
+    window.location.href = 'login.html';
 }
 
 // Add subtle animation on page load
@@ -15,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.querySelector('.container');
     container.style.opacity = '0';
     container.style.transform = 'translateY(20px)';
+    
     setTimeout(() => {
         container.style.transition = 'all 0.6s ease';
         container.style.opacity = '1';

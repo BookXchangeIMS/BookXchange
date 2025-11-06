@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookXchange - Registration (Step 3)</title>
+    <link rel="stylesheet" href="registration3.css">
+</head>
+
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Logo Icon -->
+        <div class="logo-icon">
+            <img src="resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
+        </div>
+
+        <!-- Title -->
+        <h1 class="title">Registration</h1>
+
+        <!-- Form -->
+        <form class="form-group" onsubmit="handleRegistration3(event)">
+            <div class="input-group">
+                <label class="input-label">Create a Password:</label>
+                <input type="password" id="password" class="input-field" placeholder="Password" required minlength="8">
+                <span class="password-hint">Minimum 8 characters</span>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Confirm Password:</label>
+                <input type="password" id="confirmPassword" class="input-field" placeholder="Confirm Password" required>
+                <span class="error-message" id="errorMessage"></span>
+            </div>
+
+            <div class="button-container">
+                <button type="button" class="nav-btn" onclick="goBack()">Back</button>
+                <button type="submit" class="submit-btn">
+                    <span class="arrow">→</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="registration3.js"></script>
+</body>
+
+</html>

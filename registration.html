@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookXchange - Registration</title>
+    <link rel="stylesheet" href="registration.css">
+</head>
+
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Logo Icon -->
+        <div class="logo-icon">
+            <img src="resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
+        </div>
+
+        <!-- Title -->
+        <h1 class="title">Registration</h1>
+
+        <!-- Form -->
+        <form class="form-group" onsubmit="handleRegistration(event)">
+            <div class="input-group">
+                <label class="input-label">Write your name:</label>
+                <input type="text" class="input-field" placeholder="Full Name" required>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Your best Email:</label>
+                <input type="email" class="input-field" placeholder="Email" required>
+            </div>
+
+            <div class="button-container">
+                <button type="button" class="nav-btn" onclick="goToLogin()">Log In</button>
+                <button type="submit" class="submit-btn">
+                    <span class="arrow">→</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="registration.js"></script>
+</body>
+
+</html>
