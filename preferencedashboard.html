@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookXchange - Preferences</title>
+    <link rel="stylesheet" href="preferencedashboard.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Logo -->
+        <div class="logo-icon">
+            <img src="resources/BlackBookLogo.png" class="book-svg" alt="Logo">
+        </div>
+
+        <h1 class="title">Preferences</h1>
+
+        <div class="grid">
+            <div class="pref-card" onclick="togglePreference(this)">
+                <img src="resources/romancepreference.png">
+                <span>Romance</span>
+            </div>
+
+            <div class="pref-card" onclick="togglePreference(this)">
+                <img src="resources/fantasypreference.png">
+                <span>Fantasy</span>
+            </div>
+
+            <div class="pref-card" onclick="togglePreference(this)">
+                <img src="resources/biographypreference.png">
+                <span>Biography</span>
+            </div>
+
+            <div class="pref-card" onclick="togglePreference(this)">
+                <img src="resources/sci-fipreference.png">
+                <span>Sci-Fi</span>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button class="skip-btn" onclick="skip()">skip</button>
+            <button class="next-btn" onclick="goNext()">→</button>
+        </div>
+
+    </div>
+
+    <script src="preferencedashboard.js"></script>
+</body>
+
+</html>

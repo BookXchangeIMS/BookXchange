@@ -15,8 +15,8 @@ function handleRegistration3(event) {
     // Clear error message
     errorMessage.textContent = '';
     
-    // Navigate to next page (success page or dashboard)
-    // window.location.href = 'dashboard.html';
+    // Navigate to next page (preferences dashboard)
+    window.location.href = 'preferencedashboard.html';
 }
 
 function goBack() {
