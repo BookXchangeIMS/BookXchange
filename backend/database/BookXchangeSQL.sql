@@ -1,3 +1,7 @@
+CREATE DATABASE BookXchange;
+Go
+USE BookXchange;
+Go
 -- ==========================
 -- USERS
 -- ==========================

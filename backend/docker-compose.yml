@@ -1,0 +1,14 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver2022
+    environment:
+      SA_PASSWORD: "${SA_PASSWORD:?errSA}"
+      ACCEPT_EULA: "Y"
+      TEST_POPULATE: "${TEST_POPULATE:?false}" # Fill the tables with sample data.
+      RESET_DB: "${RESET_DB:?false}" # Clean up everything that was in the database before, reapply the DDL file
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./database:/database
+    entrypoint: ["/bin/bash", "/database/entrypoint.sh"]
