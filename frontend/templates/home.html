@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookXchange - Home</title>
+    <link rel="stylesheet" href="../static/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <img src="../static/resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" placeholder="Find books" id="searchInput">
+            <i class="fas fa-search"></i>
+        </div>
+
+        <div class="header-actions">
+            <button class="chat-btn">
+                <i class="fas fa-comments"></i>
+            </button>
+            <button class="profile-btn" onclick="goToProfile()">
+                <i class="fas fa-user"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <img src="../static/resources/BlackBookLogo.png" class="logo-img" alt="BookXchange Logo">
+            <h1 class="logo-text">Book<span class="highlight">X</span>change</h1>
+            <p class="tagline">Find your next chapter</p>
+        </div>
+
+        <section class="book-listings">
+            <div class="books-grid" id="booksGrid">
+                <!-- Book listings will be dynamically loaded here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="goToHome()">
+            <i class="fas fa-book"></i>
+        </button>
+        <button class="nav-btn" onclick="goToAnnouncements()">
+            <i class="fas fa-search"></i>
+        </button>
+        <button class="nav-btn" onclick="goToFavorites()">
+            <i class="fas fa-heart"></i>
+        </button>
+    </nav>
+
+    <script src="../static/home.js"></script>
+</body>
+</html>
