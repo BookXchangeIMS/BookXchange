@@ -1,5 +1,37 @@
 // Sample book data (in a real app, this would come from a database)
 const bookData = [
+    // Books matching the Announcements page (simulated cross-listing data)
+    {
+        id: 101, // Matching the ListingID from Announcements.JS
+        title: "Harry Potter and the Sorcerer's Stone",
+        author: "J.K. Rowling",
+        price: "$18.25",
+        location: "Lisbon, Portugal",
+        date: "Posted 1 day ago",
+        isFavorite: false,
+        imagePath: "../static/resources/harrypotter.png" // ADDED IMAGE PATH
+    },
+    {
+        id: 102, // Matching the ListingID from Announcements.JS
+        title: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
+        author: "J.R.R. Tolkien",
+        price: "$45.00",
+        location: "Lisbon, Portugal",
+        date: "Posted 3 days ago",
+        isFavorite: true,
+        imagePath: "../static/resources/lotr.png" // ADDED IMAGE PATH
+    },
+    {
+        id: 103, // Matching the ListingID from Announcements.JS
+        title: "Sapiens: A Brief History of Humankind",
+        author: "Yuval Noah Harari",
+        price: "$15.00",
+        location: "Lisbon, Portugal",
+        date: "Posted 1 week ago",
+        isFavorite: false,
+        imagePath: "../static/resources/sapiens.png" // ADDED IMAGE PATH
+    },
+    // Other diverse listings
     {
         id: 1,
         title: "The Great Gatsby",
@@ -7,7 +39,8 @@ const bookData = [
         price: "$12.99",
         location: "New York, NY",
         date: "Posted 2 days ago",
-        isFavorite: false
+        isFavorite: false,
+        imagePath: "../static/resources/gatsby.jpg" // ADDED IMAGE PATH
     },
     {
         id: 2,
@@ -16,7 +49,8 @@ const bookData = [
         price: "$14.50",
         location: "Chicago, IL",
         date: "Posted 1 week ago",
-        isFavorite: true
+        isFavorite: true,
+        imagePath: "../static/resources/mockingbird.png" // ADDED IMAGE PATH
     },
     {
         id: 3,
@@ -25,34 +59,8 @@ const bookData = [
         price: "$10.99",
         location: "Boston, MA",
         date: "Posted 3 days ago",
-        isFavorite: false
-    },
-    {
-        id: 4,
-        title: "Pride and Prejudice",
-        author: "Jane Austen",
-        price: "$9.99",
-        location: "San Francisco, CA",
-        date: "Posted 5 days ago",
-        isFavorite: false
-    },
-    {
-        id: 5,
-        title: "The Hobbit",
-        author: "J.R.R. Tolkien",
-        price: "$15.75",
-        location: "Seattle, WA",
-        date: "Posted 1 day ago",
-        isFavorite: true
-    },
-    {
-        id: 6,
-        title: "Harry Potter and the Sorcerer's Stone",
-        author: "J.K. Rowling",
-        price: "$18.25",
-        location: "Los Angeles, CA",
-        date: "Posted 4 days ago",
-        isFavorite: false
+        isFavorite: false,
+        imagePath: "../static/resources/1984.png" // ADDED IMAGE PATH
     }
 ];
 
@@ -65,11 +73,15 @@ document.addEventListener('DOMContentLoaded', function() {
     loadBooks(bookData);
     
     // Add event listener for search
-    searchInput.addEventListener('input', handleSearch);
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
 });
 
 // Load books into the grid
 function loadBooks(books) {
+    if (!booksGrid) return;
+
     booksGrid.innerHTML = '';
     
     books.forEach(book => {
@@ -84,9 +96,11 @@ function createBookCard(book) {
     card.className = 'book-card';
     
     card.innerHTML = `
-        <div class="book-image">
-            <i class="fas fa-book" style="font-size: 48px; color: #aaa;"></i>
-        </div>
+        <img src="${book.imagePath}" 
+             alt="${book.title}" 
+             class="book-image"
+             onerror="this.src='../static/resources/placeholder.jpg'"> 
+             
         <div class="book-info">
             <h3 class="book-title">${book.title}</h3>
             <p class="book-author">by ${book.author}</p>
