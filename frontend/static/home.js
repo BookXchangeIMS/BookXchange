@@ -170,3 +170,7 @@ function goToFavorites() {
 function goToProfile() {
     window.location.href = 'profile.html';
 }
+
+function goToMessages() {
+    window.location.href = "messages.html"
+}
