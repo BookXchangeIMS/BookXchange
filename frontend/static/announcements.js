@@ -3,21 +3,21 @@ const MOCK_USER_BOOKS_DATA = [
     {
         ListingID: 101,
         Name: "Harry Potter and the Sorcerer's Stone",
-        Image_Path: "../static/resources/harry_potter.jpg",
+        Image_Path: "../static/resources/harrypotter.png",
         PublicationDate: "1997-06-26",
         Location: "Benfica - Lisboa"
     },
     {
         ListingID: 102,
         Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-        Image_Path: "../static/resources/lotr.jpg",
+        Image_Path: "../static/resources/Lotr.png",
         PublicationDate: "1954-07-29",
         Location: "Benfica - Lisboa"
     },
     {
         ListingID: 103,
         Name: "Sapiens: A Brief History of Humankind",
-        Image_Path: "../static/resources/sapiens.jpg",
+        Image_Path: "../static/resources/sapiens.png",
         PublicationDate: "2011-09-08",
         Location: "Benfica - Lisboa"
     }
