@@ -109,12 +109,21 @@ function createBookCard(book) {
             <p class="book-price">${book.price}</p>
             <div class="book-actions">
                 <button class="contact-btn">Contact Seller</button>
-                <button class="favorite-btn ${book.isFavorite ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})">
+                <button class="favorite-btn ${book.isFavorite ? 'active' : ''}">
                     <i class="fas fa-heart"></i>
                 </button>
             </div>
         </div>
     `;
+    
+    // Get the favorite button
+    const favoriteBtn = card.querySelector('.favorite-btn');
+    
+    // Add event listener to favorite button
+    favoriteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavorite(book.id);
+    });
     
     // Make the entire card clickable to view listing details
     card.addEventListener('click', function(e) {
@@ -139,11 +148,25 @@ function viewListing(bookId) {
 }
 
 // Toggle favorite status
-function toggleFavorite(event, bookId) {
-    event.stopPropagation(); // Prevent triggering the card click
+function toggleFavorite(bookId) {
     const book = bookData.find(b => b.id === bookId);
     if (book) {
+        // If already favorited, ask for confirmation to remove
+        if (book.isFavorite) {
+            if (!confirm('Remove this book from your favorites?')) {
+                return; // User clicked cancel, don't remove
+            }
+        }
+        
         book.isFavorite = !book.isFavorite;
+        
+        // Show toast notification
+        if (book.isFavorite) {
+            showToast('Added to favorites');
+        } else {
+            showToast('Removed from favorites');
+        }
+        
         loadBooks(bookData); // Refresh the display
         
         // In a real app, you would save this to the database
@@ -188,3 +211,58 @@ function goToProfile() {
 function goToMessages() {
     window.location.href = "messages.html"
 }
+
+// Toast notification
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${type === 'success' ? '#27ae60' : '#c84c3d'};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        z-index: 10000;
+        animation: slideUp 0.3s ease;
+        font-family: 'Segoe UI', sans-serif;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideDown 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideUp {
+        from {
+            transform: translate(-50%, 20px);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideDown {
+        from {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+        to {
+            transform: translate(-50%, 20px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
