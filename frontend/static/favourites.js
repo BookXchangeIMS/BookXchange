@@ -65,7 +65,6 @@ const ALL_LISTINGS_DATA = [
 // NOTE: We filter the data to only show FAVORITES initially.
 let filteredFavorites = ALL_LISTINGS_DATA.filter(book => book.isFavorite);
 
-
 // DOM elements
 const booksGrid = document.getElementById('favoritesGrid'); // Use correct ID from HTML
 const searchInput = document.getElementById('searchInput');
@@ -175,12 +174,19 @@ function viewListing(bookId) {
 
 // Remove from favorites (Toggling the favorite status and refreshing the list)
 function removeFavorite(bookId) {
+    // Confirm removal
+    if (!confirm('Remove this book from your favorites?')) {
+        return;
+    }
+    
     const book = ALL_LISTINGS_DATA.find(b => b.id === bookId);
     if (book) {
         book.isFavorite = false;
         showToast('Removed from favorites');
         
-        loadFavorites(); // Reload the list
+        // Update filtered list and reload
+        filteredFavorites = ALL_LISTINGS_DATA.filter(b => b.isFavorite);
+        loadBooks(filteredFavorites);
     }
 }
 
@@ -196,7 +202,7 @@ function handleSearch() {
         );
     }
     
-    displayFavorites(favorites);
+    loadBooks(favorites);
 }
 
 // Navigation functions
@@ -222,7 +228,6 @@ function goToMessages() {
 
 // Toast notification (Auxiliary function)
 function showToast(message, type = 'success') {
-    // ... (Toast logic remains the same)
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
