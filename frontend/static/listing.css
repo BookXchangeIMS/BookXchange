@@ -1,0 +1,282 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-image: url('../static/resources/backgroundopacity.png');
+    background-size: auto;
+    background-repeat: repeat;
+    background-attachment: fixed;
+    background-color: #FFF1D8;
+    min-height: 100vh;
+    padding: 20px;
+    padding-bottom: 40px;
+}
+
+/* Back Button */
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.back-btn i {
+    font-size: 20px;
+    color: #1a1a2e;
+}
+
+/* Settings Button */
+.settings-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    transition: all 0.3s ease;
+}
+
+.settings-btn:hover {
+    transform: rotate(45deg);
+}
+
+.settings-btn i {
+    font-size: 20px;
+    color: #1a1a2e;
+}
+
+/* Main Content */
+main {
+    max-width: 500px;
+    margin: 80px auto 0;
+    background-color: rgba(245, 237, 227, 0.95);
+    border-radius: 30px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Book Image */
+.book-image-container {
+    width: 100%;
+    height: 400px;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.book-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Book Title */
+.book-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 30px;
+    line-height: 1.2;
+}
+
+/* Details Grid */
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.detail-card {
+    background-color: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.detail-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.detail-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #c84c3d;
+}
+
+.detail-value.price {
+    font-size: 24px;
+}
+
+/* Description */
+.description-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.description-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    text-align: center;
+}
+
+/* Seller Section */
+.seller-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.seller-section:hover {
+    transform: scale(1.05);
+}
+
+.seller-avatar {
+    width: 80px;
+    height: 80px;
+    background-color: #c84c3d;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(200, 76, 61, 0.3);
+}
+
+.seller-avatar i {
+    font-size: 40px;
+    color: white;
+}
+
+.seller-name {
+    font-size: 28px;
+    font-weight: 900;
+    color: #2c3e50;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.message-btn {
+    flex: 1;
+    background-color: #c84c3d;
+    color: white;
+    border: none;
+    padding: 18px 30px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(200, 76, 61, 0.3);
+}
+
+.message-btn:hover {
+    background-color: #b03a2e;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(200, 76, 61, 0.4);
+}
+
+.favorite-btn {
+    width: 65px;
+    height: 65px;
+    background-color: white;
+    border: 3px solid #c84c3d;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(200, 76, 61, 0.2);
+}
+
+.favorite-btn i {
+    font-size: 28px;
+    color: #c84c3d;
+}
+
+.favorite-btn.active {
+    background-color: #c84c3d;
+}
+
+.favorite-btn.active i {
+    color: white;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    main {
+        padding: 20px;
+        margin-top: 70px;
+    }
+
+    .book-image-container {
+        height: 300px;
+    }
+
+    .book-title {
+        font-size: 24px;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .seller-name {
+        font-size: 24px;
+    }
+
+    .message-btn {
+        font-size: 16px;
+        padding: 15px 25px;
+    }
+}
