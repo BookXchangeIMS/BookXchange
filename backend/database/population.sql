@@ -1,30 +1,18 @@
 USE BookXchange;
-Go
+GO
 
-INSERT INTO Locations (Country, City)
+-- Core tables first (no dependencies)
+
+-- Populate Users
+INSERT INTO Users (Name, Email, PasswordHash, ProfileImagePath, UserRole, AboutMe, CreationDate)
 VALUES
-('USA', 'New York'),
-('Canada', 'Toronto'),
-('UK', 'London'),
-('Australia', 'Sydney'),
-('Germany', 'Berlin');
+('Alice Johnson', 'alice@example.com', 'Password123!', 'images/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME()),
+('Bob Smith', 'bob@example.com', 'Password123!', 'images/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME()),
+('Charlie Brown', 'charlie@example.com', 'Password123!', 'images/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME()),
+('Diana Prince', 'diana@example.com', 'Password123!', 'images/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME()),
+('Ethan Hunt', 'ethan@example.com', 'Password123!', 'images/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME());
 
-INSERT INTO Users (Image_Path, Location_ID, Name, AboutMe, Points, Role, Password, Email)
-VALUES
-('images/user1.jpg', 1, 'Alice Johnson', 'Avid reader and book collector.', 150, 'A', 'Password123!', 'alice@example.com'),
-('images/user2.jpg', 2, 'Bob Smith', 'Love trading rare editions.', 90, 'U', 'Password123!', 'bob@example.com'),
-('images/user3.jpg', 3, 'Charlie Brown', 'Casual reader.', 30, 'U', 'Password123!', 'charlie@example.com'),
-('images/user4.jpg', 4, 'Diana Prince', 'Always on the lookout for classics.', 200, 'A', 'Password123!', 'diana@example.com'),
-('images/user5.jpg', 5, 'Ethan Hunt', 'Enjoys mystery novels.', 70, 'U', 'Password123!', 'ethan@example.com');
-
-INSERT INTO Image (Image_Path)
-VALUES
-('images/book1.jpg'),
-('images/book2.jpg'),
-('images/book3.jpg'),
-('images/book4.jpg'),
-('images/book5.jpg');
-
+-- Populate Genres
 INSERT INTO Genres (GenreName)
 VALUES
 ('Science Fiction'),
@@ -33,79 +21,92 @@ VALUES
 ('Non-Fiction'),
 ('Romance');
 
-INSERT INTO Book (ISBN, Name, Year, Author, Edition)
+-- Populate Books
+INSERT INTO Books (Title, Language, ReleaseDate, Edition)
 VALUES
-(1001, 'Dune', '1965-01-01', 'Frank Herbert', 1),
-(1002, 'The Hound of the Baskervilles', '1902-01-01', 'Arthur Conan Doyle', 1),
-(1003, 'The Hobbit', '1937-01-01', 'J.R.R. Tolkien', 2),
-(1004, 'Sapiens: A Brief History of Humankind', '2011-01-01', 'Yuval Noah Harari', 1),
-(1005, 'Pride and Prejudice', '1813-01-01', 'Jane Austen', 3);
+('Dune', 'English', '1965-01-01', 1),
+('The Hound of the Baskervilles', 'English', '1902-01-01', 1),
+('The Hobbit', 'English', '1937-01-01', 2),
+('Sapiens: A Brief History of Humankind', 'English', '2011-01-01', 1),
+('Pride and Prejudice', 'English', '1813-01-01', 3);
 
-INSERT INTO Book_Genre (ISBN, GenreID)
+-- Populate Authors
+INSERT INTO Authors (AuthorName)
 VALUES
-(1001, 1),  -- Dune → Sci-Fi
-(1002, 2),  -- Hound → Mystery
-(1003, 3),  -- Hobbit → Fantasy
-(1004, 4),  -- Sapiens → Non-Fiction
-(1005, 5);  -- Pride → Romance
+('Frank Herbert'),
+('Arthur Conan Doyle'),
+('J.R.R. Tolkien'),
+('Yuval Noah Harari'),
+('Jane Austen');
 
-INSERT INTO Listings (Notification_ID, Location_ID, UserID, Type, Price, ListingState, Image_Path)
-VALUES
-(NULL, 1, 1, 1, 15.99, 1, 'images/book1.jpg'),
-(NULL, 2, 2, 1, 10.50, 1, 'images/book2.jpg'),
-(NULL, 3, 3, 1, 8.75, 1, 'images/book3.jpg'),
-(NULL, 4, 4, 1, 20.00, 1, 'images/book4.jpg'),
-(NULL, 5, 5, 1, 5.99, 1, 'images/book5.jpg');
+-- Junction tables (depend on core tables)
 
-INSERT INTO BookListed (ListingID, ISBN)
-VALUES
-(1, 1001),
-(2, 1002),
-(3, 1003),
-(4, 1004),
-(5, 1005);
-
-INSERT INTO Transaction_Log (UserID, ListingID)
-VALUES
-(2, 1),
-(3, 2),
-(4, 3),
-(5, 4),
-(1, 5);
-
-INSERT INTO Reports (UserID, ListingID, Description, Category)
-VALUES
-(3, 1, 'Incorrect book description.', 1),
-(4, 2, 'Inappropriate pricing.', 2),
-(5, 3, 'Duplicate listing.', 3);
-
-INSERT INTO Messages (SenderID, ReceiverID, Content)
-VALUES
-(1, 2, 'Hi Bob, is the book still available?'),
-(2, 1, 'Yes, it is! Do you want to pick it up this weekend?'),
-(3, 4, 'Hey Diana, can you recommend any fantasy books?'),
-(4, 3, 'Sure! Try reading "The Hobbit" if you haven’t.'),
-(5, 1, 'Hello Alice, do you ship internationally?');
-
-INSERT INTO Notifications (UserID, Notification_Content, Status)
-VALUES
-(1, 'Your listing has received a message.', 0),
-(2, 'Your book has been sold!', 1),
-(3, 'You received a reply from Diana.', 1),
-(4, 'A new report has been filed.', 0),
-(5, 'Your transaction was successful.', 1);
-
+-- Populate User Genre Preferences
 INSERT INTO Preferences (UserID, GenreID)
 VALUES
-(1, 1),
-(1, 3),
-(2, 2),
-(3, 3),
-(4, 4),
-(5, 5);
+(1, 1), -- Alice likes Sci-Fi
+(1, 3), -- Alice likes Fantasy
+(2, 2), -- Bob likes Mystery
+(3, 3), -- Charlie likes Fantasy
+(4, 4), -- Diana likes Non-Fiction
+(5, 5); -- Ethan likes Romance
 
-INSERT INTO Error_Logs (Description, Type)
+-- Link Authors to Books
+INSERT INTO AuthorBook (AuthorID, BookID)
 VALUES
-('Null reference error in message send.', 1),
-('Database timeout during transaction.', 2),
-('Foreign key constraint violation on insert.', 3);
+(1, 1), -- Frank Herbert → Dune
+(2, 2), -- Arthur Conan Doyle → Hound of Baskervilles
+(3, 3), -- J.R.R. Tolkien → The Hobbit
+(4, 4), -- Yuval Noah Harari → Sapiens
+(5, 5); -- Jane Austen → Pride and Prejudice
+
+-- Listings (depends on Users and Books)
+
+-- Populate Listings
+INSERT INTO Listings (UserID, BookID, ListingType, Price, ListingState, CreationDate)
+VALUES
+(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME()),
+(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME()),
+(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME()),
+(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME()),
+(5, 5, 'Donation', NULL, 'Active', SYSDATETIME());
+
+-- Tables depending on Listings
+
+-- Populate Listing Photos
+INSERT INTO ListingPhoto (ListingID, ImagePath)
+VALUES
+(1, 'images/book1.jpg'),
+(1, 'images/book1_alt.jpg'),
+(2, 'images/book2.jpg'),
+(3, 'images/book3.jpg'),
+(4, 'images/book4.jpg'),
+(5, 'images/book5.jpg');
+
+-- Populate Reports
+INSERT INTO Reports (UserID, ListingID, ReportType, Description, CreationDate)
+VALUES
+(3, 1, 'IncorrectDescription', 'Book condition does not match description.', SYSDATETIME()),
+(4, 2, 'InappropriatePricing', 'Price seems unfair for book condition.', SYSDATETIME()),
+(5, 3, 'DuplicateListing', 'This book has been listed multiple times.', SYSDATETIME());
+
+-- Populate Notifications
+INSERT INTO Notification (NotificationType, Content, CreationDate, ListingID, MessageID)
+VALUES
+('NewListing', 'A new book matching your preferences has been listed!', SYSDATETIME(), 1, NULL),
+('Message', 'You have received a new message.', SYSDATETIME(), NULL, NULL),
+('ListingSold', 'Your book has been sold!', SYSDATETIME(), 2, NULL),
+('PriceUpdate', 'Price updated for listing you are watching.', SYSDATETIME(), 3, NULL),
+('System', 'Welcome to BookXchange!', SYSDATETIME(), NULL, NULL);
+
+-- Final junction table
+
+-- Link Notifications to Users
+INSERT INTO UserNotification (UserID, NotificationID)
+VALUES
+(1, 1), -- Alice gets new listing notification
+(2, 2), -- Bob gets message notification
+(2, 3), -- Bob gets sold notification
+(3, 4), -- Charlie gets price update
+(4, 5), -- Diana gets welcome message
+(5, 5); -- Ethan gets welcome message
