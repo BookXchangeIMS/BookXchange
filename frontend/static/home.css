@@ -194,7 +194,7 @@ main {
 }
 
 .book-image {
-    width: 100%;
+    object-fit: contain;
     height: 250px;
     background-color: #f0f0f0;
     display: flex;
