@@ -45,33 +45,7 @@ body {
     color: #1a1a2e;
 }
 
-/* Settings Button */
-.settings-btn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: white;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    z-index: 100;
-    transition: all 0.3s ease;
-}
 
-.settings-btn:hover {
-    transform: rotate(45deg);
-}
-
-.settings-btn i {
-    font-size: 20px;
-    color: #1a1a2e;
-}
 
 /* Main Content */
 main {

@@ -66,11 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'home.html';
     }
     
-    // Add settings button click handler
-    const settingsBtn = document.querySelector('.settings-btn');
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', goToSettings);
-    }
 });
 
 // Load book details into the page
@@ -135,10 +130,7 @@ function sendMessage() {
     window.location.href = 'chat.html';
 }
 
-// Go to settings
-function goToSettings() {
-    window.location.href = 'settings.html';
-}
+
 
 // Toast notification
 function showToast(message, type = 'success') {
