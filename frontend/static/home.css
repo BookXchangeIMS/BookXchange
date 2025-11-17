@@ -184,6 +184,8 @@ main {
     transition: transform 0.3s, box-shadow 0.3s;
     position: relative;
     cursor: pointer;
+    display: flex;              
+    flex-direction: column;     
 }
 
 .book-card:hover {
@@ -203,6 +205,9 @@ main {
 
 .book-info {
     padding: 15px;
+    display: flex;              
+    flex-direction: column;     
+    flex: 1;                    
 }
 
 .book-title {
@@ -245,6 +250,7 @@ main {
     justify-content: space-between;
     gap: 10px;
     align-items: center;
+    margin-top: auto;          
 }
 
 .contact-btn {
