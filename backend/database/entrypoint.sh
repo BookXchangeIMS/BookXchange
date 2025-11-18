@@ -4,7 +4,7 @@ echo "Starting SQL Server..."
 /opt/mssql/bin/sqlservr &
 
 # Wait until SQL Server is ready
-sleep 15
+sleep 15s
 
 # Function to run SQL in bash
 run_sql() {
@@ -21,6 +21,8 @@ if [ "$RESET_DB" = "true" ] ; then
   # Run DDL file
   run_sql /database/BookXchangeSQL.sql
 fi
+
+sleep 5s
 
 if [ "$TEST_POPULATE" = "true" ] ; then
   echo "TEST_POPULATE = true detected. Populating the database..."
