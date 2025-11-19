@@ -1,29 +1,16 @@
--- BookXchange  db Schema
--- Naming: Plural tables, CamelCase, ID uppercase, "Date" suffix, "Type" for enums
+CREATE DATABASE BookXchange;
+GO
+USE BookXchange;
+GO
 
--- Drop tables in dependency order
-IF OBJECT_ID('UserNotification','U') IS NOT NULL DROP TABLE UserNotification;
-IF OBJECT_ID('Notification','U') IS NOT NULL DROP TABLE Notification;
-IF OBJECT_ID('Reports','U') IS NOT NULL DROP TABLE Reports;
-IF OBJECT_ID('AuthorBook','U') IS NOT NULL DROP TABLE AuthorBook;
-IF OBJECT_ID('Authors','U') IS NOT NULL DROP TABLE Authors;
-IF OBJECT_ID('ListingPhoto','U') IS NOT NULL DROP TABLE ListingPhoto;
-IF OBJECT_ID('Listings','U') IS NOT NULL DROP TABLE Listings;
-IF OBJECT_ID('Books','U') IS NOT NULL DROP TABLE Books;
-IF OBJECT_ID('Preferences','U') IS NOT NULL DROP TABLE Preferences;
-IF OBJECT_ID('Genres','U') IS NOT NULL DROP TABLE Genres;
-IF OBJECT_ID('Users','U') IS NOT NULL DROP TABLE Users;
+CREATE TABLE Locations(
+    LocationID INT IDENTITY(1,1) PRIMARY KEY,
+    Longitude FLOAT NOT NULL,
+    Latitude FLOAT NOT NULL,
+    [Description] NVARCHAR(512) 
+);
+GO
 
-
-CREATE TABLE Favorites(
-        UserID INT NOT NULL,
-        ListingID INT NOT NULL,
-        CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-        PRIMARY KEY(UserID, ListingID),
-        FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
-        FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
-    );
-    
 CREATE TABLE Users(
     UserID INT IDENTITY PRIMARY KEY,
     [Name] NVARCHAR(256) NOT NULL,
@@ -33,14 +20,9 @@ CREATE TABLE Users(
     ProfileImagePath NVARCHAR(512),
     UserRole NVARCHAR(64) NOT NULL,
     AboutMe NVARCHAR(512),
-    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME()
-    FOREIGN KEY(Location_ID) REFERENCES Locations(Location_ID)
-);
-
-CREATE TABLE Locations (
-    Location_ID INT IDENTITY(1,1) PRIMARY KEY,
-    Country NVARCHAR(100) NOT NULL,
-    City NVARCHAR(100) NOT NULL
+    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    LocationID INT,
+    FOREIGN KEY(LocationID) REFERENCES Locations(LocationID)
 );
 
 CREATE TABLE Genres(
@@ -96,6 +78,15 @@ CREATE TABLE ListingPhoto(
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
 );
 
+CREATE TABLE Favorites(
+    UserID INT NOT NULL,
+    ListingID INT NOT NULL,
+    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    PRIMARY KEY(UserID, ListingID),
+    FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
+);
+
 CREATE TABLE Reports(
     ReportID INT IDENTITY PRIMARY KEY,
     UserID INT NOT NULL,
@@ -125,7 +116,15 @@ CREATE TABLE UserNotification(
     FOREIGN KEY(NotificationID) REFERENCES Notification(NotificationID) ON DELETE CASCADE
 );
 
--- Performance Indexes
+CREATE TABLE RefreshTokens(
+    TokenID INT IDENTITY PRIMARY KEY,
+    UserID INT NOT NULL,
+    TokenValue NVARCHAR(512) NOT NULL,
+    ExpirationDate DATETIME2 NOT NULL,
+    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
 CREATE INDEX IX_Listings_UserID ON Listings(UserID);
 CREATE INDEX IX_Listings_BookID ON Listings(BookID);
 CREATE INDEX IX_ListingPhoto_ListingID ON ListingPhoto(ListingID);

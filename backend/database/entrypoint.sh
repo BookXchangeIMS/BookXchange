@@ -4,7 +4,7 @@ echo "Starting SQL Server..."
 /opt/mssql/bin/sqlservr &
 
 # Wait until SQL Server is ready
-sleep 15
+sleep 15s
 
 # Function to run SQL in bash
 run_sql() {
