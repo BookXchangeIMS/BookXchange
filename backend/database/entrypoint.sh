@@ -22,6 +22,8 @@ if [ "$RESET_DB" = "true" ] ; then
   run_sql /database/BookXchangeSQL.sql
 fi
 
+sleep 5s
+
 if [ "$TEST_POPULATE" = "true" ] ; then
   echo "TEST_POPULATE = true detected. Populating the database..."
 
