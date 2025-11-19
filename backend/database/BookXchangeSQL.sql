@@ -1,4 +1,4 @@
--- BookXchangeDB Schema
+-- BookXchange  db Schema
 -- Naming: Plural tables, CamelCase, ID uppercase, "Date" suffix, "Type" for enums
 
 -- Drop tables in dependency order
@@ -26,13 +26,21 @@ CREATE TABLE Favorites(
     
 CREATE TABLE Users(
     UserID INT IDENTITY PRIMARY KEY,
-    Name NVARCHAR(256) NOT NULL,
+    [Name] NVARCHAR(256) NOT NULL,
+    DateOfBirth DATE NOT NULL,
     Email NVARCHAR(256) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(256) NOT NULL,
     ProfileImagePath NVARCHAR(512),
     UserRole NVARCHAR(64) NOT NULL,
     AboutMe NVARCHAR(512),
     CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    FOREIGN KEY(Location_ID) REFERENCES Locations(Location_ID)
+);
+
+CREATE TABLE Locations (
+    Location_ID INT IDENTITY(1,1) PRIMARY KEY,
+    Country NVARCHAR(100) NOT NULL,
+    City NVARCHAR(100) NOT NULL
 );
 
 CREATE TABLE Genres(
