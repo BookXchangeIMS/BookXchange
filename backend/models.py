@@ -5,10 +5,6 @@ from pydantic import BaseModel
 # JWT MODELS
 #==================================================================================
 
-class Tokens(BaseModel):
-    access_token: str
-    refresh_token: str
-
 
 #==================================================================================
 # DATABASE MODELS
@@ -35,7 +31,7 @@ class GetUser(BaseModel):
     UserRole: str
     AboutMe: str
 
-class User(GetUser, SignIn):
+class User(GetUser, SignUp):
     CreationDate: datetime
 
 # Error log model
