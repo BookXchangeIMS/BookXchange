@@ -33,6 +33,11 @@ CREATE TABLE Books(
     Edition INT
 );
 
+CREATE TABLE Authors(
+    AuthorID INT IDENTITY PRIMARY KEY,
+    AuthorName NVARCHAR(256) NOT NULL
+);
+
 CREATE TABLE AuthorBook(
     AuthorID INT NOT NULL,
     BookID INT NOT NULL,
@@ -65,15 +70,6 @@ CREATE TABLE Listings(
     FOREIGN KEY(UserID) REFERENCES Users(UserID),
     FOREIGN KEY(BookID) REFERENCES Books(BookID)
 );
-
-CREATE TABLE Favorites(
-        UserID INT NOT NULL,
-        ListingID INT NOT NULL,
-        CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-        PRIMARY KEY(UserID, ListingID),
-        FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
-        FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
-    );
 
 CREATE TABLE ListingPhoto(
     PhotoID INT IDENTITY PRIMARY KEY,
