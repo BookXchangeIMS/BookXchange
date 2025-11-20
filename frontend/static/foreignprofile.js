@@ -109,3 +109,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
 })
+// Navigation functions
+function goToHome() {
+    window.location.href = 'home.html';
+}
+
+function goToAnnouncements() {
+    window.location.href = 'announcements.html';
+}
+
+function goToFavorites() {
+    window.location.href = 'favourites.html';
+}
+
+function goToProfile() {
+    window.location.href = 'profile.html';
+}
+
+function goToMessages() {
+    window.location.href = "messages.html"
+}

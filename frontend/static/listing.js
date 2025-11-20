@@ -121,7 +121,7 @@ function toggleFavorite() {
 // Go to seller profile
 function goToSellerProfile() {
     if (!book) return;
-    window.location.href = `sellerprofile.html?id=${book.sellerId}`;
+    window.location.href = `foreignprofile.html?id=${book.sellerId}`;
 }
 
 // Send message
