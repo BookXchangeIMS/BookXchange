@@ -14,6 +14,9 @@ ALGORITHM = Settings().ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = Settings().ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = Settings().REFRESH_TOKEN_EXPIRE_DAYS
 
+#================================================================================================================
+# USER-DB LOOK-UPS ==============================================================================================
+
 def get_userid_by_credentials(data: SignIn, db):
     """
     Fetches the user ID by matching the provided credentials against the database.
@@ -57,8 +60,81 @@ def check_if_email_exists(data: SignUp, db):
     row = db.execute(stmt).fetchone()
     return True if row else False
 
-def sign_user_up(data: SignUp):
-    pass
+def sign_user_up(data: SignUp, db):
+    """
+    Inserts a new user into the "Users" table in the database. The function takes
+    user sign-up data and a database connection to create a user account record.
+    If an exception occurs during the execution, an HTTPException with status
+    code 409 is raised.
+
+    :param data: Data object that contains details of the user to be signed up,
+        including Name, Email, PasswordHash, etc.
+    :param db: Database connection object used to execute the insertion and
+        commit the changes.
+    :return: None
+    """
+    users = metadata.tables["Users"]
+    stmt = users.insert().values(
+        Name=data.Name,
+        Email=data.Email,
+        PasswordHash=data.PasswordHash,
+        CreationDate= datetime.now(),
+        ProfileImagePath= "/image.png",
+        UserRole= "User",
+        AboutMe= ""
+    )
+    try:
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(status_code=409, detail="Couldn't create new account. Please try again later.")
+
+def get_user_by_id(userid: int, db):
+    """
+    Retrieve a user by their unique identifier from the database.
+
+    This function queries the database using the provided user ID and returns the user's
+    corresponding information if they exist. An exception will be raised if the user ID
+    does not match any entry in the database.
+
+    :param userid: The unique identifier of the user to retrieve.
+    :type userid: int
+    :param db: The database connection object used to execute the query.
+    :return: A row object containing the user's information retrieved from the database.
+    :rtype: Any
+    :raises HTTPException: If the user is not found in the database.
+    """
+    users = metadata.tables["Users"]
+    stmt = select(users).where(users.c.UserID == userid)
+    row = db.execute(stmt).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="User not found")
+    return row
+
+def get_userid_by_refresh_token(refresh_token, db):
+    """
+    Retrieve a user ID associated with a given refresh token from the database.
+
+    This function queries the `RefreshTokens` table in the database to find a record whose
+    `TokenValue` matches the provided `refresh_token`. If such a record exists, the function
+    returns the corresponding `UserID`. Otherwise, it returns `None`.
+
+    :param refresh_token: The refresh token value used to search for the user ID.
+    :type refresh_token: str
+    :param db: The database connection object for executing the query.
+    :type db: sqlalchemy.engine.base.Connection
+    :return: The user ID associated with the provided refresh token or None if no match is found.
+    :rtype: Optional[int]
+    """
+    refreshtokens = metadata.tables["RefreshTokens"]
+    stmt = select(refreshtokens).where(refreshtokens.c.TokenValue == refresh_token)
+    row = db.execute(stmt).fetchone()
+    if row:
+        return row.UserID
+    else:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+#================================================================================================================
+# ACCESS TOKENS =================================================================================================
 
 def create_access_token(data: dict):
     """
@@ -66,9 +142,7 @@ def create_access_token(data: dict):
     an expiration timestamp and is encoded using the specified secret
     key and algorithm.
 
-    :param data: A dictionary containing information to be included
-        in the access token. The contents of this dictionary will
-        be encoded into the token.
+    :param data: A dictionary containing credentials and expiration date (look up the SignIn or SignUp endpoints for details*)
     :type data: dict
     :return: A JWT access token as a string that includes the encoded
         data and expiration timestamp.
@@ -80,7 +154,29 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# REFRESH TOKENS ========================================
+def verify_access_token(token: str):
+    """
+    Verifies the validity of a given access token. This function attempts to decode
+    the provided token using the predefined secret key and algorithm. If the token
+    is valid and decodes successfully, it returns `True`. If the token is invalid or
+    malformed, an HTTP exception is raised with an unauthorized status.
+
+    :param token: The token string to be validated
+    :type token: str
+    :return: `True` if the token decodes successfully, otherwise raises an exception
+    :rtype: bool
+    :raises HTTPException: When the token is invalid or cannot be decoded
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return True if payload else False
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        )
+#================================================================================================================
+# REFRESH TOKENS ================================================================================================
 
 def create_refresh_token():
     return str(uuid.uuid4())
@@ -114,25 +210,52 @@ def store_refresh_token(refresh_token, userid, db):
         return True
     except Exception as e:
         return False
-#=======================================================
-def verify_access_token(token: str):
-    """
-    Verifies the validity of a given access token. This function attempts to decode
-    the provided token using the predefined secret key and algorithm. If the token
-    is valid and decodes successfully, it returns `True`. If the token is invalid or
-    malformed, an HTTP exception is raised with an unauthorized status.
 
-    :param token: The token string to be validated
-    :type token: str
-    :return: `True` if the token decodes successfully, otherwise raises an exception
-    :rtype: bool
-    :raises HTTPException: When the token is invalid or cannot be decoded
+def verify_refresh_token(token: str, db):
     """
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return True if payload else False
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
+    Verifies the validity of a given refresh token by checking its existence and
+    expiration against the database. If the token is valid, it returns a boolean
+    value indicating success. If the token is invalid or expired, it raises an
+    HTTPException with a 401 status code.
+
+    :param token: The refresh token string to validate.
+    :type token: str
+    :param db: The database connection object used to execute the query.
+    :return: A boolean indicating if the refresh token is valid (True).
+    :rtype: bool
+    :raises HTTPException: Raised if the token is invalid or expired, with a
+        status code 401 and appropriate error details.
+    """
+    refreshtokens = metadata.tables["RefreshTokens"]
+    stmt = select(refreshtokens).where(
+        refreshtokens.c.TokenValue == token,
+        refreshtokens.c.ExpirationDate > datetime.now())
+    row = db.execute(stmt).fetchone()
+    if row:
+        return True
+    else:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+
+def destroy_refresh_token(tokens: Tokens, db):
+    """
+    Deletes a specified refresh token from the database. This function locates the refresh
+    token in the "RefreshTokens" table and deletes the corresponding record. If no record
+    is found matching the given refresh token, an HTTPException is raised with a 404 status.
+
+    :param tokens: The Tokens object containing the refresh token to be deleted.
+    :type tokens: Tokens
+    :param db: The database connection object used to execute the query and manage the
+        transaction.
+    :type db: Any
+    :return: None
+    """
+    refreshtokens = metadata.tables["RefreshTokens"]
+    stmt = refreshtokens.delete().where(refreshtokens.c.TokenValue == tokens.refresh_token)
+    result = db.execute(stmt)
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Refresh token not found")
+    db.commit()
+
+#=============================================================================================
+
