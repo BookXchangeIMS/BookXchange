@@ -107,6 +107,15 @@ CREATE TABLE UserNotification(
     FOREIGN KEY(NotificationID) REFERENCES Notification(NotificationID) ON DELETE CASCADE
 );
 
+CREATE TABLE RefreshTokens(
+    TokenID INT IDENTITY PRIMARY KEY,
+    UserID INT NOT NULL,
+    TokenValue NVARCHAR(512) NOT NULL,
+    ExpirationDate DATETIME2 NOT NULL,
+    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
 -- Performance Indexes
 CREATE INDEX IX_Listings_UserID ON Listings(UserID);
 CREATE INDEX IX_Listings_BookID ON Listings(BookID);
