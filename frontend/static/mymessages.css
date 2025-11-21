@@ -1,0 +1,354 @@
+/* Reset & Variables */
+:root {
+  --color-bg: #f4ebc9;
+  --color-primary: #a63c34;
+  --color-accent: #c84c3d;
+  --color-text-dark: #1a1a1a;
+  --color-text-light: #ffffff;
+  --color-card-bg: #fdfbf7;
+  --color-border: #e8e1c0;
+  --color-input-bg: #f4ebc9;
+
+  --font-main: "Quicksand", sans-serif;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-bg);
+  color: var(--color-text-dark);
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 100px; /* Space for bottom nav on mobile */
+
+  
+}
+
+/* Background Pattern */
+.bg-pattern {
+  position: fixed;
+  inset: 0;
+  background-image: url("images/image.png"); /* Assumed path, fallback handled in JS or just plain color */
+  background-size: cover;
+  background-position: center;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: -1;
+  mix-blend-mode: multiply;
+}
+
+/* Header */
+.app-header {
+  background-color: var(--color-primary);
+  padding: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.header-container {
+  max-width: 480px; /* Mobile default */
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon-logo {
+  color: var(--color-text-light);
+  width: 32px;
+  height: 32px;
+  stroke-width: 2;
+}
+
+.search-bar {
+  flex: 1;
+  position: relative;
+}
+
+.search-bar input {
+  width: 100%;
+  background-color: var(--color-input-bg);
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--color-text-dark);
+}
+
+.search-bar input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  width: 16px;
+  height: 16px;
+}
+
+.user-actions {
+  display: flex;
+  gap: 0.75rem;
+  color: var(--color-text-light);
+}
+
+/* Desktop Nav (Hidden by default) */
+.desktop-nav {
+  display: none;
+}
+
+/* Main Content */
+.main-content {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.hero-icon {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.book-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--color-text-dark);
+  stroke-width: 1.5;
+}
+
+.underline-decoration {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 4px;
+  background-color: var(--color-text-dark);
+  border-radius: 999px;
+}
+
+.hero h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+/* Message List */
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.message-card {
+  background-color: var(--color-card-bg);
+  border-radius: 30px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgba(232, 225, 192, 0.5);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.message-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.book-cover {
+  width: 50px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+.message-content {
+  flex: 1;
+  min-width: 0; /* For truncation */
+}
+
+.message-content h3 {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-content p {
+  font-size: 0.875rem;
+  color: var(--color-text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-meta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.message-meta .date {
+  display: block;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin-bottom: 0.1rem;
+}
+
+.message-meta .time {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+/* Mobile Bottom Nav */
+.mobile-nav-container {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  pointer-events: none; /* Let clicks pass through around the nav */
+}
+
+.mobile-nav {
+  pointer-events: auto;
+  background-color: var(--color-primary);
+  border-radius: 999px;
+  height: 64px;
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3rem;
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:hover {
+  opacity: 0.8;
+}
+
+.nav-btn svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* Desktop Responsive Styles */
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
+
+  .app-header {
+    border-radius: 0;
+    padding: 1rem 2rem;
+  }
+
+  .header-container {
+    max-width: 1024px;
+    justify-content: space-between;
+  }
+
+  .search-bar {
+    max-width: 400px;
+    margin: 0 2rem;
+  }
+
+  .desktop-nav {
+    display: flex;
+    gap: 2rem;
+    margin-right: 2rem;
+  }
+
+  .nav-item {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+  }
+
+  .nav-item:hover {
+    opacity: 1;
+  }
+
+  .nav-item.active {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .mobile-nav-container {
+    display: none;
+  }
+
+  .main-content {
+    max-width: 800px;
+    padding-top: 2rem;
+  }
+
+  .message-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .message-card {
+    height: 100%; /* Equal height in grid */
+  }
+}

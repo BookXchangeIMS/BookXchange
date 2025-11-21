@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Messages</title>
+    <link rel="stylesheet" href="/frontend/static/mymessages.css">
+    <!-- Google Fonts: Quicksand -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Background Pattern -->
+    <div class="bg-pattern"></div>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo">
+                <i data-lucide="book-open" class="icon-logo"></i>
+            </div>
+            
+            <div class="search-bar">
+                <input type="search" placeholder="Find books" id="searchInput">
+                <i data-lucide="search" class="search-icon"></i>
+            </div>
+
+            <!-- Desktop Navigation (Hidden on mobile) -->
+            <nav class="desktop-nav">
+                <button class="nav-item active" title="Library">
+                    <i data-lucide="book-open"></i>
+                    <span>Library</span>
+                </button>
+                <button class="nav-item" title="Add Book">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Add</span>
+                </button>
+                <button class="nav-item" title="Favorites">
+                    <i data-lucide="heart"></i>
+                    <span>Favorites</span>
+                </button>
+            </nav>
+
+            <div class="user-actions">
+                <i data-lucide="message-square" class="icon-action"></i>
+                <i data-lucide="user" class="icon-action"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-icon">
+                <i data-lucide="book" class="book-icon"></i>
+                <div class="underline-decoration"></div>
+            </div>
+            <h1>Your Messages</h1>
+            <p class="subtitle">You have <span id="messageCount">4</span> new messages!</p>
+        </section>
+
+        <!-- Message List -->
+        <div class="message-list" id="messageList">
+            <!-- Messages will be populated by JS, but adding static HTML for initial render as per request -->
+            <div class="message-card">
+                <img src="/frontend/static/resources/Maias.png" alt="Os Maias" class="book-cover">
+                <div class="message-content">
+                    <h3>Os Maias</h3>
+                    <p>Is the book still available?</p>
+                </div>
+                <div class="message-meta">
+                    <span class="date">Today</span>
+                    <span class="time">14:59</span>
+                </div>
+            </div>
+
+            <div class="message-card">
+                <img src="/frontend/static/resources/Lordoftherings.png" alt="The Lord of the Rings" class="book-cover">
+                <div class="message-content">
+                    <h3>The Lord of the Rings</h3>
+                    <p>Is the book still available?</p>
+                </div>
+                <div class="message-meta">
+                    <span class="date">Yesterday</span>
+                    <span class="time">14:59</span>
+                </div>
+            </div>
+
+            <div class="message-card">
+                <img src="/frontend/static/resources/WarAndPeace.png" alt="War and Peace" class="book-cover">
+                <div class="message-content">
+                    <h3>War and Peace</h3>
+                    <p>Is the book still available?</p>
+                </div>
+                <div class="message-meta">
+                    <span class="date">Today</span>
+                    <span class="time">14:59</span>
+                </div>
+            </div>
+
+            <div class="message-card">
+                <img src="/frontend/static/resources/1984.png" alt="1984" class="book-cover">
+                <div class="message-content">
+                    <h3>1984</h3>
+                    <p>Is the book still available?</p>
+                </div>
+                <div class="message-meta">
+                    <span class="date">Today</span>
+                    <span class="time">14:59</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav-container">
+        <nav class="mobile-nav">
+            <button class="nav-btn active">
+                <i data-lucide="book-open"></i>
+            </button>
+            <button class="nav-btn">
+                <i data-lucide="plus"></i>
+            </button>
+            <button class="nav-btn">
+                <i data-lucide="heart"></i>
+            </button>
+        </nav>
+    </div>
+
+    <script src="/frontend/static/mymessages.js"></script>
+</body>
+</html>
