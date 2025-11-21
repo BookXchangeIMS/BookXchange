@@ -1,24 +1,28 @@
-Create Database BookXchange
-Go
-Use BookXchange
-Go
--- BookXchangeDB Schema
--- Naming: Plural tables, CamelCase, ID uppercase, "Date" suffix, "Type" for enums
+CREATE DATABASE BookXchange;
+GO
+USE BookXchange;
+GO
 
-CREATE TABLE Authors(
-    AuthorID INT IDENTITY PRIMARY KEY,
-    AuthorName NVARCHAR(256) NOT NULL
+CREATE TABLE Locations(
+    LocationID INT IDENTITY(1,1) PRIMARY KEY,
+    Longitude FLOAT NOT NULL,
+    Latitude FLOAT NOT NULL,
+    [Description] NVARCHAR(512) 
 );
-    
+GO
+
 CREATE TABLE Users(
     UserID INT IDENTITY PRIMARY KEY,
-    Name NVARCHAR(256) NOT NULL,
+    [Name] NVARCHAR(256) NOT NULL,
+    DateOfBirth DATE NOT NULL,
     Email NVARCHAR(256) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(256) NOT NULL,
     ProfileImagePath NVARCHAR(512),
     UserRole NVARCHAR(64) NOT NULL,
     AboutMe NVARCHAR(512),
-    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    LocationID INT,
+    FOREIGN KEY(LocationID) REFERENCES Locations(LocationID)
 );
 
 CREATE TABLE Books(
@@ -27,6 +31,11 @@ CREATE TABLE Books(
     Language NVARCHAR(64),
     ReleaseDate DATE,
     Edition INT
+);
+
+CREATE TABLE Authors(
+    AuthorID INT IDENTITY PRIMARY KEY,
+    AuthorName NVARCHAR(256) NOT NULL
 );
 
 CREATE TABLE AuthorBook(
@@ -62,19 +71,19 @@ CREATE TABLE Listings(
     FOREIGN KEY(BookID) REFERENCES Books(BookID)
 );
 
-CREATE TABLE Favorites(
-        UserID INT NOT NULL,
-        ListingID INT NOT NULL,
-        CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-        PRIMARY KEY(UserID, ListingID),
-        FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
-        FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
-    );
-
 CREATE TABLE ListingPhoto(
     PhotoID INT IDENTITY PRIMARY KEY,
     ListingID INT NOT NULL,
     ImagePath NVARCHAR(512) NOT NULL,
+    FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
+);
+
+CREATE TABLE Favorites(
+    UserID INT NOT NULL,
+    ListingID INT NOT NULL,
+    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    PRIMARY KEY(UserID, ListingID),
+    FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
 );
 
@@ -116,7 +125,6 @@ CREATE TABLE RefreshTokens(
     FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE
 );
 
--- Performance Indexes
 CREATE INDEX IX_Listings_UserID ON Listings(UserID);
 CREATE INDEX IX_Listings_BookID ON Listings(BookID);
 CREATE INDEX IX_ListingPhoto_ListingID ON ListingPhoto(ListingID);
