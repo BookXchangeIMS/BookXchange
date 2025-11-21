@@ -1,10 +1,12 @@
-from sqlalchemy import create_engine, MetaData, Table
-from sqlalchemy.orm import sessionmaker, Session
-from .config import *
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.orm import sessionmaker
+from backend.config.config import *
 
 DATABASE_URL = f"mssql+pyodbc://sa:{Settings.SA_PASSWORD}@localhost:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
 
 engine = create_engine(DATABASE_URL)
+
+# Fetching schema from the db
 metadata = MetaData()
 metadata.reflect(bind=engine)
 

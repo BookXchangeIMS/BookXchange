@@ -1,25 +1,32 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Form
+from fastapi import FastAPI, Depends, Form
 from typing import Annotated
-from .models import *
-from .auth import *
-from .db import get_db
+from backend.scripts.auth import *
+from backend.config.db import get_db
 app = FastAPI()
 
 @app.post("/api/sign_up", status_code=status.HTTP_201_CREATED)
 async def sign_up(sign_up_form: Annotated[SignUp, Form()], db= Depends(get_db)):
-    """
-    Handle the user sign-up process by accepting user details through the
-    sign-up form and creating a new user.
+    pass
 
-    :param sign_up_form: Container holding user details required for sign-up.
-    :type sign_up_form: SignUp
-    :return: Status code indicating the success of the sign-up process.
-    :rtype: dict
-    """
-    return sign_user_up(sign_up_form, db)
-
-@app.post("/api/sign_in")
+@app.post("/api/sign_in", response_model=Tokens, status_code=status.HTTP_200_OK)
 async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
+    """
+    Authenticates a user by validating provided credentials. If the credentials
+    match an existing user, generates and returns access and refresh tokens.
+    The refresh token is stored in the database for future validation. In case
+    no match is found for the provided credentials, an HTTP error with status
+    401 is raised.
+
+    :param login_data: Object containing user login data such as username and
+                       password.
+    :type login_data: Annotated[SignIn, Form()]
+    :param db: Dependency object to interface with the database.
+    :type db: Depends
+    :return: A Tokens object containing the generated access and refresh tokens
+             when authentication is successful, or a message indicating an issue
+             with storing the refresh token.
+    :rtype: Tokens or str
+    """
     userid = get_userid_by_credentials(login_data, db)
     if userid:
         access_token = create_access_token(login_data.dict())
@@ -36,7 +43,7 @@ async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
 
 @app.post("/api/refresh_access_token")
 async def refresh_access_token(token: str):
-    return verify_token(token)
+    return verify_access_token(token)
 
 
 @app.post("/api/logout")

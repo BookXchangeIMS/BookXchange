@@ -1,2 +1,3 @@
-backend/.env
-backend/config.py
+backend/config/.env
+backend/config/config.py
+backend/venv/
