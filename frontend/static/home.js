@@ -209,7 +209,7 @@ function goToProfile() {
 }
 
 function goToMessages() {
-    window.location.href = "messages.html"
+    window.location.href = "mymessages.html"
 }
 
 // Toast notification
