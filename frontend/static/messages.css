@@ -1,0 +1,411 @@
+/* CSS Reset & Variables */
+:root {
+  --color-primary: #b84b43; /* Red from header/footer */
+  --color-bg: #fbf4e6; /* Cream background */
+  --color-card-bg: #eaecf0; /* Light greyish for cards */
+  --color-text-dark: #2d3436;
+  --color-text-light: #636e72;
+  --color-white: #ffffff;
+  --font-main: "Nunito", sans-serif;
+  --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-float: 0 8px 20px rgba(184, 75, 67, 0.2);
+  --radius-lg: 20px;
+  --radius-md: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-bg);
+  color: var(--color-text-dark);
+  /* subtle pattern effect */
+  background-image: radial-gradient(#e6dfd1 1px, transparent 1px);
+  background-size: 20px 20px;
+  min-height: 100vh;
+  padding-bottom: 100px; /* Space for bottom nav */
+}
+
+/* Header */
+.main-header {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  padding: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.search-container {
+  flex: 1;
+  position: relative;
+  max-width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border-radius: 20px;
+  border: none;
+  background-color: #f5ecd5;
+  font-family: inherit;
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #333;
+  pointer-events: none;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Layout */
+.main-content {
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Profile Section */
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Adjusted profile header to be more compact for chat view </CHANGE> */
+.profile-header {
+  display: flex;
+  flex-direction: column; /* Stack vertically on mobile */
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.avatar-large {
+  width: 80px; /* Smaller avatar for chat context */
+  height: 80px;
+  background-color: var(--color-primary);
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(184, 75, 67, 0.2);
+}
+
+.avatar-large svg {
+  width: 50px;
+  height: 50px;
+}
+
+.profile-name {
+  font-size: 1.8rem; /* Smaller name */
+  font-weight: 800;
+  color: #2c3e50;
+}
+
+.section-label {
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.info-block {
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.bubble-card {
+  background-color: #f5ebd6; /* Slightly darker beige for contrast */
+  padding: 1.5rem;
+  border-radius: 30px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.bubble-card p {
+  line-height: 1.6;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.bubble-pill {
+  background-color: #fff8e7;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  display: inline-block;
+  font-weight: 700;
+}
+
+/* Chat Interface Styles (Replacing Listings) </CHANGE> */
+.chat-interface {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 300px); /* Approximate remaining height */
+  min-height: 400px;
+}
+
+.chat-container {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chat-date {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+
+.message.received {
+  align-self: flex-start;
+}
+
+.message.sent {
+  align-self: flex-end;
+}
+
+.message-content {
+  padding: 0.8rem 1.2rem;
+  border-radius: 18px;
+  position: relative;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.message.received .message-content {
+  background-color: var(--color-white);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  color: var(--color-text-dark);
+}
+
+.message.sent .message-content {
+  background-color: var(--color-primary);
+  color: white;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 2px 8px rgba(184, 75, 67, 0.2);
+}
+
+.message-time {
+  font-size: 0.65rem;
+  margin-top: 4px;
+  display: block;
+  opacity: 0.7;
+  text-align: right;
+}
+
+.chat-input-area {
+  padding: 0.8rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.attach-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.attach-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--color-text-dark);
+}
+
+#messageInput {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  border-radius: 25px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: var(--color-white);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#messageInput:focus {
+  border-color: var(--color-primary);
+}
+
+.send-btn {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.send-btn:hover {
+  transform: scale(1.05);
+}
+
+.send-btn:active {
+  transform: scale(0.95);
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 90;
+  pointer-events: none; /* Let clicks pass through to sides */
+}
+
+.nav-content {
+  pointer-events: auto;
+  background-color: var(--color-primary);
+  padding: 0.8rem 3rem;
+  border-radius: 50px; /* Pill shape */
+  display: flex;
+  gap: 4rem;
+  align-items: center;
+  box-shadow: var(--shadow-float);
+  width: 90%;
+  max-width: 500px;
+  justify-content: space-between;
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.nav-item.active,
+.nav-item:hover {
+  color: white;
+}
+
+/* Desktop Responsive Styles */
+@media (min-width: 768px) {
+  .content-wrapper {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 3rem;
+    height: calc(100vh - 150px); /* Full height minus header/padding */
+  }
+
+  .profile-section {
+    width: 300px;
+    flex-shrink: 0;
+    /* Removed sticky positioning needed for long content, now centered or top aligned */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 2rem;
+  }
+
+  .profile-header {
+    align-items: center; /* Keep centered on desktop sidebar */
+  }
+
+  .avatar-large {
+    width: 150px; /* Larger avatar on desktop */
+    height: 150px;
+  }
+
+  .profile-name {
+    font-size: 2.5rem;
+    margin-top: 1rem;
+  }
+
+  .chat-interface {
+    flex: 1;
+    height: 100%;
+    min-height: auto;
+  }
+
+  .chat-container {
+    background-color: rgba(255, 255, 255, 0.8); /* More opaque on desktop */
+  }
+}
