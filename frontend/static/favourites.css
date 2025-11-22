@@ -39,8 +39,8 @@ main {
 }
 
 .logo-img {
-    width: 720px;
-    max-width: 80%;
+    width: 420px;
+    max-width: 60%;
     height: auto;
     display: block;
     margin: 0 auto;
@@ -222,7 +222,7 @@ main {
 
 @media (max-width: 1024px) {
     .logo-img {
-        max-width: 85%;
+        max-width: 50%;
         height: auto;
     }
 }
