@@ -6,10 +6,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-image: url('../static/resources/backgroundopacity.png');
-    background-size: auto;
-    background-repeat: repeat;
-    background-attachment: fixed;
+    background-image: url('../static/resources/backgroundopacity2.png');
     background-color: #FFF1D8;
     min-height: 100vh;
     display: flex;
@@ -30,6 +27,9 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom-left-radius: 20px; 
+    border-bottom-right-radius: 20px;
+    overflow: hidden;
 }
 
 .logo {
@@ -39,8 +39,10 @@ header {
 }
 
 .logo-icon img {
-    height: 35px;
+    height: 55px;
     width: auto;
+    display: block;
+    margin-left: 22px; 
 }
 
 .logo-text {
@@ -49,15 +51,19 @@ header {
     color: white;
 }
 
+
 .logo-text .highlight {
     color: #1a1a2e;
 }
 
 .search-bar {
     flex: 1;
-    max-width: 500px;
+    max-width: 600px;
     margin: 0 20px;
     position: relative;
+}
+.search-bar > input {
+    height: 44px; 
 }
 
 .search-bar input {
@@ -65,13 +71,14 @@ header {
     padding: 10px 45px 10px 25px;
     border-radius: 30px;
     border: none;
-    background-color: white;
+    background-color: #F3E6CF;
     font-size: 16px;
     font-weight: 600;
     color: #1a1a2e;
     outline: none;
     transition: all 0.3s ease;
 }
+
 
 .search-bar input::placeholder {
     color: #999;
@@ -97,14 +104,14 @@ header {
 }
 
 .chat-btn, .profile-btn {
-    background-color: white;
+    background-color: #F3E6CF;
     border: none;
     font-size: 20px;
-    color: #1a1a2e;
+    color: #c84c3d;
     cursor: pointer;
     padding: 10px;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     transition: all 0.3s;
     display: flex;
@@ -120,41 +127,33 @@ header {
 /* Main Content */
 main {
     flex: 1;
-    padding: 40px 20px 20px;
+    padding: 0px 20px 20px;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
 }
 
-/* Logo Section */
+
 .logo-section {
-    text-align: center;
-    margin-bottom: 40px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0px;
+    min-height: 340px;  
+    width: 100%;
 }
 
 .logo-img {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 15px;
+    width: 720px;     
+    max-width: 80%;    
+    height: auto;
+    display: block;
+    margin: 0 auto;
 }
 
-.logo-section .logo-text {
-    font-size: 42px;
-    font-weight: 900;
-    letter-spacing: -1px;
-    color: #1a1a2e;
-    margin-bottom: 8px;
-}
 
-.logo-section .logo-text .highlight {
-    color: #c84c3d;
-}
-
-.tagline {
-    font-size: 18px;
-    color: #000000;
-    font-weight: 500;
-}
+/*-----------------------------------------------------------------------*/
 
 .book-listings {
     padding: 0;
@@ -170,9 +169,9 @@ main {
 
 .books-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
-    max-width: 1000px;  /* Increased from 650px to fit 3 columns */
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -295,6 +294,9 @@ main {
     transform: scale(1.1);
 }
 
+
+
+/*-----------------------------------------------------------------------*/
 /* Bottom Navigation */
 .bottom-nav {
     background-color: #c84c3d;
@@ -312,19 +314,36 @@ main {
     border-radius: 40px;
 }
 
-.nav-btn {
-    background-color: white;
+.bottom-nav .nav-btn {
+    padding: 0;           
+    overflow: hidden;    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-nav .nav-btn img,
+.bottom-nav .nav-btn svg {
+    width: 990%;           
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;  
+    display: block;
+}
+.nav-btn { 
+    background-color: #d6c0a6;
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 60px;
-    height: 60px;
+    width: clamp(10px, 6vw, 47px);
+    height: clamp(10px, 6vw, 47px);
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s;
-    color: #1a1a2e;
-    font-size: 24px;
+    color: #2c3e50;
+    font-size: clamp(16px, 2.8vw, 28px);
+    padding: 0;
 }
 
 .nav-btn.active {
@@ -342,67 +361,130 @@ main {
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
-    .books-grid {
-        grid-template-columns: repeat(2, 1fr);  /* 2 columns on tablets */
-        max-width: 650px;
-    }
-}
 
-@media (max-width: 768px) {
+
+/* Desktop */
+@media (max-width: 1200px) {
     header {
-        flex-direction: column;
-        gap: 15px;
-        padding: 15px;
+        padding: 12px 18px;
     }
 
-    .search-bar {
-        max-width: 100%;
-        margin: 0;
-        width: 100%;
+    .logo-text {
+        font-size: 22px;
+    }
+
+    .logo-icon img {
+        height: 48px;
+    }
+
+    .search-bar input {
+        font-size: 15px;
+        padding: 10px 40px 10px 20px;
     }
 
     .books-grid {
-        grid-template-columns: 1fr;
-        max-width: 400px;
-    }
-
-    .logo-section .logo-text {
-        font-size: 32px;
-    }
-
-    .tagline {
-        font-size: 16px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
-@media (max-width: 480px) {
+/* Tablets / small laptops */
+@media (max-width: 1024px) {
+
+    .logo-icon img {
+        height: 44px;
+        margin-left: 0;
+    }
+
+    .chat-btn, .profile-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .logo-img {
+        max-width: 85%;
+        height: auto;
+    }
+
+    .bottom-nav {
+        max-width: min(520px, 92vw);
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 14px;
+    }
+}
+
+/* Normal phones */
+@media (max-width: 768px) {
+    .logo {
+        display: none;
+    }
+
+    header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+    }
+
+    .header-actions {
+        margin-left: auto;
+        justify-content: flex-end;
+    }
+
     .books-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-width: 720px;
+        padding: 0 12px;
+        gap: 16px;
     }
 
     .book-image {
-        height: 200px;
+        height: clamp(180px, 32vw, 230px);
     }
+}
 
+/* Small phones */
+@media (max-width: 480px) {
     header {
-        padding: 12px 15px;
-        gap: 10px;
+        padding: 10px 12px;
+        gap: 8px;
     }
 
     .search-bar input {
         font-size: 14px;
-        padding: 8px 40px 8px 20px;
-    }
-
-    .logo-icon img {
-        height: 30px;
+        padding: 8px 36px 8px 16px;
     }
 
     .chat-btn, .profile-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .books-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        max-width: 92vw;
+        margin: 0 auto;
+        padding: 0 8px;
+    }
+
+    .book-image {
+        height: clamp(150px, 30vw, 210px);
+    }
+
+    .logo-img {
+        width: 140px;
+    }
+
+    .bottom-nav {
+        max-width: calc(100% - 24px);
+        left: 12px;
+        right: 12px;
+        transform: none;
+        border-radius: 32px;
+        bottom: 12px;
+        padding: 8px;
     }
 }
+
