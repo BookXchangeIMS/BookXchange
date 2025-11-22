@@ -21,15 +21,34 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
-.bottom-nav .nav-btn img,
-.bottom-nav .nav-btn svg {
-    width: 990%;           
+/* Hide active image by default */
+.bottom-nav .nav-btn .btn-icon-active {
+    display: none;
+}
+
+/* Show inactive image by default */
+.bottom-nav .nav-btn .btn-icon-inactive {
+    display: block;
+    width: 990%;
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;  
+    object-fit: contain;
+}
+
+/* When button is active, show active image and hide inactive */
+.bottom-nav .nav-btn.active .btn-icon-active {
     display: block;
+    width: 990%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.bottom-nav .nav-btn.active .btn-icon-inactive {
+    display: none;
 }
 
 .nav-btn { 

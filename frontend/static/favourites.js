@@ -17,7 +17,7 @@ const ALL_LISTINGS_DATA = [
         price: "$45.00",
         location: "Lisbon, Portugal",
         date: "Posted 3 days ago",
-        isFavorite: true, // Favorite
+        isFavorite: true,
         imagePath: "../static/resources/lotr.png"
     },
     {
@@ -47,7 +47,7 @@ const ALL_LISTINGS_DATA = [
         price: "$14.50",
         location: "Chicago, IL",
         date: "Posted 1 week ago",
-        isFavorite: true, // Favorite
+        isFavorite: true,
         imagePath: "../static/resources/mockingbird.png"
     },
     {
@@ -62,25 +62,22 @@ const ALL_LISTINGS_DATA = [
     }
 ];
 
-// NOTE: We filter the data to only show FAVORITES initially.
+// Filter only favorites
 let filteredFavorites = ALL_LISTINGS_DATA.filter(book => book.isFavorite);
 
 // DOM elements
-const booksGrid = document.getElementById('favoritesGrid'); // Use correct ID from HTML
-const searchInput = document.getElementById('searchInput');
+const booksGrid = document.getElementById('favoritesGrid');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
     loadBooks(filteredFavorites);
-    setupEventListeners();
 });
 
-// Setup event listeners
-function setupEventListeners() {
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-    }
-}
+// Initialize search after components are loaded
+document.addEventListener('componentsLoaded', function() {
+    // Pass only favorites to SearchManager
+    SearchManager.init(filteredFavorites, loadBooks);
+});
 
 // Load books into the grid
 function loadBooks(books) {
@@ -142,7 +139,7 @@ function createBookCard(book) {
     // Contact button click
     contactBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        viewListing(book.id); // Use consistent navigation function
+        viewListing(book.id);
     });
     
     // Favorite button click (Removal logic)
@@ -151,9 +148,8 @@ function createBookCard(book) {
         removeFavorite(book.id);
     });
     
-    // Make card clickable (SAME as Home page logic)
+    // Make card clickable
     card.addEventListener('click', (e) => {
-        // Don't trigger if clicking on the specific buttons
         if (!e.target.closest('.contact-btn') && !e.target.closest('.favorite-btn')) {
              viewListing(book.id); 
         }
@@ -162,19 +158,17 @@ function createBookCard(book) {
     return card;
 }
 
-// View listing details (MATCHING Home Page navigation)
+// View listing details
 function viewListing(bookId) {
     const book = ALL_LISTINGS_DATA.find(b => b.id === bookId);
     if (book) {
         console.log(`Navigating to listing page for: ${book.title}`);
-        // THIS IS THE TARGET URL CONSISTENT ACROSS PAGES
         window.location.href = `listing.html?id=${bookId}`; 
     }
 }
 
-// Remove from favorites (Toggling the favorite status and refreshing the list)
+// Remove from favorites
 function removeFavorite(bookId) {
-    // Confirm removal
     if (!confirm('Remove this book from your favorites?')) {
         return;
     }
@@ -187,22 +181,10 @@ function removeFavorite(bookId) {
         // Update filtered list and reload
         filteredFavorites = ALL_LISTINGS_DATA.filter(b => b.isFavorite);
         loadBooks(filteredFavorites);
+        
+        // Update SearchManager with new data
+        SearchManager.updateData(filteredFavorites);
     }
-}
-
-// Handle search functionality
-function handleSearch() {
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    let favorites = ALL_LISTINGS_DATA.filter(book => book.isFavorite);
-    
-    if (searchTerm) {
-        favorites = favorites.filter(book => 
-            book.title.toLowerCase().includes(searchTerm) || 
-            book.author.toLowerCase().includes(searchTerm)
-        );
-    }
-    
-    loadBooks(favorites);
 }
 
 // Navigation functions
@@ -226,7 +208,7 @@ function goToMessages() {
     window.location.href = 'messages.html';
 }
 
-// Toast notification (Auxiliary function)
+// Toast notification
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -254,7 +236,7 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Add CSS for animations (Auxiliary function)
+// Add CSS for animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideUp {
