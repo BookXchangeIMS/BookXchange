@@ -16,114 +16,6 @@ body {
     padding-bottom: 80px;
 }
 
-/* Header Styles */
-header {
-    background-color: #c84c3d;
-    padding: 15px 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom-left-radius: 20px; 
-    border-bottom-right-radius: 20px;
-    overflow: hidden;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.logo-icon img {
-    height: 55px;
-    width: auto;
-    display: block;
-    margin-left: 22px; 
-}
-
-.logo-text {
-    font-size: 24px;
-    font-weight: 900;
-    color: white;
-}
-
-
-.logo-text .highlight {
-    color: #1a1a2e;
-}
-
-.search-bar {
-    flex: 1;
-    max-width: 600px;
-    margin: 0 20px;
-    position: relative;
-}
-.search-bar > input {
-    height: 44px; 
-}
-
-.search-bar input {
-    width: 100%;
-    padding: 10px 45px 10px 25px;
-    border-radius: 30px;
-    border: none;
-    background-color: #F3E6CF;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1a1a2e;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-
-.search-bar input::placeholder {
-    color: #999;
-}
-
-.search-bar input:focus {
-    transform: scale(1.02);
-    box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
-}
-
-.search-bar i {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #666;
-    font-size: 18px;
-}
-
-.header-actions {
-    display: flex;
-    gap: 15px;
-}
-
-.chat-btn, .profile-btn {
-    background-color: #F3E6CF;
-    border: none;
-    font-size: 20px;
-    color: #c84c3d;
-    cursor: pointer;
-    padding: 10px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.chat-btn:hover, .profile-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
 /* Main Content */
 main {
     flex: 1;
@@ -133,27 +25,22 @@ main {
     width: 100%;
 }
 
-
 .logo-section {
-
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 0px;
-    min-height: 340px;  
+    min-height: 340px;
     width: 100%;
 }
 
 .logo-img {
-    width: 720px;     
-    max-width: 80%;    
+    width: 720px;
+    max-width: 80%;
     height: auto;
     display: block;
     margin: 0 auto;
 }
-
-
-/*-----------------------------------------------------------------------*/
 
 .book-listings {
     padding: 0;
@@ -183,8 +70,8 @@ main {
     transition: transform 0.3s, box-shadow 0.3s;
     position: relative;
     cursor: pointer;
-    display: flex;              
-    flex-direction: column;     
+    display: flex;
+    flex-direction: column;
 }
 
 .book-card:hover {
@@ -204,9 +91,9 @@ main {
 
 .book-info {
     padding: 15px;
-    display: flex;              
-    flex-direction: column;     
-    flex: 1;                    
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .book-title {
@@ -249,7 +136,7 @@ main {
     justify-content: space-between;
     gap: 10px;
     align-items: center;
-    margin-top: auto;          
+    margin-top: auto;
 }
 
 .contact-btn {
@@ -294,173 +181,33 @@ main {
     transform: scale(1.1);
 }
 
-
-
-/*-----------------------------------------------------------------------*/
-/* Bottom Navigation */
-.bottom-nav {
-    background-color: #c84c3d;
-    padding: 10px 15px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-around;
-    position: fixed;
-    bottom: 10px;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    max-width: 50%;
-    margin: 0 auto;
-    border-radius: 40px;
-}
-
-.bottom-nav .nav-btn {
-    padding: 0;           
-    overflow: hidden;    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.bottom-nav .nav-btn img,
-.bottom-nav .nav-btn svg {
-    width: 990%;           
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;  
-    display: block;
-}
-.nav-btn { 
-    background-color: #d6c0a6;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: clamp(10px, 6vw, 47px);
-    height: clamp(10px, 6vw, 47px);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s;
-    color: #2c3e50;
-    font-size: clamp(16px, 2.8vw, 28px);
-    padding: 0;
-}
-
-.nav-btn.active {
-    background-color: #2c3e50;
-    color: white;
-    transform: scale(1.1);
-}
-
-.nav-btn i {
-    font-size: 24px;
-}
-
-.nav-btn:hover {
-    transform: scale(1.15);
-}
-
-/* Responsive Design */
-
-
-/* Desktop */
+/* Responsive */
 @media (max-width: 1200px) {
-    header {
-        padding: 12px 18px;
-    }
-
-    .logo-text {
-        font-size: 22px;
-    }
-
-    .logo-icon img {
-        height: 48px;
-    }
-
-    .search-bar input {
-        font-size: 15px;
-        padding: 10px 40px 10px 20px;
-    }
-
     .books-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
-/* Tablets / small laptops */
 @media (max-width: 1024px) {
-
-    .logo-icon img {
-        height: 44px;
-        margin-left: 0;
-    }
-
-    .chat-btn, .profile-btn {
-        width: 44px;
-        height: 44px;
-    }
-
     .logo-img {
         max-width: 85%;
         height: auto;
     }
-
-    .bottom-nav {
-        max-width: min(520px, 92vw);
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: 14px;
-    }
 }
 
-/* Normal phones */
 @media (max-width: 768px) {
-    .logo {
-        display: none;
-    }
-
-    header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 12px;
-    }
-
-    .header-actions {
-        margin-left: auto;
-        justify-content: flex-end;
-    }
-
     .books-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         max-width: 720px;
         padding: 0 12px;
         gap: 16px;
     }
-
     .book-image {
         height: clamp(180px, 32vw, 230px);
     }
 }
 
-/* Small phones */
 @media (max-width: 480px) {
-    header {
-        padding: 10px 12px;
-        gap: 8px;
-    }
-
-    .search-bar input {
-        font-size: 14px;
-        padding: 8px 36px 8px 16px;
-    }
-
-    .chat-btn, .profile-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-    }
-
     .books-grid {
         grid-template-columns: 1fr;
         gap: 14px;
@@ -468,23 +215,10 @@ main {
         margin: 0 auto;
         padding: 0 8px;
     }
-
     .book-image {
         height: clamp(150px, 30vw, 210px);
     }
-
     .logo-img {
         width: 140px;
     }
-
-    .bottom-nav {
-        max-width: calc(100% - 24px);
-        left: 12px;
-        right: 12px;
-        transform: none;
-        border-radius: 32px;
-        bottom: 12px;
-        padding: 8px;
-    }
 }
-
