@@ -29,12 +29,16 @@ class SignIn(BaseModel):
 
 class SignUp(SignIn):
     Name: str
+    DateOfBirth: datetime
 
-class GetUser(BaseModel):
-    UserID: int
+class UpdateUser(BaseModel):
+    Name: str
     ProfileImagePath: str
-    UserRole: str
     AboutMe: str
+
+class GetUser(UpdateUser):
+    UserID: int
+    UserRole: str
 
 class User(GetUser, SignUp):
     CreationDate: datetime

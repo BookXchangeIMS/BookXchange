@@ -1,10 +1,26 @@
 from http import HTTPStatus
 
-from fastapi import FastAPI, Depends, Form
+from fastapi import FastAPI, Depends, Form, Header
 from typing import Annotated
 from backend.scripts.auth import *
+from backend.scripts.profile_crud import *
 from backend.config.db import get_db
-app = FastAPI()
+
+tags_metadata = [
+    {
+        "name": "Authentication",
+        "description": "Operations with user's authentication. The **login** logic is here.",
+    },
+    {
+        "name": "Profile",
+        "description": "Operations with user's profile that are not related to authentication.",
+    },
+    {
+        "name": "Preferences",
+        "description": "Operations with user's preferences in genres.",
+    },
+]
+app = FastAPI(openapi_tags=tags_metadata)
 
 
 #==============================================================================================================
@@ -17,7 +33,7 @@ Endpoints for user authentication and management:
 - POST /api/refresh_access_token: Refreshes the access token using a valid refresh token
 - POST /api/logout: Invalidates the refresh token associated with a user's access token
 """
-@app.post("/api/sign_up", status_code=status.HTTP_201_CREATED)
+@app.post("/api/sign_up", status_code=status.HTTP_201_CREATED, tags=["Authentication"], response_model=Tokens)
 async def sign_up(sign_up_form: Annotated[SignUp, Form()], db= Depends(get_db)):
     """
     Handles the user sign-up process. It checks if the email already exists in the database,
@@ -47,7 +63,7 @@ async def sign_up(sign_up_form: Annotated[SignUp, Form()], db= Depends(get_db)):
                 detail="Incorrect username or password",
             )
 
-@app.post("/api/sign_in", response_model=Tokens, status_code=status.HTTP_200_OK)
+@app.post("/api/sign_in", response_model=Tokens, status_code=status.HTTP_200_OK, tags=["Authentication"])
 async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
     """
     Authenticates a user by validating provided credentials. If the credentials
@@ -80,8 +96,8 @@ async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
         )
 
 
-@app.post("/api/refresh_access_token", response_model=Tokens, status_code=status.HTTP_200_OK)
-async def refresh_access_token(token: str, db= Depends(get_db)):
+@app.get("/api/refresh_access_token", response_model=Tokens, status_code=status.HTTP_200_OK, tags=["Authentication"])
+async def refresh_access_token(token: str = Header(None), db= Depends(get_db)):
     """
     Refresh the access token using a valid refresh token. This endpoint verifies the provided refresh token,
     fetches the user associated with it, and generates a new access token if the token is valid. If the token
@@ -104,8 +120,8 @@ async def refresh_access_token(token: str, db= Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
 
-@app.post("/api/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(tokens: Tokens, db= Depends(get_db)):
+@app.delete("/api/logout", status_code=status.HTTP_204_NO_CONTENT, tags=["Authentication"])
+async def logout(tokens: Tokens = Header(None), db= Depends(get_db)):
     """
     Logs out a user by invalidating their refresh token.
 
@@ -127,6 +143,116 @@ async def logout(tokens: Tokens, db= Depends(get_db)):
     else:
         raise HTTPException(status_code=401, detail="Invalid access token")
 
+@app.get("/api/does_user_exist", status_code=status.HTTP_200_OK, tags=["Authentication"])
+async def does_user_exist(email: str = Form(...), db= Depends(get_db)):
+    """
+    For the 1-st step of the registration process on the page, this endpoint checks if the provided email address already exists in the system.
+
+    :param email: The email address to verify.
+    :type email: str
+    :param db: Database session used for querying and operations.
+    :type db: Any
+    :return: A result indicating whether the email exists in the system.
+    :rtype: Any
+    """
+    if check_if_email_exists(SignUp(Name="", Email=email, PasswordHash=""), db):
+        raise HTTPException(status_code=409, detail="This email already exists")
+    else:
+        return False
+
+# ===================================================================================================================
+# PREFERENCES ENDPOINTS
+# ===================================================================================================================
+@app.post("/api/post_preferences", status_code=status.HTTP_201_CREATED, tags=["Preferences"])
+async def post_preferences(preferences: list[str], access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Post user preferences based on access token and save them to the database.
+
+    This function takes an access token, retrieves the associated user ID, and uses it
+    to store the given user preferences to the database. The function returns the result
+    of the operation performed on the database.
+
+    :param access_token: A string representing the user's access token for authentication.
+    :param preferences: A list of strings representing the user's preferences to be saved.
+    :param db: Database dependency for managing database connection and operations.
+    :return: Result of storing user preferences in the database.
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    return post_preferences_by_userid(userid, preferences, db)
+
+@app.get("/api/get_preferences", status_code=status.HTTP_200_OK, response_model=list[str], tags=["Preferences"])
+async def get_preferences(access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Post user preferences based on access token and save them to the database.
+
+    This function takes an access token, retrieves the associated user ID, and uses it
+    to store the given user preferences to the database. The function returns the result
+    of the operation performed on the database.
+
+    :param access_token: A string representing the user's access token for authentication.
+    :param preferences: A list of strings representing the user's preferences to be saved.
+    :param db: Database dependency for managing database connection and operations.
+    :return: Result of storing user preferences in the database.
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    return get_preferences_by_userid(userid, db)
+
+@app.delete("/api/delete_preferences", status_code=status.HTTP_204_NO_CONTENT, tags=["Preferences"])
+async def delete_preference(genre_name: str, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Deletes a user's preference for a given genre.
+
+    This endpoint removes a genre preference for a user based on the provided `access_token` and `genre_name`.
+    The operation interacts with the database to find the user by their associated access token
+    and delete their specified preference.
+
+    :param access_token: The access token of the user used for authentication.
+    :type access_token: str
+    :param genre_name: The name of the genre to delete from the user's preferences.
+    :type genre_name: str
+    :param db: A database session dependency used for interacting with the database.
+    :type db: Depends
+    :return: None
+    :rtype: None
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    return delete_preference_by_userid(userid, genre_name, db)
+
+# ===================================================================================================================
+# PROFILE ENDPOINTS
+# ===================================================================================================================
+
+@app.get("/api/get_profile", response_model=GetUser, status_code=status.HTTP_200_OK, tags=["Profile"])
+async def get_profile(access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Retrieve the profile of a user based on the provided access token.
+
+    This API endpoint fetches user profile details using the supplied access token
+    and database connection. It returns user-specific information such as UserID,
+    ProfileImagePath, UserRole, and AboutMe fields.
+
+    :param access_token: Access token to identify and authenticate the user.
+    :type access_token: str
+    :param db: Database connection dependency for fetching user details.
+    :type db: sqlalchemy.orm.Session
+    :return: User profile information with fields UserID, ProfileImagePath,
+        UserRole, and AboutMe.
+    :rtype: GetUser
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    user_data = get_user_by_id(userid, db)
+    return GetUser(
+        UserID=user_data.UserID,
+        Name=user_data.Name,
+        ProfileImagePath=user_data.ProfileImagePath,
+        UserRole=user_data.UserRole,
+        AboutMe=user_data.AboutMe,
+    )
+
+@app.put("/api/update_profile", response_model=UpdateUser, status_code=status.HTTP_200_OK, tags=["Profile"])
+async def get_profile(new_info: UpdateUser, access_token: str = Header(None), db= Depends(get_db)):
+    userid = get_userid_by_access_token(access_token, db)
+    return update_profile_by_userid(userid, new_info, db)
 
 
 
