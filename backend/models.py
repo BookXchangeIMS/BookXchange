@@ -40,6 +40,10 @@ class GetUser(UpdateUser):
     UserID: int
     UserRole: str
 
+class GetMyUser(GetUser):
+    Email: str
+    CreationDate: datetime
+
 class User(GetUser, SignUp):
     CreationDate: datetime
 

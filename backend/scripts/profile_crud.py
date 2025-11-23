@@ -142,7 +142,32 @@ def update_profile_by_userid(userid: int, new_info: UpdateUser, db):
         raise HTTPException(status_code=409, detail="Couldn't update profile")
     return new_info
 
+def delete_profile_by_userid(userid, db):
+    """
+    Deletes a user profile from the database based on the provided UserID.
 
+    This function aims to delete a specific user profile identified by their UserID.
+    It executes a DELETE SQL query on the `Users` table. If the deletion is successful,
+    the changes to the database are committed. In case the profile cannot be deleted
+    (for example, if the UserID does not exist in the table), an HTTPException is raised.
+
+    :param userid: The unique identifier of the user whose profile needs to be deleted.
+    :type userid: int
+    :param db: The database connection or session to execute the SQL commands.
+    :type db: sqlalchemy.engine.Connection or sqlalchemy.orm.Session
+    :return: None
+    :rtype: NoneType
+
+    :raises HTTPException: If the profile cannot be deleted due to a conflict or the
+        UserID does not exist.
+    """
+    users = metadata.tables["Users"]
+    stmt = users.delete().where(users.c.UserID == userid)
+    result = db.execute(stmt)
+    if result.rowcount == 1:
+        db.commit()
+    else:
+        raise HTTPException(status_code=409, detail="Couldn't delete the profile")
 # ===============================================================================================================
 # Transactions
 # ===============================================================================================================

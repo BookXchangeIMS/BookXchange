@@ -222,37 +222,93 @@ async def delete_preference(genre_name: str, access_token: str = Header(None), d
 # PROFILE ENDPOINTS
 # ===================================================================================================================
 
-@app.get("/api/get_profile", response_model=GetUser, status_code=status.HTTP_200_OK, tags=["Profile"])
-async def get_profile(access_token: str = Header(None), db= Depends(get_db)):
+@app.get("/api/get_your_profile", response_model=GetMyUser, status_code=status.HTTP_200_OK, tags=["Profile"])
+async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)):
     """
-    Retrieve the profile of a user based on the provided access token.
+    Fetches the profile information of the user associated with the provided access token.
+    The function retrieves the user ID using the access token and queries the database
+    to fetch the user's profile details. It then returns the user information formatted
+    as a response model.
 
-    This API endpoint fetches user profile details using the supplied access token
-    and database connection. It returns user-specific information such as UserID,
-    ProfileImagePath, UserRole, and AboutMe fields.
-
-    :param access_token: Access token to identify and authenticate the user.
+    :param access_token: The access token provided to authenticate and identify the user.
+        This is required for fetching the profile details.
     :type access_token: str
-    :param db: Database connection dependency for fetching user details.
-    :type db: sqlalchemy.orm.Session
-    :return: User profile information with fields UserID, ProfileImagePath,
-        UserRole, and AboutMe.
-    :rtype: GetUser
+    :param db: The database session instance used to execute queries.
+        Dependency injection via FastAPI's `Depends` is used to provide this parameter.
+    :return: A response object containing the user's profile information, including user
+        ID, email, name, profile image path, user role, about me, and account creation
+        date.
+    :rtype: GetMyUser
     """
     userid = get_userid_by_access_token(access_token, db)
     user_data = get_user_by_id(userid, db)
-    return GetUser(
+    return GetMyUser(
         UserID=user_data.UserID,
+        Email=user_data.Email,
         Name=user_data.Name,
         ProfileImagePath=user_data.ProfileImagePath,
         UserRole=user_data.UserRole,
         AboutMe=user_data.AboutMe,
+        CreationDate=user_data.CreationDate
     )
+
+@app.get("/api/get_profile", response_model=GetUser, status_code=status.HTTP_200_OK, tags=["Profile"])
+async def get_profile(userid: int, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Fetches the profile of a user based on their user ID. The endpoint
+    validates the provided access token and retrieves the user data from the database
+    if the token is valid. Returns user profile details in the specified response model.
+
+    :param userid: Unique identifier of the user whose profile is to be fetched.
+    :type userid: int
+    :param access_token: A token required for accessing the API, provided in the
+        request header. Defaults to None.
+    :type access_token: str, optional
+    :param db: Database dependency for interacting with the database.
+    :type db: Depends
+    :return: Returns a response model containing the user's profile data
+        including UserID, Name, ProfileImagePath, UserRole, and AboutMe.
+    :rtype: GetUser
+    :raises HTTPException: Raised with a 401 status code if the access token is invalid.
+    """
+    if verify_access_token(access_token):
+        user_data = get_user_by_id(userid, db)
+        return GetUser(
+            UserID=user_data.UserID,
+            Name=user_data.Name,
+            ProfileImagePath=user_data.ProfileImagePath,
+            UserRole=user_data.UserRole,
+            AboutMe=user_data.AboutMe,
+        )
+    else:
+        raise HTTPException(status_code=401, detail="Invalid access token")
 
 @app.put("/api/update_profile", response_model=UpdateUser, status_code=status.HTTP_200_OK, tags=["Profile"])
 async def get_profile(new_info: UpdateUser, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Updates the user profile information based on the provided details. The function requires
+    an access token to authenticate the user and identify their `userid`.
+    It updates the profile data in the database for the `userid` associated
+    with the access token provided. The newly updated user information is
+    returned upon successful execution.
+
+    :param new_info: Data containing updated user profile information
+    :type new_info: UpdateUser
+    :param access_token: The access token string used for user authentication
+    :type access_token: str
+    :param db: Dependency injection for database session
+    :type db: Depends
+    :return: The updated user profile information
+    :rtype: UpdateUser
+    """
     userid = get_userid_by_access_token(access_token, db)
     return update_profile_by_userid(userid, new_info, db)
+
+@app.delete("/api/delete_profile", status_code=status.HTTP_204_NO_CONTENT, tags=["Profile"])
+async def delete_profile(tokens: Tokens = Header(None), db= Depends(get_db)):
+    userid = get_userid_by_access_token(tokens.access_token, db)
+    return delete_profile_by_userid(userid, db)
+
 
 
 
