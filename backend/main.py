@@ -80,7 +80,7 @@ async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
         )
 
 
-@app.post("/api/refresh_access_token", response_model=Tokens, status_code=200)
+@app.post("/api/refresh_access_token", response_model=Tokens, status_code=status.HTTP_200_OK)
 async def refresh_access_token(token: str, db= Depends(get_db)):
     """
     Refresh the access token using a valid refresh token. This endpoint verifies the provided refresh token,
@@ -104,7 +104,7 @@ async def refresh_access_token(token: str, db= Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
 
-@app.post("/api/logout", status_code=204)
+@app.post("/api/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(tokens: Tokens, db= Depends(get_db)):
     """
     Logs out a user by invalidating their refresh token.
@@ -126,3 +126,7 @@ async def logout(tokens: Tokens, db= Depends(get_db)):
         return destroy_refresh_token(tokens, db)
     else:
         raise HTTPException(status_code=401, detail="Invalid access token")
+
+
+
+
