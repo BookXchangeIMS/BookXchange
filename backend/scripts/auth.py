@@ -78,6 +78,7 @@ def sign_user_up(data: SignUp, db):
         Name=data.Name,
         Email=data.Email,
         PasswordHash=data.PasswordHash,
+        DateOfBirth= data.DateOfBirth,
         CreationDate= datetime.now(),
         ProfileImagePath= "/image.png",
         UserRole= "User",
@@ -87,7 +88,8 @@ def sign_user_up(data: SignUp, db):
         db.execute(stmt)
         db.commit()
     except Exception as e:
-        raise HTTPException(status_code=409, detail="Couldn't create new account. Please try again later.")
+        print("ho nooo")
+        raise HTTPException(status_code=500, detail="Couldn't create new account. Please try again later.")
 
 def get_user_by_id(userid: int, db):
     """
@@ -133,6 +135,23 @@ def get_userid_by_refresh_token(refresh_token, db):
         return row.UserID
     else:
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+def get_userid_by_access_token(access_token, db):
+    try:
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        credentials = payload
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        )
+    users = metadata.tables["Users"]
+    stmt = select(users).where(users.c.Email == credentials["Email"])
+    row = db.execute(stmt).fetchone()
+    if row:
+        return row.UserID
+    else:
+        raise HTTPException(status_code=401, detail="Invalid or expired access token")
 #================================================================================================================
 # ACCESS TOKENS =================================================================================================
 
