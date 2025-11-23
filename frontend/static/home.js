@@ -1,37 +1,39 @@
+
+
+
 // Sample book data (in a real app, this would come from a database)
 const bookData = [
-    // Books matching the Announcements page (simulated cross-listing data)
     {
-        id: 101, // Matching the ListingID from Announcements.JS
+        id: 101,
         title: "Harry Potter and the Sorcerer's Stone",
         author: "J.K. Rowling",
         price: "$18.25",
         location: "Lisbon, Portugal",
         date: "Posted 1 day ago",
         isFavorite: false,
-        imagePath: "../static/resources/harrypotter.png" // ADDED IMAGE PATH
+        imagePath: "../static/resources/harrypotter.png"
     },
     {
-        id: 102, // Matching the ListingID from Announcements.JS
+        id: 102,
         title: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
         author: "J.R.R. Tolkien",
         price: "$45.00",
         location: "Lisbon, Portugal",
         date: "Posted 3 days ago",
         isFavorite: true,
-        imagePath: "../static/resources/lotr.png" // ADDED IMAGE PATH
+        imagePath: "../static/resources/lotr.png"
     },
     {
-        id: 103, // Matching the ListingID from Announcements.JS
+        id: 103,
         title: "Sapiens: A Brief History of Humankind",
         author: "Yuval Noah Harari",
         price: "$15.00",
         location: "Lisbon, Portugal",
         date: "Posted 1 week ago",
         isFavorite: false,
-        imagePath: "../static/resources/sapiens.png" // ADDED IMAGE PATH
+        imagePath: "../static/resources/sapiens.png"
+ 
     },
-    // Other diverse listings
     {
         id: 1,
         title: "The Great Gatsby",
@@ -40,7 +42,7 @@ const bookData = [
         location: "New York, NY",
         date: "Posted 2 days ago",
         isFavorite: false,
-        imagePath: "../static/resources/gatsby.jpg" // ADDED IMAGE PATH
+        imagePath: "../static/resources/gatsby.jpg" 
     },
     {
         id: 2,
@@ -50,7 +52,7 @@ const bookData = [
         location: "Chicago, IL",
         date: "Posted 1 week ago",
         isFavorite: true,
-        imagePath: "../static/resources/mockingbird.png" // ADDED IMAGE PATH
+        imagePath: "../static/resources/mockingbird.png" 
     },
     {
         id: 3,
@@ -60,26 +62,25 @@ const bookData = [
         location: "Boston, MA",
         date: "Posted 3 days ago",
         isFavorite: false,
-        imagePath: "../static/resources/1984.png" // ADDED IMAGE PATH
+        imagePath: "../static/resources/1984.png" 
     }
-];
 
-// DOM elements
-const booksGrid = document.getElementById('booksGrid');
-const searchInput = document.getElementById('searchInput');
+];
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
     loadBooks(bookData);
-    
-    // Add event listener for search
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-    }
+});
+
+// Initialize search after components are loaded
+document.addEventListener('componentsLoaded', function() {
+    // Pass bookData and loadBooks callback to SearchManager
+    SearchManager.init(bookData, loadBooks);
 });
 
 // Load books into the grid
 function loadBooks(books) {
+    const booksGrid = document.getElementById('booksGrid');
     if (!booksGrid) return;
 
     booksGrid.innerHTML = '';
@@ -94,101 +95,49 @@ function loadBooks(books) {
 function createBookCard(book) {
     const card = document.createElement('div');
     card.className = 'book-card';
-    
+    card.onclick = () => viewBookDetails(book.id);
+
     card.innerHTML = `
-        <img src="${book.imagePath}" 
-             alt="${book.title}" 
-             class="book-image"
-             onerror="this.src='../static/resources/placeholder.jpg'"> 
-             
+        <img src="${book.imagePath}" alt="${book.title}" class="book-image" onerror="this.src='../static/resources/placeholder.png'">
         <div class="book-info">
-            <h3 class="book-title">${book.title}</h3>
-            <p class="book-author">by ${book.author}</p>
-            <p class="book-location">${book.location}</p>
-            <p class="book-date">${book.date}</p>
-            <p class="book-price">${book.price}</p>
+            <div class="book-title">${book.title}</div>
+            <div class="book-author">by ${book.author}</div>
+            <div class="book-location">${book.location}</div>
+            <div class="book-date">${book.date}</div>
+            <div class="book-price">${book.price}</div>
             <div class="book-actions">
-                <button class="contact-btn">Contact Seller</button>
-                <button class="favorite-btn ${book.isFavorite ? 'active' : ''}">
+                <button class="contact-btn" onclick="event.stopPropagation(); contactSeller(${book.id})">
+                    Contact Seller
+                </button>
+                <button class="favorite-btn ${book.isFavorite ? 'active' : ''}" 
+                        onclick="event.stopPropagation(); toggleFavorite(${book.id})">
                     <i class="fas fa-heart"></i>
                 </button>
             </div>
         </div>
     `;
-    
-    // Get the favorite button
-    const favoriteBtn = card.querySelector('.favorite-btn');
-    
-    // Add event listener to favorite button
-    favoriteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleFavorite(book.id);
-    });
-    
-    // Make the entire card clickable to view listing details
-    card.addEventListener('click', function(e) {
-        // Don't trigger if clicking on buttons
-        if (!e.target.closest('.contact-btn') && !e.target.closest('.favorite-btn')) {
-            viewListing(book.id);
-        }
-    });
-    
-    return card;
-}
 
-// View listing details
-function viewListing(bookId) {
-    const book = bookData.find(b => b.id === bookId);
-    if (book) {
-        // In a real app, this would navigate to a listing details page
-        // For now, we'll simulate navigation
-        console.log(`Navigating to listing page for: ${book.title}`);
-        window.location.href = `listing.html?id=${bookId}`;
-    }
+    return card;
 }
 
 // Toggle favorite status
 function toggleFavorite(bookId) {
     const book = bookData.find(b => b.id === bookId);
     if (book) {
-        // If already favorited, ask for confirmation to remove
-        if (book.isFavorite) {
-            if (!confirm('Remove this book from your favorites?')) {
-                return; // User clicked cancel, don't remove
-            }
-        }
-        
         book.isFavorite = !book.isFavorite;
-        
-        // Show toast notification
-        if (book.isFavorite) {
-            showToast('Added to favorites');
-        } else {
-            showToast('Removed from favorites');
-        }
-        
-        loadBooks(bookData); // Refresh the display
-        
-        // In a real app, you would save this to the database
-        console.log(`Book ${bookId} favorite status: ${book.isFavorite}`);
+        loadBooks(bookData);
     }
 }
 
-// Handle search functionality
-function handleSearch() {
-    const searchTerm = searchInput.value.toLowerCase();
-    
-    if (searchTerm === '') {
-        loadBooks(bookData);
-        return;
-    }
-    
-    const filteredBooks = bookData.filter(book => 
-        book.title.toLowerCase().includes(searchTerm) || 
-        book.author.toLowerCase().includes(searchTerm)
-    );
-    
-    loadBooks(filteredBooks);
+// View book details
+function viewBookDetails(bookId) {
+    console.log('Viewing details for book ID:', bookId);
+    window.location.href = `listing.html?id=${bookId}`;
+}
+
+// Contact seller
+function contactSeller(bookId) {
+    console.log('Contacting seller for book ID:', bookId);
 }
 
 // Navigation functions
@@ -204,65 +153,10 @@ function goToFavorites() {
     window.location.href = 'favourites.html';
 }
 
-function goToProfile() {
-    window.location.href = 'profile.html';
-}
-
 function goToMessages() {
     window.location.href = "mymessages.html"
 }
 
-// Toast notification
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 100px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${type === 'success' ? '#27ae60' : '#c84c3d'};
-        color: white;
-        padding: 15px 25px;
-        border-radius: 25px;
-        font-weight: 600;
-        z-index: 10000;
-        animation: slideUp 0.3s ease;
-        font-family: 'Segoe UI', sans-serif;
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'slideDown 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+function goToProfile() {
+    window.location.href = 'profile.html';
 }
-
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideUp {
-        from {
-            transform: translate(-50%, 20px);
-            opacity: 0;
-        }
-        to {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideDown {
-        from {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-        to {
-            transform: translate(-50%, 20px);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);

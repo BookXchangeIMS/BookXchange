@@ -10,7 +10,7 @@ const MOCK_USER_BOOKS_DATA = [
     {
         ListingID: 102,
         Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-        Image_Path: "../static/resources/Lotr.png",
+        Image_Path: "../static/resources/lotr.png",
         PublicationDate: "1954-07-29",
         Location: "Benfica - Lisboa"
     },
@@ -23,53 +23,87 @@ const MOCK_USER_BOOKS_DATA = [
     }
 ];
 
-// Simple HTML escaping function (needed for createBookCard)
+// Simple HTML escaping function
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 // DOM elements
 const userBooksGrid = document.getElementById('userBooksGrid');
-const searchInput = document.getElementById('searchInput');
 
 // Initial load
 document.addEventListener('DOMContentLoaded', function () {
     loadUserBooks();
+});
 
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-    }
+// Initialize search after components are loaded
+document.addEventListener('componentsLoaded', function() {
+    // Convert to format SearchManager expects (with title and author)
+    const searchableData = MOCK_USER_BOOKS_DATA.map(book => ({
+        ...book,
+        title: book.Name,
+        author: '' // Announcements don't have author, so search only by title
+    }));
+    
+    SearchManager.init(searchableData, displayUserBooks);
 });
 
 /**
- * 📚 Load user books from mock data (API removed)
+ * Load user books from mock data
  */
 function loadUserBooks() {
-    // Simulate loading data locally
-    const books = MOCK_USER_BOOKS_DATA;
-    displayUserBooks(books);
+    displayUserBooks(MOCK_USER_BOOKS_DATA);
 }
 
 /**
- * 🖼️ Display books
+ * Display books in grid
  */
 function displayUserBooks(books) {
     if (!userBooksGrid) return;
 
+    // Get the add-book-card element (first child)
+    const addBookCard = userBooksGrid.querySelector('.add-book-card');
+    
+    // Clear grid but keep add-book-card
     userBooksGrid.innerHTML = '';
+    
+    // Re-add the add-book-card as first item
+    if (addBookCard) {
+        userBooksGrid.appendChild(addBookCard);
+    } else {
+        // If it doesn't exist, create it
+        const newAddBookCard = document.createElement('div');
+        newAddBookCard.className = 'book-card add-book-card';
+        newAddBookCard.onclick = goToHome;
+        newAddBookCard.innerHTML = `
+            <div class="add-book-content">
+                <i class="fas fa-plus"></i>
+                <p>Add a Book</p>
+            </div>
+        `;
+        userBooksGrid.appendChild(newAddBookCard);
+    }
 
+    // Check if there are books to display
     if (books.length === 0) {
-        userBooksGrid.innerHTML =
-            '<p style="text-align:center;color:#666;">No books found.</p>';
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = `
+            <i class="fas fa-book-open"></i>
+            <p>No books found.</p>
+            <small>Add your first book to get started!</small>
+        `;
+        userBooksGrid.appendChild(emptyState);
         return;
     }
 
+    // Add book cards
     books.forEach(book => {
         const bookCard = createBookCard(book);
         userBooksGrid.appendChild(bookCard);
@@ -77,28 +111,25 @@ function displayUserBooks(books) {
 }
 
 /**
- * 🏷️ Create a book card
+ * Create a book card element
  */
 function createBookCard(book) {
     const card = document.createElement('div');
     card.className = 'book-card';
 
-    // Note: Since location is hardcoded in the original, we keep it that way here.
     const location = book.Location ? escapeHtml(book.Location) : "Benfica - Lisboa";
 
     card.innerHTML = `
-        <img src="${book.Image_Path}"
-             alt="${escapeHtml(book.Name)}"
+        <img src="${escapeHtml(book.Image_Path)}" 
+             alt="${escapeHtml(book.Name)}" 
              class="book-image"
-             onerror="this.src='../static/resources/placeholder.jpg'">
-
+             onerror="this.src='../static/resources/placeholder.png'">
         <div class="book-info">
-            <h3 class="book-title">${escapeHtml(book.Name)}</h3>
-            <p class="book-location">${location}</p>
-            <p class="book-date">${escapeHtml(book.PublicationDate)}</p>
-
-            <button class="edit-btn" onclick="goToEditListing(${book.ListingID})">
-                Edit
+            <div class="book-title">${escapeHtml(book.Name)}</div>
+            <div class="book-location">${location}</div>
+            <div class="book-date">${escapeHtml(book.PublicationDate)}</div>
+            <button class="edit-btn" onclick="editListing(${book.ListingID})">
+                Edit Listing
             </button>
         </div>
     `;
@@ -107,30 +138,15 @@ function createBookCard(book) {
 }
 
 /**
- * 🔍 Handle search using mock data
+ * Edit listing (placeholder)
  */
-function handleSearch() {
-    const term = searchInput.value.trim().toLowerCase();
-
-    // Filter mock data locally based on the search term
-    const filteredBooks = MOCK_USER_BOOKS_DATA.filter(book =>
-        book.Name.toLowerCase().includes(term)
-    );
-
-    displayUserBooks(filteredBooks);
-    console.log(`Search for "${term}" completed locally.`);
+function editListing(listingId) {
+    console.log('Editing listing:', listingId);
+    // TODO: Navigate to edit page
+    // window.location.href = `edit-listing.html?id=${listingId}`;
 }
 
-// --- Navigation (Unchanged) ---
-
-function goToEditListing(id) {
-    window.location.href = `editlisting.html?id=${id}`;
-}
-
-function goToAddListing() {
-    window.location.href = 'addlisting.html';
-}
-
+// Navigation functions
 function goToHome() {
     window.location.href = 'home.html';
 }
@@ -143,10 +159,16 @@ function goToFavorites() {
     window.location.href = 'favourites.html';
 }
 
+function goToMessages() {
+    window.location.href = 'messages.html';
+}
+
 function goToProfile() {
     window.location.href = 'profile.html';
 }
 
-function goToMessages() {
-    window.location.href = "messages.html";
+function goToAddListing() {
+    console.log('Navigate to add listing page');
+    // TODO: Navigate to add listing page
+    // window.location.href = 'add-listing.html';
 }
