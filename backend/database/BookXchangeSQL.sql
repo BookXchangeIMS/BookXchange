@@ -47,11 +47,6 @@ CREATE TABLE AuthorBook(
     FOREIGN KEY(BookID) REFERENCES Books(BookID) ON DELETE CASCADE
 );
 
-CREATE TABLE Authors(
-    AuthorID INT IDENTITY PRIMARY KEY,
-    AuthorName NVARCHAR(256) NOT NULL
-);
-
 CREATE TABLE Genres(
     GenreID INT IDENTITY PRIMARY KEY,
     GenreName NVARCHAR(256) NOT NULL
@@ -82,6 +77,14 @@ CREATE TABLE ListingPhoto(
     ListingID INT NOT NULL,
     ImagePath NVARCHAR(512) NOT NULL,
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
+);
+
+CREATE TABLE Favorites(
+    ListingID INT NOT NULL,
+    UserID INT NOT NULL,
+    PRIMARY KEY (ListingID, UserID),
+    FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE,
+    FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE
 );
 
 CREATE TABLE Reports(
@@ -130,7 +133,7 @@ CREATE TABLE Transactions(
     ListingID INT NOT NULL,
     BuyerID INT NOT NULL,
     TransactionDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    TransactionStatus BOOLEAN NOT NULL, -- TRUE if completed, FALSE if pending
+    TransactionStatus BIT NOT NULL, -- TRUE if completed, FALSE if pending
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE,
     FOREIGN KEY(BuyerID) REFERENCES Users(UserID) ON DELETE CASCADE,
 );
@@ -151,3 +154,5 @@ CREATE INDEX IX_Reports_ListingID ON Reports(ListingID);
 CREATE INDEX IX_Reports_UserID ON Reports(UserID);
 CREATE INDEX IX_UserNotification_UserID ON UserNotification(UserID);
 CREATE INDEX IX_Notification_ListingID ON Notification(ListingID);
+
+Go
