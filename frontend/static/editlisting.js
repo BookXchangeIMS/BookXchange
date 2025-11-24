@@ -1,8 +1,27 @@
 // API Configuration
-const API_BASE_URL = '/api';
-const USE_MOCK_DATA = true; // Toggle for testing
+const API_BASE_URL = ''; // Empty since FastAPI routes start with /api
+const USE_MOCK_DATA = false; // Set to true for testing without backend
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+// Token Management
+function getAccessToken() {
+    return localStorage.getItem('access_token');
+}
+
+function getRefreshToken() {
+    return localStorage.getItem('refresh_token');
+}
+
+function setTokens(accessToken, refreshToken) {
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+}
+
+function clearTokens() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+}
 
 // API Helper Functions
 const api = {
@@ -15,9 +34,17 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'access-token': getAccessToken() || ''
+                }
             });
+            
+            if (response.status === 401) {
+                await this.refreshAccessToken();
+                return await this.get(endpoint);
+            }
+            
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             return await response.json();
         } catch (error) {
@@ -35,13 +62,21 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'access-token': getAccessToken() || ''
+                },
                 body: JSON.stringify(data)
             });
+            
+            if (response.status === 401) {
+                await this.refreshAccessToken();
+                return await this.put(endpoint, data);
+            }
+            
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+                throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
             }
             return await response.json();
         } catch (error) {
@@ -59,13 +94,27 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'access-token': getAccessToken() || ''
+                }
             });
+            
+            if (response.status === 401) {
+                await this.refreshAccessToken();
+                return await this.delete(endpoint);
+            }
+            
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+                throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
             }
+            
+            // 204 No Content doesn't have a body
+            if (response.status === 204) {
+                return { success: true, message: 'Deleted successfully' };
+            }
+            
             return await response.json();
         } catch (error) {
             console.error('DELETE request failed:', error);
@@ -76,7 +125,6 @@ const api = {
     // Upload multiple images to Azure Blob Storage
     async uploadImages(listingId, files) {
         if (USE_MOCK_DATA && window.mockAPI) {
-            // Mock multiple image uploads
             const uploadedUrls = [];
             for (const file of files) {
                 const response = await window.mockAPI.uploadImage(file);
@@ -87,22 +135,28 @@ const api = {
 
         try {
             const formData = new FormData();
-            formData.append('listingId', listingId);
             
             // Append all files
             for (let i = 0; i < files.length; i++) {
                 formData.append('images', files[i]);
             }
 
-            const response = await fetch(`${API_BASE_URL}/listings/${listingId}/upload-images`, {
+            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/upload-images`, {
                 method: 'POST',
-                credentials: 'include',
+                headers: {
+                    'access-token': getAccessToken() || ''
+                },
                 body: formData
             });
 
+            if (response.status === 401) {
+                await this.refreshAccessToken();
+                return await this.uploadImages(listingId, files);
+            }
+
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Image upload failed');
+                throw new Error(errorData.detail || 'Image upload failed');
             }
 
             return await response.json();
@@ -119,13 +173,25 @@ const api = {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/listings/${listingId}/images/${photoId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/images/${photoId}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'access-token': getAccessToken() || ''
+                }
             });
 
+            if (response.status === 401) {
+                await this.refreshAccessToken();
+                return await this.deleteImage(listingId, photoId);
+            }
+
             if (!response.ok) throw new Error('Failed to delete image');
+            
+            if (response.status === 204) {
+                return { success: true, message: 'Image deleted' };
+            }
+            
             return await response.json();
         } catch (error) {
             console.error('Delete image failed:', error);
@@ -140,16 +206,55 @@ const api = {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/listings/${listingId}/images/${photoId}/primary`, {
+            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/images/${photoId}/primary`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'access-token': getAccessToken() || ''
+                }
             });
+
+            if (response.status === 401) {
+                await this.refreshAccessToken();
+                return await this.setPrimaryImage(listingId, photoId);
+            }
 
             if (!response.ok) throw new Error('Failed to set primary image');
             return await response.json();
         } catch (error) {
             console.error('Set primary image failed:', error);
+            throw error;
+        }
+    },
+
+    // Refresh access token
+    async refreshAccessToken() {
+        try {
+            const refreshToken = getRefreshToken();
+            if (!refreshToken) {
+                throw new Error('No refresh token available');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/refresh_access_token`, {
+                method: 'GET',
+                headers: {
+                    'token': refreshToken
+                }
+            });
+
+            if (!response.ok) {
+                clearTokens();
+                window.location.href = '/login.html';
+                throw new Error('Session expired. Please login again.');
+            }
+
+            const data = await response.json();
+            setTokens(data.access_token, data.refresh_token);
+            return data.access_token;
+        } catch (error) {
+            console.error('Token refresh failed:', error);
+            clearTokens();
+            window.location.href = '/login.html';
             throw error;
         }
     }
@@ -167,6 +272,13 @@ let deletedImageIds = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
+    // Check if user is authenticated
+    if (!USE_MOCK_DATA && !getAccessToken()) {
+        showToast('Please login to edit listings', 'error');
+        setTimeout(() => window.location.href = '/login.html', 2000);
+        return;
+    }
+
     if (USE_MOCK_DATA) showMockModeIndicator();
 
     if (!listingId || isNaN(listingId)) {
@@ -202,7 +314,7 @@ function showMockModeIndicator() {
 async function fetchListingDetails(id) {
     try {
         showToast('Loading listing details...', 'success');
-        const response = await api.get(`/listings/${id}`);
+        const response = await api.get(`/api/listings/${id}`);
         book = response.data || response;
         
         // Load existing images (from ListingPhoto table)
@@ -234,8 +346,8 @@ function loadListingDetailsIntoForm(book) {
     document.getElementById('bookTitle').value = book.title || '';
     document.getElementById('bookAuthor').value = book.author || '';
     document.getElementById('bookPrice').value = book.price || '';
-    document.getElementById('bookYear').value = book.year || book.publication_year || '';
-    document.getElementById('bookCondition').value = book.condition || '';
+    document.getElementById('bookYear').value = book.year || book.publication_year || book.releaseDate || '';
+    document.getElementById('bookCondition').value = book.condition || book.listingState || '';
     document.getElementById('bookLocation').value = book.location || '';
     document.getElementById('bookGenres').value = book.genres || '';
     document.getElementById('bookDescription').value = book.description || '';
@@ -394,15 +506,11 @@ function createImagePreviewElement(img, type, index) {
 // Set primary image
 function handleSetPrimary(type, index) {
     if (type === 'existing') {
-        // Update existing images
         existingImages.forEach((img, i) => {
             img.isPrimary = (i === index);
         });
     } else {
-        // If new image set as primary, remove primary from existing
         existingImages.forEach(img => img.isPrimary = false);
-        
-        // Move new image to be first (will be primary on save)
         const [selectedImage] = newImages.splice(index, 1);
         newImages.unshift(selectedImage);
     }
@@ -419,7 +527,6 @@ function handleDeleteImage(type, index) {
         const deletedImage = existingImages.splice(index, 1)[0];
         deletedImageIds.push(deletedImage.photoId);
         
-        // If deleted image was primary, set first image as primary
         if (deletedImage.isPrimary && existingImages.length > 0) {
             existingImages[0].isPrimary = true;
         }
@@ -480,7 +587,6 @@ function formatPrice(event) {
 function validateForm() {
     const errors = [];
     
-    // Check if at least one image
     if (existingImages.length === 0 && newImages.length === 0) {
         errors.push('Please add at least one image');
     }
@@ -548,14 +654,14 @@ async function handleFormSubmit(event) {
             showToast(`Uploading ${newImages.length} new image(s)...`, 'success');
             const files = newImages.map(img => img.file);
             const uploadResponse = await api.uploadImages(listingId, files);
-            newImageUrls = uploadResponse.imageUrls || uploadResponse.data.imageUrls;
+            newImageUrls = uploadResponse.imageUrls || uploadResponse.image_urls || [];
         }
         
         // 3. Update listing data
         const updatedListingData = {
             title: document.getElementById('bookTitle').value.trim(),
             author: document.getElementById('bookAuthor').value.trim(),
-            price: document.getElementById('bookPrice').value.trim(),
+            price: parseFloat(document.getElementById('bookPrice').value.replace('$', '')),
             year: parseInt(document.getElementById('bookYear').value),
             condition: document.getElementById('bookCondition').value,
             location: document.getElementById('bookLocation').value.trim(),
@@ -567,14 +673,11 @@ async function handleFormSubmit(event) {
         const primaryImage = existingImages.find(img => img.isPrimary);
         if (primaryImage) {
             await api.setPrimaryImage(listingId, primaryImage.photoId);
-        } else if (newImageUrls.length > 0) {
-            // If no existing primary and new images added, first new image is primary
-            updatedListingData.primaryImageUrl = newImageUrls[0];
         }
         
         console.log('Updating listing with data:', updatedListingData);
         
-        const response = await api.put(`/listings/${listingId}`, updatedListingData);
+        const response = await api.put(`/api/listings/${listingId}`, updatedListingData);
         
         console.log('Update response:', response);
         showToast('Listing updated successfully!', 'success');
@@ -607,7 +710,7 @@ async function confirmDelete() {
     if (!doubleCheck) return;
     
     try {
-        const response = await api.delete(`/listings/${listingId}`);
+        const response = await api.delete(`/api/listings/${listingId}`);
         console.log('Delete response:', response);
         showToast('Listing deleted successfully', 'success');
         
