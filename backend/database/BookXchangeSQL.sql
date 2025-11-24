@@ -7,7 +7,8 @@ CREATE TABLE Locations(
     LocationID INT IDENTITY(1,1) PRIMARY KEY,
     Longitude FLOAT NOT NULL,
     Latitude FLOAT NOT NULL,
-    [Description] NVARCHAR(512) 
+    Address NVARCHAR(512) NOT NULL,
+    [Description] NVARCHAR(512) NOT NULL
 );
 GO
 
@@ -21,7 +22,7 @@ CREATE TABLE Users(
     UserRole NVARCHAR(64) NOT NULL,
     AboutMe NVARCHAR(512),
     CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    LocationID INT,
+    LocationID INT NOT NULL,
     FOREIGN KEY(LocationID) REFERENCES Locations(LocationID)
 );
 
@@ -31,6 +32,11 @@ CREATE TABLE Books(
     Language NVARCHAR(64),
     ReleaseDate DATE,
     Edition INT
+);
+
+CREATE TABLE Authors(
+    AuthorID INT IDENTITY PRIMARY KEY,
+    AuthorName NVARCHAR(256) NOT NULL
 );
 
 CREATE TABLE AuthorBook(
@@ -65,19 +71,10 @@ CREATE TABLE Listings(
     BookID INT NOT NULL,
     ListingType NVARCHAR(64) NOT NULL,
     Price FLOAT,
-    ListingState NVARCHAR(64) NOT NULL,
+    ListingState NVARCHAR(64) NOT NULL, -- Visibility of listing
     CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     FOREIGN KEY(UserID) REFERENCES Users(UserID),
     FOREIGN KEY(BookID) REFERENCES Books(BookID)
-);
-
-CREATE TABLE Favorites(
-    UserID INT NOT NULL,
-    ListingID INT NOT NULL,
-    CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    PRIMARY KEY(UserID, ListingID),
-    FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
-    FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
 );
 
 CREATE TABLE ListingPhoto(
@@ -114,6 +111,28 @@ CREATE TABLE UserNotification(
     PRIMARY KEY(UserID, NotificationID),
     FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
     FOREIGN KEY(NotificationID) REFERENCES Notification(NotificationID) ON DELETE CASCADE
+);
+
+CREATE TABLE Messages(
+    MessageID INT IDENTITY PRIMARY KEY,
+    SenderID INT NOT NULL,
+    ListingID INT NOT NULL,
+    ReceiverID INT NOT NULL,
+    Content NVARCHAR(1024) NOT NULL,
+    SentDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    FOREIGN KEY(SenderID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY(ReceiverID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
+);
+
+CREATE TABLE Transactions(
+    TransactionID INT IDENTITY PRIMARY KEY,
+    ListingID INT NOT NULL,
+    BuyerID INT NOT NULL,
+    TransactionDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    TransactionStatus BOOLEAN NOT NULL, -- TRUE if completed, FALSE if pending
+    FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE,
+    FOREIGN KEY(BuyerID) REFERENCES Users(UserID) ON DELETE CASCADE,
 );
 
 CREATE TABLE RefreshTokens(

@@ -1,25 +1,59 @@
 from datetime import datetime
 from pydantic import BaseModel
 
+#==================================================================================
+# JWT MODELS
+#==================================================================================
+
+
+class Tokens(BaseModel):
+    access_token: str
+    refresh_token: str
+
+
+#==================================================================================
+# DATABASE MODELS
+#==================================================================================
+
 # Location model
-class Location(BaseModel):
-    LocationID: int
-    Country: str
-    City: str
+
+class PostLocation(BaseModel):
+    Address: str
+    Description: str
+
+class Location(PostLocation):
+    Longitude: float
+    Latitude: float
 
 # User model
-class SignUp(BaseModel):
-    Name: str
-    Location_ID: int
-    Email: str
-    Password: str
 
-class User(SignUp):
-    UserID: int
-    Image_Path: str
+class SignIn(BaseModel):
+    Email: str
+    PasswordHash: str
+
+class SignUp(SignIn):
+    Name: str
+    DateOfBirth: datetime
+    LocationAddress: str
+
+class UpdateUser(BaseModel):
+    Name: str
+    ProfileImagePath: str
     AboutMe: str
-    Points: int
-    Role: str
+    LocationAddress: str
+
+class GetUser(BaseModel):
+    Name: str
+    ProfileImagePath: str
+    AboutMe: str
+    UserID: int
+    UserRole: str
+
+class GetMyUser(GetUser):
+    Email: str
+    CreationDate: datetime
+    Location: Location
+
 
 # Error log model
 class Error_Log(BaseModel):
