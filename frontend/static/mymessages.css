@@ -1,0 +1,247 @@
+/* Reset & Variables */
+:root {
+  --color-bg: #FFF1D8;
+  --color-primary: #c84c3d;
+  --color-accent: #c84c3d;
+  --color-text-dark: #1a1a1a;
+  --color-text-light: #ffffff;
+  --color-card-bg: #fdfbf7;
+  --color-border: #e8e1c0;
+  --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-image: url('../static/resources/backgroundopacity2.png');
+  background-color: var(--color-bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  padding-bottom: 20px;
+}
+
+/* Main Content  */
+main {
+  flex: 1;
+  padding: 0px 20px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Back Button Container */
+.back-button-container {
+  padding: 1rem 0 0.5rem;
+}
+
+.back-btn {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn:hover {
+  background-color: #b03a2e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.back-btn:active {
+  transform: translateY(0);
+}
+
+/* Logo Section  */
+.logo-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0px;
+  min-height: 240px;  
+  width: 100%;
+}
+
+.logo-img {
+  width: 720px;     
+  max-width: 80%;    
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Message Section */
+.message-section {
+  padding: 0;
+  margin: 0;
+}
+
+/* Message List - ORIGINAL DESIGN (flex column on mobile, grid on desktop) */
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Message Card - ORIGINAL HORIZONTAL DESIGN */
+.message-card {
+  background-color: rgba(245, 237, 227, 0.95);
+  border-radius: 20px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgba(232, 225, 192, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.message-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+}
+
+/* Book cover - small, on the left */
+.book-cover {
+  width: 60px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+/* Message content - in the middle, grows to fill space */
+.message-content {
+  flex: 1;
+  min-width: 0; /* For text truncation */
+}
+
+.message-content h3 {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-content p {
+  font-size: 0.875rem;
+  color: var(--color-text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Message meta - on the right */
+.message-meta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.message-meta .date {
+  display: block;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin-bottom: 0.1rem;
+  color: #666;
+}
+
+.message-meta .time {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-text-dark);
+}
+
+/* Responsive Design */
+@media (min-width: 1200px) {
+  .message-list {
+    grid-template-columns: repeat(2, minmax(320px, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .logo-img {
+    max-width: 85%;
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .message-list {
+    padding: 0 16px;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-img {
+    width: 140px;
+  }
+
+  .message-list {
+    gap: 14px;
+    max-width: 92vw;
+    margin: 0 auto;
+    padding: 0 8px;
+  }
+
+  .book-cover {
+    width: 50px;
+    height: 70px;
+  }
+
+  .message-content h3 {
+    font-size: 0.9rem;
+  }
+
+  .message-content p {
+    font-size: 0.8rem;
+  }
+}
+
+/* Desktop Grid Layout */
+@media (min-width: 600px) {
+  .message-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+    justify-content: center;
+    justify-items: center;
+  }
+
+  .message-card {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+
