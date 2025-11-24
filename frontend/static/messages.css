@@ -30,70 +30,6 @@ body {
   padding-bottom: 100px; /* Space for bottom nav */
 }
 
-/* Header */
-.main-header {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  padding: 1rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.header-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.search-container {
-  flex: 1;
-  position: relative;
-  max-width: 400px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
-  border-radius: 20px;
-  border: none;
-  background-color: #f5ecd5;
-  font-family: inherit;
-  outline: none;
-}
-
-.search-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #333;
-  pointer-events: none;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.icon-btn {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.icon-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
 /* Layout */
 .main-content {
   padding: 2rem 1rem;
@@ -115,7 +51,7 @@ body {
   text-align: center;
 }
 
-/* Adjusted profile header to be more compact for chat view </CHANGE> */
+/* Adjusted profile header to be more compact for chat view */
 .profile-header {
   display: flex;
   flex-direction: column; /* Stack vertically on mobile */
@@ -182,7 +118,7 @@ body {
   font-weight: 700;
 }
 
-/* Chat Interface Styles (Replacing Listings) </CHANGE> */
+/* Chat Interface Styles */
 .chat-interface {
   width: 100%;
   flex: 1;
@@ -326,46 +262,6 @@ body {
   transform: scale(0.95);
 }
 
-/* Bottom Navigation */
-.bottom-nav {
-  position: fixed;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  z-index: 90;
-  pointer-events: none; /* Let clicks pass through to sides */
-}
-
-.nav-content {
-  pointer-events: auto;
-  background-color: var(--color-primary);
-  padding: 0.8rem 3rem;
-  border-radius: 50px; /* Pill shape */
-  display: flex;
-  gap: 4rem;
-  align-items: center;
-  box-shadow: var(--shadow-float);
-  width: 90%;
-  max-width: 500px;
-  justify-content: space-between;
-}
-
-.nav-item {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s;
-}
-
-.nav-item.active,
-.nav-item:hover {
-  color: white;
-}
-
 /* Desktop Responsive Styles */
 @media (min-width: 768px) {
   .content-wrapper {
@@ -378,7 +274,6 @@ body {
   .profile-section {
     width: 300px;
     flex-shrink: 0;
-    /* Removed sticky positioning needed for long content, now centered or top aligned */
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
