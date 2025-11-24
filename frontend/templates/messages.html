@@ -16,10 +16,12 @@
     <!-- CSS Files -->
     <link rel="stylesheet" href="../static/messages.css">
     <link rel="stylesheet" href="../static/header.css">
-    <link rel="stylesheet" href="../static/footer.css">
     
-    <!-- Script to load header and footer -->
+    <!-- Script to load header -->
     <script src="../static/include.js"></script>
+    
+    <!-- Page JavaScript - Load BEFORE body for onclick to work -->
+    <script src="../static/messages.js"></script>
 </head>
 <body>
 
@@ -28,6 +30,14 @@
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Back Button -->
+        <div class="back-button-container">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
+            </button>
+        </div>
+
         <div class="content-wrapper">
             
             <!-- Left Column: Profile Info -->
@@ -90,10 +100,6 @@
         </div>
     </main>
 
-    <!-- Footer will be loaded here -->
-    <div id="footer-placeholder"></div>
 
-    <!-- Page JavaScript -->
-    <script src="../static/messages.js"></script>
 </body>
 </html>

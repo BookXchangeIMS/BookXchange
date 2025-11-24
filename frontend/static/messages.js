@@ -1,4 +1,34 @@
 document.addEventListener("DOMContentLoaded", () => {
+  
+  // ============================================
+// GLOBAL NAVIGATION FUNCTIONS
+// ============================================
+
+window.goBack = function() {
+    window.history.back();
+};
+
+window.goToHome = function() {
+    window.location.href = 'home.html';
+};
+
+window.goToAnnouncements = function() {
+    window.location.href = 'announcements.html';
+};
+
+window.goToFavorites = function() {
+    window.location.href = 'favourites.html';
+};
+
+window.goToMessages = function() {
+    window.location.href = 'messages.html';
+};
+
+window.goToProfile = function() {
+    window.location.href = 'profile.html';
+};
+
+  
   // Chat Functionality
   const chatForm = document.getElementById("chatForm")
   const messageInput = document.getElementById("messageInput")
