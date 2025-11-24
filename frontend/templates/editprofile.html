@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../static/header.css">
+  <link rel="stylesheet" href="/frontend/static/editprofile.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Header Section -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">
+          <img src="../static/resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
+        </div>
+      </div>
+      <div class="search-bar">
+        <input type="text" placeholder="Find books" id="searchInput">
+        <i class="fas fa-search"></i>
+      </div>
+      <div class="header-actions">
+        <button class="chat-btn" onclick="goToMessages()">
+          <i class="fas fa-comments"></i>
+        </button>
+        <button class="profile-btn" onclick="goToProfile()">
+          <i class="fas fa-user"></i>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="edit-profile-section">
+        <h1>Edit profile</h1>
+
+        <form id="editProfileForm">
+          <div class="avatar-edit-wrapper">
+            <div class="avatar-preview">
+              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="fullName">Name</label>
+              <input type="text" id="fullName" name="fullName" required>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" required readonly>
+            </div>
+
+            <div class="form-group form-group-full">
+              <label for="aboutMe">About me</label>
+              <textarea id="aboutMe" name="aboutMe" rows="4"></textarea>
+            </div>
+
+            <div class="form-group form-group-full">
+              <label>Preferred Genres</label>
+              
+              <!-- Selected genres display -->
+              <div id="selectedGenres" class="selected-genres"></div>
+              
+              <!-- Available genres to choose from -->
+              <div class="genre-selection">
+                <label class="subtitle-label">Available genres:</label>
+                <div id="availableGenres" class="genre-checkboxes"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="secondary-btn" onclick="goBackToForeignProfile()">
+              Back
+            </button>
+            <button type="submit" class="primary-btn">
+              Save changes
+            </button>
+          </div>
+
+          <p id="formMessage" class="form-message"></p>
+        </form>
+      </section>
+    </main>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+      <button class="nav-btn" onclick="goToHome()">
+        <i class="fas fa-book"></i>
+      </button>
+      <button class="nav-btn" onclick="goToAnnouncements()">
+        <i class="fas fa-search"></i>
+      </button>
+      <button class="nav-btn" onclick="goToFavorites()">
+        <i class="fas fa-heart"></i>
+      </button>
+    </nav>
+  </div>
+
+  <script src="/frontend/static/editprofile.js"></script>
+</body>
+</html>

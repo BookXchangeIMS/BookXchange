@@ -1,89 +1,75 @@
-// Mock API endpoint simulation
-function fetchBooksFromAPI() {
-    // Simulate API response with mock data
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const mockBooks = [
-                {
-                    id: 101,
-                    title: "Harry Potter and the Sorcerer's Stone",
-                    author: "J.K. Rowling",
-                    price: "$18.25",
-                    location: "Lisbon, Portugal",
-                    date: "Posted 1 day ago",
-                    isFavorite: false,
-                    imagePath: "../static/resources/harrypotter.png"
-                },
-                {
-                    id: 102,
-                    title: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-                    author: "J.R.R. Tolkien",
-                    price: "$45.00",
-                    location: "Lisbon, Portugal",
-                    date: "Posted 3 days ago",
-                    isFavorite: true,
-                    imagePath: "../static/resources/lotr.png"
-                },
-                {
-                    id: 103,
-                    title: "Sapiens: A Brief History of Humankind",
-                    author: "Yuval Noah Harari",
-                    price: "$15.00",
-                    location: "Lisbon, Portugal",
-                    date: "Posted 1 week ago",
-                    isFavorite: false,
-                    imagePath: "../static/resources/sapiens.png"
-                },
-                {
-                    id: 1,
-                    title: "The Great Gatsby",
-                    author: "F. Scott Fitzgerald",
-                    price: "$12.99",
-                    location: "New York, NY",
-                    date: "Posted 2 days ago",
-                    isFavorite: false,
-                    imagePath: "../static/resources/gatsby.jpg"
-                },
-                {
-                    id: 2,
-                    title: "To Kill a Mockingbird",
-                    author: "Harper Lee",
-                    price: "$14.50",
-                    location: "Chicago, IL",
-                    date: "Posted 1 week ago",
-                    isFavorite: true,
-                    imagePath: "../static/resources/mockingbird.png"
-                },
-                {
-                    id: 3,
-                    title: "1984",
-                    author: "George Orwell",
-                    price: "$10.99",
-                    location: "Boston, MA",
-                    date: "Posted 3 days ago",
-                    isFavorite: false,
-                    imagePath: "../static/resources/1984.png"
-                }
-            ];
-            resolve(mockBooks);
-        }, 300); // Simulate 300ms network delay
-    });
-}
 
-// Store fetched books globally for search functionality
-let bookData = [];
+
+
+// Sample book data (in a real app, this would come from a database)
+const bookData = [
+    {
+        id: 101,
+        title: "Harry Potter and the Sorcerer's Stone",
+        author: "J.K. Rowling",
+        price: "$18.25",
+        location: "Lisbon, Portugal",
+        date: "Posted 1 day ago",
+        isFavorite: false,
+        imagePath: "../static/resources/harrypotter.png"
+    },
+    {
+        id: 102,
+        title: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
+        author: "J.R.R. Tolkien",
+        price: "$45.00",
+        location: "Lisbon, Portugal",
+        date: "Posted 3 days ago",
+        isFavorite: true,
+        imagePath: "../static/resources/lotr.png"
+    },
+    {
+        id: 103,
+        title: "Sapiens: A Brief History of Humankind",
+        author: "Yuval Noah Harari",
+        price: "$15.00",
+        location: "Lisbon, Portugal",
+        date: "Posted 1 week ago",
+        isFavorite: false,
+        imagePath: "../static/resources/sapiens.png"
+ 
+    },
+    {
+        id: 1,
+        title: "The Great Gatsby",
+        author: "F. Scott Fitzgerald",
+        price: "$12.99",
+        location: "New York, NY",
+        date: "Posted 2 days ago",
+        isFavorite: false,
+        imagePath: "../static/resources/gatsby.jpg" 
+    },
+    {
+        id: 2,
+        title: "To Kill a Mockingbird",
+        author: "Harper Lee",
+        price: "$14.50",
+        location: "Chicago, IL",
+        date: "Posted 1 week ago",
+        isFavorite: true,
+        imagePath: "../static/resources/mockingbird.png" 
+    },
+    {
+        id: 3,
+        title: "1984",
+        author: "George Orwell",
+        price: "$10.99",
+        location: "Boston, MA",
+        date: "Posted 3 days ago",
+        isFavorite: false,
+        imagePath: "../static/resources/1984.png" 
+    }
+
+];
 
 // Initialize the page
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        // Fetch books from mock API
-        bookData = await fetchBooksFromAPI();
-        loadBooks(bookData);
-        console.log('Books loaded successfully:', bookData.length);
-    } catch (error) {
-        console.error('Error loading books:', error);
-        showError('Failed to load books. Please refresh the page.');
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    loadBooks(bookData);
 });
 
 // Initialize search after components are loaded
@@ -147,7 +133,6 @@ function toggleFavorite(bookId) {
     if (book) {
         book.isFavorite = !book.isFavorite;
         loadBooks(bookData);
-        console.log('Toggled favorite for book:', bookId);
     }
 }
 
@@ -185,7 +170,7 @@ function goToFavorites() {
 }
 
 function goToMessages() {
-    window.location.href = 'messages.html';
+    window.location.href = "mymessages.html"
 }
 
 function goToProfile() {

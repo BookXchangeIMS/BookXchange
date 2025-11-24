@@ -1,0 +1,647 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-image: url('../static/resources/backgroundopacity2.png');
+    background-color: #c84c3d;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Floating Back Button - Fixed top-left */
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background-color: #000000;
+}
+
+.back-btn:hover i {
+    color: white;
+}
+
+.back-btn i {
+    font-size: 20px;
+    color: #1a1a2e;
+    transition: color 0.3s ease;
+}
+
+/* Main Container - Two column layout on desktop */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 100vh;
+}
+
+/* ============================================
+   GALLERY SECTION
+   ============================================ */
+
+.gallery-section {
+    background-color: #c84c3d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 40px 40px;
+    gap: 20px;
+}
+
+/* Main Image Wrapper - FIXED ASPECT RATIO */
+.main-image-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 3 / 4; /* Fixed proportions: 3:4 ratio (portrait book cover) */
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Maintains aspect ratio, fills container */
+    border-radius: 12px;
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+.main-image:hover {
+    transform: scale(1.02);
+}
+
+/* Floating Favorite Button on Main Image */
+.favorite-btn-hero {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 55px;
+    height: 55px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid #f0f0f0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.favorite-btn-hero i {
+    font-size: 24px;
+    color: #c84c3d;
+    transition: all 0.3s ease;
+}
+
+.favorite-btn-hero.active {
+    background-color: #c84c3d;
+    border-color: #c84c3d;
+}
+
+.favorite-btn-hero.active i {
+    color: white;
+}
+
+.favorite-btn-hero:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Thumbnail Gallery */
+.thumbnail-gallery {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 500px;
+}
+
+.thumbnail {
+    width: 70px;
+    aspect-ratio: 3 / 4; /* Same ratio as main image */
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.thumbnail.active {
+    border-color: #c84c3d;
+    box-shadow: 0 8px 20px rgba(200, 76, 61, 0.3);
+}
+
+/* ============================================
+   ZOOM OVERLAY MODAL
+   ============================================ */
+
+.zoom-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(8px);
+    z-index: 5000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.zoom-overlay.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.zoomed-image {
+    max-width: 90vw;
+    max-height: 85vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    object-fit: contain;
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.zoom-back-btn {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.zoom-back-btn:hover {
+    background-color: #c84c3d;
+    transform: scale(1.1);
+}
+
+.zoom-back-btn:hover i {
+    color: white;
+}
+
+.zoom-back-btn i {
+    font-size: 22px;
+    color: #1a1a2e;
+    transition: color 0.3s ease;
+}
+
+/* ============================================
+   CONTENT SECTION
+   ============================================ */
+
+.content-section {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 80px 50px 50px;
+    overflow-y: auto;
+    max-height: 100vh;
+}
+
+/* Title Section */
+.title-section {
+    margin-bottom: 25px;
+}
+
+.book-title {
+    font-size: 36px;
+    font-weight: 900;
+    color: #1a1a2e;
+    line-height: 1.2;
+    margin-bottom: 10px;
+}
+
+.book-author {
+    font-size: 18px;
+    color: #666;
+    font-weight: 600;
+}
+
+.book-author span {
+    color: #c84c3d;
+    font-weight: 700;
+}
+
+/* Price Badge */
+.price-badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
+    padding: 15px 30px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 20px rgba(200, 76, 61, 0.3);
+}
+
+.price-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.price-value {
+    font-size: 32px;
+    font-weight: 900;
+    color: white;
+}
+
+/* Info Pills */
+.info-pills {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(200, 76, 61, 0.1);
+    padding: 12px 18px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    transition: all 0.3s ease;
+}
+
+.pill i {
+    color: #c84c3d;
+    font-size: 16px;
+}
+
+.pill:hover {
+    background-color: rgba(200, 76, 61, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Description Card */
+.description-card {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+    border-left: 4px solid #c84c3d;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+}
+
+.description-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #333;
+}
+
+/* Seller Card */
+.seller-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px 25px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.seller-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.seller-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.seller-avatar {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(200, 76, 61, 0.3);
+}
+
+.seller-avatar i {
+    font-size: 28px;
+    color: white;
+}
+
+.seller-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.seller-label {
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.seller-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.seller-arrow {
+    font-size: 20px;
+    color: #c84c3d;
+}
+
+/* CTA Button */
+.cta-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
+    color: white;
+    border: none;
+    padding: 20px 30px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(200, 76, 61, 0.3);
+}
+
+.cta-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(200, 76, 61, 0.4);
+}
+
+.cta-btn:active {
+    transform: translateY(-1px);
+}
+
+.cta-btn i {
+    font-size: 20px;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-section {
+        min-height: 70vh;
+        padding: 100px 30px 30px;
+    }
+
+    .content-section {
+        max-height: none;
+        padding: 40px 30px;
+    }
+
+    .book-title {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 1023px) {
+    /* Gallery section compact */
+    .gallery-section {
+        padding: 0;
+        min-height: auto;
+        background-color: rgba(255, 255, 255, 0.95); 
+    }
+
+    /* Main image wrapper - full width but limited height */
+    .main-image-wrapper {
+        max-width: 100%;
+        width: 100vw;
+        max-height: 40vh; /* Limit to 40% of viewport height */
+        aspect-ratio: 16 / 9; /* Wider ratio for mobile (landscape-ish) */
+        border-radius: 0;
+        padding: 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .main-image {
+        border-radius: 0;
+    }
+
+    /* Back button overlays on top of image */
+    .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 2000;
+        background-color: rgba(255, 255, 255, 0.90);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Favorite button on image */
+    .favorite-btn-hero {
+        top: 20px;
+        right: 20px;
+        background-color: rgba(255, 255, 255, 0.90);
+        backdrop-filter: blur(15px);
+    }
+
+    /* Thumbnails compact and centered */
+    .thumbnail-gallery {
+        padding: 12px 20px;
+        gap: 10px;
+        max-height: 10vh; /* Limit thumbnail area height */
+    }
+
+    .thumbnail {
+        width: 50px;
+        height: 70px;
+    }
+
+    /* Content section starts right after gallery */
+    .content-section {
+        padding: 25px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    
+    /* Back button smaller */
+    .back-btn {
+        width: 45px;
+        height: 45px;
+        top: 15px;
+        left: 15px;
+    }
+
+    .back-btn i {
+        font-size: 18px;
+    }
+
+    /* Image even more compact on small phones */
+    .main-image-wrapper {
+        width: 100vw;
+        max-height: 35vh; /* 35% of screen height */
+        aspect-ratio: 4 / 3; /* Slightly taller than 16:9 */
+    }
+
+    /* Favorite button smaller */
+    .favorite-btn-hero {
+        width: 48px;
+        height: 48px;
+        top: 15px;
+        right: 15px;
+    }
+
+    .favorite-btn-hero i {
+        font-size: 20px;
+    }
+
+    /* Thumbnails very compact */
+    .thumbnail-gallery {
+        padding: 10px 15px;
+        gap: 8px;
+        max-height: 8vh;
+    }
+
+    .thumbnail {
+        width: 45px;
+        height: 60px;
+    }
+
+    /* Content section immediately visible */
+    .content-section {
+        padding: 20px 16px;
+    }
+
+    .book-title {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+
+    .book-author {
+        font-size: 16px;
+    }
+
+    .price-value {
+        font-size: 26px;
+    }
+
+    /* Info pills horizontal scroll */
+    .info-pills {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .pill {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    /* Zoom modal adjustments */
+    .zoom-back-btn {
+        top: 20px;
+        left: 20px;
+        width: 48px;
+        height: 48px;
+    }
+
+    .zoom-back-btn i {
+        font-size: 20px;
+    }
+
+    .zoomed-image {
+        max-width: 95vw;
+        max-height: 80vh;
+    }
+}

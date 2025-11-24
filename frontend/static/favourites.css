@@ -7,6 +7,9 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-image: url('../static/resources/backgroundopacity2.png');
+    background-size: auto;
+    background-repeat: repeat;
+    background-attachment: fixed;
     background-color: #FFF1D8;
     min-height: 100vh;
     display: flex;
@@ -19,29 +22,31 @@ body {
 /* Main Content */
 main {
     flex: 1;
-    padding: 0px 20px 20px;
+    padding: 40px 20px 20px;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
 }
 
+/* Logo Section */
 .logo-section {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 0px;
-    min-height: 340px;
+    margin-bottom: 50px;
+    min-height: 240px;
     width: 100%;
 }
 
 .logo-img {
-    width: 720px;
-    max-width: 80%;
+    width: 420px;
+    max-width: 60%;
     height: auto;
     display: block;
     margin: 0 auto;
 }
 
+/* Book Listings Section */
 .book-listings {
     padding: 0;
     margin: 0;
@@ -62,6 +67,7 @@ main {
     margin: 0 auto;
 }
 
+/* Book Card Styles */
 .book-card {
     background-color: rgba(245, 237, 227, 0.95);
     border-radius: 20px;
@@ -80,20 +86,18 @@ main {
 }
 
 .book-image {
-    object-fit: contain;
+    width: 100%;
     height: 250px;
-    background-color: #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #777;
+    object-fit: cover;
+    display: block;
 }
 
+/* Book Info Section */
 .book-info {
     padding: 15px;
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex-grow: 1;
 }
 
 .book-title {
@@ -131,6 +135,7 @@ main {
     margin-bottom: 15px;
 }
 
+/* Book Actions (Contact & Favorite buttons) */
 .book-actions {
     display: flex;
     justify-content: space-between;
@@ -181,6 +186,33 @@ main {
     transform: scale(1.1);
 }
 
+/* Empty State (when no favorites exist) */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.empty-state small {
+    font-size: 14px;
+    color: #999;
+    display: block;
+    margin-bottom: 20px;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .books-grid {
@@ -190,7 +222,7 @@ main {
 
 @media (max-width: 1024px) {
     .logo-img {
-        max-width: 85%;
+        max-width: 50%;
         height: auto;
     }
 }

@@ -25,33 +25,28 @@ main {
     width: 100%;
 }
 
+/* Logo Section (same as home page) */
 .logo-section {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 0px;
-    min-height: 340px;
+    min-height: 340px;  
     width: 100%;
 }
 
 .logo-img {
-    width: 720px;
-    max-width: 80%;
+    width: 720px;     
+    max-width: 80%;    
     height: auto;
     display: block;
     margin: 0 auto;
 }
 
-.book-listings {
+/* Books Section */
+.books-section {
     padding: 0;
     margin: 0;
-}
-
-.book-listings h2 {
-    margin-bottom: 20px;
-    color: #1a1a2e;
-    font-weight: 900;
-    font-size: 28px;
 }
 
 .books-grid {
@@ -62,6 +57,7 @@ main {
     margin: 0 auto;
 }
 
+/* Regular Book Card */
 .book-card {
     background-color: rgba(245, 237, 227, 0.95);
     border-radius: 20px;
@@ -79,6 +75,38 @@ main {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+/* Add Book Card (first item in grid) */
+.add-book-card {
+    background: linear-gradient(135deg, #2c3e50 0%, #141d26 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 350px;
+    cursor: pointer;
+}
+
+.add-book-card:hover {
+    background: linear-gradient(135deg, #3a5068 0%, #1f2a36 100%);
+}
+
+.add-book-content {
+    text-align: center;
+    color: white;
+}
+
+.add-book-content i {
+    font-size: 64px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.add-book-content p {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Book Image */
 .book-image {
     object-fit: contain;
     height: 250px;
@@ -89,6 +117,7 @@ main {
     color: #777;
 }
 
+/* Book Info */
 .book-info {
     padding: 15px;
     display: flex;
@@ -103,13 +132,6 @@ main {
     color: #1a1a2e;
 }
 
-.book-author {
-    color: #666;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
 .book-location {
     font-size: 14px;
     color: #666;
@@ -121,67 +143,55 @@ main {
     font-size: 14px;
     color: #666;
     font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.book-price {
-    font-weight: 900;
-    color: #c84c3d;
-    font-size: 20px;
     margin-bottom: 15px;
 }
 
-.book-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    align-items: center;
-    margin-top: auto;
-}
-
-.contact-btn {
-    flex: 1;
+/* Edit Button */
+.edit-btn {
+    width: 100%;
+    padding: 12px 20px;
     background-color: #c84c3d;
     color: white;
     border: none;
-    padding: 12px 20px;
     border-radius: 25px;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
+    margin-top: auto;
 }
 
-.contact-btn:hover {
+.edit-btn:hover {
     background-color: #b03a2e;
     transform: translateY(-2px);
 }
 
-.favorite-btn {
-    background-color: white;
-    border: 2px solid #c84c3d;
-    font-size: 20px;
-    color: #c84c3d;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Empty State */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
 }
 
-.favorite-btn.active {
-    background-color: #c84c3d;
-    color: white;
+.empty-state i {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 20px;
 }
 
-.favorite-btn:hover {
-    transform: scale(1.1);
+.empty-state p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 10px;
+    font-weight: 600;
 }
 
-/* Responsive */
+.empty-state small {
+    font-size: 14px;
+    color: #999;
+}
+
+/* Responsive Design */
 @media (max-width: 1200px) {
     .books-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -202,8 +212,21 @@ main {
         padding: 0 12px;
         gap: 16px;
     }
+
     .book-image {
         height: clamp(180px, 32vw, 230px);
+    }
+
+    .add-book-card {
+        min-height: 250px;
+    }
+
+    .add-book-content i {
+        font-size: 48px;
+    }
+
+    .add-book-content p {
+        font-size: 20px;
     }
 }
 
@@ -215,10 +238,24 @@ main {
         margin: 0 auto;
         padding: 0 8px;
     }
+
     .book-image {
         height: clamp(150px, 30vw, 210px);
     }
+
     .logo-img {
         width: 140px;
+    }
+
+    .add-book-card {
+        min-height: 200px;
+    }
+
+    .add-book-content i {
+        font-size: 40px;
+    }
+
+    .add-book-content p {
+        font-size: 18px;
     }
 }
