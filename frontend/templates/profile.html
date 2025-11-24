@@ -1,97 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - BookXchange</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="/frontend/static/profile.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>BookXchange - My Profile</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../static/profile.css">
+    <link rel="stylesheet" href="../static/header.css">
+    
+    <!-- Script to load header -->
+    <script src="../static/include.js"></script>
+    
+    <!-- Page JavaScript -->
+    <script src="../static/profile.js"></script>
 </head>
-
 <body>
-    <div class="app-container">
-        <!-- Header Section -->
-        <header>
-            <div class="logo">
-                <div class="logo-icon">
-                    <img src="../static/resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
-                </div>
-            </div>
 
-            <div class="search-bar">
-                <input type="text" placeholder="Find books" id="searchInput">
-                <i class="fas fa-search"></i>
-            </div>
+    <!-- Header will be loaded here -->
+    <div id="header-placeholder"></div>
 
-            <div class="header-actions">
-                <button class="chat-btn" onclick="goToMessages()">
-                    <i class="fas fa-comments"></i>
-                </button>
-                <button class="profile-btn active" onclick="goToProfile()">
+    <!-- Floating Back Button -->
+    <button class="back-btn" onclick="goBack()" aria-label="Go back">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Profile Card -->
+        <div class="profile-card">
+            
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="avatar">
                     <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <h1 id="userName">Hello, User!</h1>
+                    <p class="email" id="userEmail">user@email.com</p>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="info-section">
+                <h3><i class="fas fa-info-circle"></i> About Me</h3>
+                <p id="aboutText">Loading...</p>
+            </div>
+
+            <!-- Interests Section -->
+            <div class="info-section">
+                <h3><i class="fas fa-heart"></i> My Interests</h3>
+                <p id="interestsText">Loading...</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn" onclick="editProfile()">
+                    <i class="fas fa-edit"></i>
+                    <span>Edit Profile</span>
+                </button>
+                <button class="action-btn" onclick="viewTransactionHistory()">
+                    <i class="fas fa-history"></i>
+                    <span>Transaction History</span>
                 </button>
             </div>
-        </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Profile Card -->
-            <div class="profile-card">
-                <!-- Avatar and Name -->
-                <div class="profile-header">
-                    <div class="avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="profile-info">
-                        <h1 id="userName">Hello,<br>John Doe!</h1>
-                        <p class="email" id="userEmail">johndoe@gmail.com</p>
-                    </div>
-                </div>
-
-                <!-- About Me Section -->
-                <div class="info-section">
-                    <h3>About me:</h3>
-                    <p id="aboutText">I am John Doe, an Information Systems student with all the dreams in the world. I've been a cruise-ship pianist, President of the Youth Parliament and a vocalist on a Grammy-winning track—and I still want to become a pilot!</p>
-                </div>
-
-                <!-- My Interests Section -->
-                <div class="info-section">
-                    <h3>My interests:</h3>
-                    <p id="interestsText">Horror, Thriller; Romance</p>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                    <button class="action-btn" onclick="editProfile()">Edit Profile</button>
-                    <button class="action-btn" onclick="viewTransactionHistory()">Transactional history</button>
-                </div>
-
-                <!-- Logout Button -->
-                <button class="logout-btn" onclick="logout()">Log-Out</button>
-            </div>
-        </main>
-
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav">
-            <button class="nav-btn" onclick="goToHome()">
-                <i class="fas fa-book"></i>
+            <!-- Logout Button -->
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
             </button>
-            <button class="nav-btn" onclick="goToAnnouncements()">
-                <i class="fas fa-plus"></i>
-            </button>
-            <button class="nav-btn" onclick="goToFavorites()">
-                <i class="fas fa-heart"></i>
-            </button>
-        </nav>
-    </div>
 
-    <script src="/frontend/static/profile.js"></script>
+        </div>
+
+    </main>
+
+    <!-- NO FOOTER -->
+
 </body>
-
 </html>
