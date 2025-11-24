@@ -3,93 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookXchange - Listing Details</title>
-    <link rel="stylesheet" href="../static/listing.css">
+    <title>BookXchange - Book Details</title>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS File -->
+    <link rel="stylesheet" href="../static/listing.css">
+    
+    <!-- Page JavaScript -->
+    <script src="../static/listing.js"></script>
 </head>
 <body>
-    <!-- Back Button -->
-    <button class="back-btn" onclick="goBack()">
+    
+    <!-- Floating Back Button -->
+    <button class="back-btn" onclick="goBack()" aria-label="Go back">
         <i class="fas fa-arrow-left"></i>
     </button>
 
-    
-
-    <!-- Main Content -->
-    <main>
-        <!-- Book Image -->
-        <div class="book-image-container">
-            <img id="bookImage" src="" alt="Book Cover" class="book-image">
-        </div>
-
-        <!-- Book Title -->
-        <h1 class="book-title" id="bookTitle">Loading...</h1>
-
-        <!-- Details Grid -->
-        <div class="details-grid">
-            <!-- Author -->
-            <div class="detail-card">
-                <p class="detail-label">Author:</p>
-                <p class="detail-value" id="bookAuthor">-</p>
+    <!-- Main Container -->
+    <div class="container">
+        
+        <!-- Gallery Section: Multiple Images -->
+        <section class="gallery-section">
+            
+            <!-- Main Image Display -->
+            <div class="main-image-wrapper">
+                <img id="mainImage" src="" alt="Book Cover" class="main-image">
+                <button class="favorite-btn-hero" id="favoriteBtn" onclick="toggleFavorite()" aria-label="Add to favorites">
+                    <i class="fas fa-heart"></i>
+                </button>
             </div>
 
-            <!-- Price -->
-            <div class="detail-card">
-                <p class="detail-label">Price</p>
-                <p class="detail-value price" id="bookPrice">-</p>
+            <!-- Thumbnail Gallery -->
+            <div class="thumbnail-gallery" id="thumbnailGallery">
+                <!-- Thumbnails will be loaded here dynamically -->
             </div>
 
-            <!-- Publication Year -->
-            <div class="detail-card">
-                <p class="detail-label">Publication Year:</p>
-                <p class="detail-value" id="bookYear">-</p>
+        </section>
+
+        <!-- Content Section (UNCHANGED) -->
+        <section class="content-section">
+            
+            <!-- Book Title & Author -->
+            <div class="title-section">
+                <h1 id="bookTitle" class="book-title">Book Title</h1>
+                <p class="book-author">by <span id="bookAuthor">Author Name</span></p>
             </div>
 
-            <!-- Conservation -->
-            <div class="detail-card">
-                <p class="detail-label">Conservation:</p>
-                <p class="detail-value" id="bookCondition">-</p>
+            <!-- Price Badge -->
+            <div class="price-badge">
+                <span class="price-label">Price</span>
+                <span id="bookPrice" class="price-value">$0.00</span>
             </div>
 
-            <!-- Genres -->
-            <div class="detail-card">
-                <p class="detail-label">Genres:</p>
-                <p class="detail-value" id="bookGenres">-</p>
+            <!-- Quick Info Pills -->
+            <div class="info-pills">
+                <div class="pill">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="bookYear">Year</span>
+                </div>
+                <div class="pill">
+                    <i class="fas fa-star"></i>
+                    <span id="bookCondition">Condition</span>
+                </div>
+                <div class="pill">
+                    <i class="fas fa-tag"></i>
+                    <span id="bookGenres">Genres</span>
+                </div>
+                <div class="pill">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="bookLocation">Location</span>
+                </div>
             </div>
 
-            <!-- Location -->
-            <div class="detail-card">
-                <p class="detail-label">Location:</p>
-                <p class="detail-value" id="bookLocation">-</p>
+            <!-- Description Card -->
+            <div class="description-card">
+                <h3 class="section-title">About this book</h3>
+                <p id="bookDescription" class="description-text">Book description goes here...</p>
             </div>
-        </div>
 
-        <!-- Description -->
-        <div class="description-section">
-            <p class="description-text" id="bookDescription">
-                Loading description...
-            </p>
-        </div>
-
-        <!-- Seller Section -->
-        <div class="seller-section" onclick="goToSellerProfile()">
-            <div class="seller-avatar">
-                <i class="fas fa-user"></i>
+            <!-- Seller Card -->
+            <div class="seller-card" onclick="goToSellerProfile()">
+                <div class="seller-info">
+                    <div class="seller-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="seller-details">
+                        <span class="seller-label">Seller</span>
+                        <h4 id="sellerName" class="seller-name">Seller Name</h4>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right seller-arrow"></i>
             </div>
-            <h2 class="seller-name" id="sellerName">John Doe</h2>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <button class="message-btn" onclick="sendMessage()">
-                Send a message!
+            <!-- CTA: Message Seller Button -->
+            <button class="cta-btn" onclick="sendMessage()">
+                <i class="fas fa-comment-dots"></i>
+                <span>Message Seller</span>
             </button>
-            <button class="favorite-btn" id="favoriteBtn" onclick="toggleFavorite()">
-                <i class="fas fa-heart"></i>
-            </button>
-        </div>
-    </main>
 
-    <script src="../static/listing.js"></script>
+        </section>
+
+    </div>
+
 </body>
 </html>

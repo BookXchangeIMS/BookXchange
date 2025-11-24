@@ -1,4 +1,16 @@
-// Mock book data (same as home.js)
+// ============================================
+// GLOBAL NAVIGATION FUNCTIONS
+// ============================================
+
+window.goBack = function() {
+    window.history.back();
+};
+
+// ============================================
+// BOOK DATA WITH MULTIPLE IMAGES
+// ============================================
+
+// Mock book data with multiple images
 const bookData = [
     {
         id: 101,
@@ -14,7 +26,11 @@ const bookData = [
         seller: "John Doe",
         sellerId: 1,
         isFavorite: false,
-        imagePath: "../static/resources/harrypotter.png"
+        images: [
+            "../static/resources/harrypotter.png",
+            "../static/resources/harrypotter.png", // You can add more images here
+            "../static/resources/harrypotter.png"
+        ]
     },
     {
         id: 102,
@@ -30,7 +46,11 @@ const bookData = [
         seller: "John Doe",
         sellerId: 1,
         isFavorite: true,
-        imagePath: "../static/resources/lotr.png"
+        images: [
+            "../static/resources/lotr.png",
+            "../static/resources/lotr.png",
+            "../static/resources/lotr.png"
+        ]
     },
     {
         id: 103,
@@ -46,7 +66,10 @@ const bookData = [
         seller: "Jane Smith",
         sellerId: 2,
         isFavorite: false,
-        imagePath: "../static/resources/sapiens.png"
+        images: [
+            "../static/resources/sapiens.png",
+            "../static/resources/sapiens.png"
+        ]
     }
 ];
 
@@ -61,16 +84,15 @@ const book = bookData.find(b => b.id === bookId);
 document.addEventListener('DOMContentLoaded', function() {
     if (book) {
         loadBookDetails(book);
+        loadImageGallery(book.images);
     } else {
         // If book not found, redirect to home
         window.location.href = 'home.html';
     }
-    
 });
 
 // Load book details into the page
 function loadBookDetails(book) {
-    document.getElementById('bookImage').src = book.imagePath;
     document.getElementById('bookTitle').textContent = book.title;
     document.getElementById('bookAuthor').textContent = book.author;
     document.getElementById('bookPrice').textContent = book.price;
@@ -80,7 +102,7 @@ function loadBookDetails(book) {
     document.getElementById('bookLocation').textContent = book.location;
     document.getElementById('bookDescription').textContent = book.description;
     document.getElementById('sellerName').textContent = book.seller;
-    
+
     // Set favorite button state
     const favoriteBtn = document.getElementById('favoriteBtn');
     if (book.isFavorite) {
@@ -88,29 +110,51 @@ function loadBookDetails(book) {
     }
 }
 
-// Go back to previous page
-function goBack() {
-    window.history.back();
+// Load image gallery with thumbnails
+function loadImageGallery(images) {
+    const mainImage = document.getElementById('mainImage');
+    const thumbnailGallery = document.getElementById('thumbnailGallery');
+
+    // Set first image as main
+    mainImage.src = images[0];
+
+    // Create thumbnails
+    thumbnailGallery.innerHTML = '';
+    images.forEach((imgSrc, index) => {
+        const thumbnail = document.createElement('img');
+        thumbnail.src = imgSrc;
+        thumbnail.alt = `Image ${index + 1}`;
+        thumbnail.className = 'thumbnail';
+        if (index === 0) thumbnail.classList.add('active');
+
+        // Click handler to change main image
+        thumbnail.addEventListener('click', function() {
+            mainImage.src = imgSrc;
+            
+            // Update active state
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            thumbnail.classList.add('active');
+        });
+
+        thumbnailGallery.appendChild(thumbnail);
+    });
 }
 
 // Toggle favorite
 function toggleFavorite() {
     if (!book) return;
-    
-    // If already favorited, ask for confirmation
+
     if (book.isFavorite) {
         if (!confirm('Remove this book from your favorites?')) {
             return;
         }
     }
-    
+
     book.isFavorite = !book.isFavorite;
-    
-    // Update button state
+
     const favoriteBtn = document.getElementById('favoriteBtn');
     favoriteBtn.classList.toggle('active');
-    
-    // Show toast
+
     if (book.isFavorite) {
         showToast('Added to favorites');
     } else {
@@ -127,10 +171,8 @@ function goToSellerProfile() {
 // Send message
 function sendMessage() {
     if (!book) return;
-    window.location.href = 'chat.html';
+    window.location.href = 'messages.html';
 }
-
-
 
 // Toast notification
 function showToast(message, type = 'success') {
@@ -150,9 +192,9 @@ function showToast(message, type = 'success') {
         animation: slideUp 0.3s ease;
         font-family: 'Segoe UI', sans-serif;
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'slideDown 0.3s ease';
         setTimeout(() => toast.remove(), 300);
