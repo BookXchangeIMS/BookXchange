@@ -36,7 +36,7 @@ body {
 .back-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    background-color: #c84c3d;
+    background-color: #000000;
 }
 
 .back-btn:hover i {
@@ -60,7 +60,7 @@ body {
 }
 
 /* ============================================
-   GALLERY SECTION - NEW DESIGN
+   GALLERY SECTION
    ============================================ */
 
 .gallery-section {
@@ -73,23 +73,27 @@ body {
     gap: 20px;
 }
 
-/* Main Image Display */
+/* Main Image Wrapper - FIXED ASPECT RATIO */
 .main-image-wrapper {
     position: relative;
     width: 100%;
-    max-width: 500px;
+    max-width: 520px;
+    aspect-ratio: 3 / 4; /* Fixed proportions: 3:4 ratio (portrait book cover) */
     background-color: white;
     border-radius: 20px;
-    padding: 30px;
+    padding: 20px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 .main-image {
     width: 100%;
-    height: auto;
-    display: block;
+    height: 100%;
+    object-fit: cover; /* Maintains aspect ratio, fills container */
     border-radius: 12px;
+    cursor: zoom-in;
     transition: transform 0.3s ease;
+    display: block;
 }
 
 .main-image:hover {
@@ -146,10 +150,10 @@ body {
 }
 
 .thumbnail {
-    width: 80px;
-    height: 110px;
+    width: 70px;
+    aspect-ratio: 3 / 4; /* Same ratio as main image */
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     border: 3px solid transparent;
     transition: all 0.3s ease;
@@ -167,7 +171,93 @@ body {
 }
 
 /* ============================================
-   CONTENT SECTION - UNCHANGED
+   ZOOM OVERLAY MODAL
+   ============================================ */
+
+.zoom-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(8px);
+    z-index: 5000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.zoom-overlay.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.zoomed-image {
+    max-width: 90vw;
+    max-height: 85vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    object-fit: contain;
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.zoom-back-btn {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.zoom-back-btn:hover {
+    background-color: #c84c3d;
+    transform: scale(1.1);
+}
+
+.zoom-back-btn:hover i {
+    color: white;
+}
+
+.zoom-back-btn i {
+    font-size: 22px;
+    color: #1a1a2e;
+    transition: color 0.3s ease;
+}
+
+/* ============================================
+   CONTENT SECTION
    ============================================ */
 
 .content-section {
@@ -201,7 +291,7 @@ body {
     font-weight: 700;
 }
 
-/* Price Badge - Eye-catching */
+/* Price Badge */
 .price-badge {
     display: inline-flex;
     flex-direction: column;
@@ -377,7 +467,10 @@ body {
     font-size: 20px;
 }
 
-/* Responsive Design */
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
 @media (max-width: 1024px) {
     .container {
         grid-template-columns: 1fr;
@@ -398,7 +491,69 @@ body {
     }
 }
 
+@media (max-width: 1023px) {
+    /* Gallery section compact */
+    .gallery-section {
+        padding: 0;
+        min-height: auto;
+        background-color: rgba(255, 255, 255, 0.95); 
+    }
+
+    /* Main image wrapper - full width but limited height */
+    .main-image-wrapper {
+        max-width: 100%;
+        width: 100vw;
+        max-height: 40vh; /* Limit to 40% of viewport height */
+        aspect-ratio: 16 / 9; /* Wider ratio for mobile (landscape-ish) */
+        border-radius: 0;
+        padding: 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .main-image {
+        border-radius: 0;
+    }
+
+    /* Back button overlays on top of image */
+    .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 2000;
+        background-color: rgba(255, 255, 255, 0.90);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Favorite button on image */
+    .favorite-btn-hero {
+        top: 20px;
+        right: 20px;
+        background-color: rgba(255, 255, 255, 0.90);
+        backdrop-filter: blur(15px);
+    }
+
+    /* Thumbnails compact and centered */
+    .thumbnail-gallery {
+        padding: 12px 20px;
+        gap: 10px;
+        max-height: 10vh; /* Limit thumbnail area height */
+    }
+
+    .thumbnail {
+        width: 50px;
+        height: 70px;
+    }
+
+    /* Content section starts right after gallery */
+    .content-section {
+        padding: 25px 20px;
+    }
+}
+
 @media (max-width: 480px) {
+    
+    /* Back button smaller */
     .back-btn {
         width: 45px;
         height: 45px;
@@ -406,49 +561,87 @@ body {
         left: 15px;
     }
 
-    .gallery-section {
-        padding: 80px 20px 30px;
+    .back-btn i {
+        font-size: 18px;
     }
 
+    /* Image even more compact on small phones */
     .main-image-wrapper {
-        padding: 20px;
+        width: 100vw;
+        max-height: 35vh; /* 35% of screen height */
+        aspect-ratio: 4 / 3; /* Slightly taller than 16:9 */
     }
 
-    .thumbnail {
-        width: 65px;
-        height: 90px;
-    }
-
-    .content-section {
-        padding: 30px 20px;
-    }
-
-    .book-title {
-        font-size: 24px;
-    }
-
-    .price-value {
-        font-size: 28px;
-    }
-
-    .info-pills {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding-bottom: 5px;
-    }
-
-    .pill {
-        flex-shrink: 0;
-    }
-
+    /* Favorite button smaller */
     .favorite-btn-hero {
         width: 48px;
         height: 48px;
-        top: 12px;
-        right: 12px;
+        top: 15px;
+        right: 15px;
     }
 
     .favorite-btn-hero i {
         font-size: 20px;
+    }
+
+    /* Thumbnails very compact */
+    .thumbnail-gallery {
+        padding: 10px 15px;
+        gap: 8px;
+        max-height: 8vh;
+    }
+
+    .thumbnail {
+        width: 45px;
+        height: 60px;
+    }
+
+    /* Content section immediately visible */
+    .content-section {
+        padding: 20px 16px;
+    }
+
+    .book-title {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+
+    .book-author {
+        font-size: 16px;
+    }
+
+    .price-value {
+        font-size: 26px;
+    }
+
+    /* Info pills horizontal scroll */
+    .info-pills {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .pill {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    /* Zoom modal adjustments */
+    .zoom-back-btn {
+        top: 20px;
+        left: 20px;
+        width: 48px;
+        height: 48px;
+    }
+
+    .zoom-back-btn i {
+        font-size: 20px;
+    }
+
+    .zoomed-image {
+        max-width: 95vw;
+        max-height: 80vh;
     }
 }
