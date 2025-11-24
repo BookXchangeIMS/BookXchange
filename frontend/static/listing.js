@@ -1,4 +1,15 @@
-// Mock book data (same as home.js)
+// ============================================
+// GLOBAL NAVIGATION FUNCTIONS
+// ============================================
+
+window.goBack = function() {
+    window.history.back();
+};
+
+// ============================================
+// BOOK DATA WITH MULTIPLE IMAGES
+// ============================================
+
 const bookData = [
     {
         id: 101,
@@ -14,7 +25,11 @@ const bookData = [
         seller: "John Doe",
         sellerId: 1,
         isFavorite: false,
-        imagePath: "../static/resources/harrypotter.png"
+        images: [
+            "../static/resources/harrypotter.png",
+            "../static/resources/harrypotter.png",
+            "../static/resources/harrypotter.png"
+        ]
     },
     {
         id: 102,
@@ -26,11 +41,15 @@ const bookData = [
         year: "2013",
         condition: "Almost new",
         genres: "Fantasy, adventure",
-        description: "A classic masterpiece by J.R.R. Tolkien! This book will take you on an unforgettable journey through Middle-earth with Frodo, Gandalf, Aragorn, and the rest of the Fellowship. Reason for selling: I've finished reading it and want it to find a new home with another Tolkien fan.",
+        description: "A classic masterpiece by J.R.R. Tolkien! This book will take you on an unforgettable journey through Middle-earth with Frodo, Gandalf, Aragorn, and the rest of the Fellowship.",
         seller: "John Doe",
         sellerId: 1,
         isFavorite: true,
-        imagePath: "../static/resources/lotr.png"
+        images: [
+            "../static/resources/lotr.png",
+            "../static/resources/lotr.png",
+            "../static/resources/lotr.png"
+        ]
     },
     {
         id: 103,
@@ -46,7 +65,10 @@ const bookData = [
         seller: "Jane Smith",
         sellerId: 2,
         isFavorite: false,
-        imagePath: "../static/resources/sapiens.png"
+        images: [
+            "../static/resources/sapiens.png",
+            "../static/resources/sapiens.png"
+        ]
     }
 ];
 
@@ -57,20 +79,26 @@ const bookId = parseInt(urlParams.get('id'));
 // Find the book
 const book = bookData.find(b => b.id === bookId);
 
-// Load book details on page load
+// ============================================
+// PAGE INITIALIZATION
+// ============================================
+
 document.addEventListener('DOMContentLoaded', function() {
     if (book) {
         loadBookDetails(book);
+        loadImageGallery(book.images);
+        initializeZoomFunctionality();
     } else {
         // If book not found, redirect to home
         window.location.href = 'home.html';
     }
-    
 });
 
-// Load book details into the page
+// ============================================
+// LOAD BOOK DETAILS
+// ============================================
+
 function loadBookDetails(book) {
-    document.getElementById('bookImage').src = book.imagePath;
     document.getElementById('bookTitle').textContent = book.title;
     document.getElementById('bookAuthor').textContent = book.author;
     document.getElementById('bookPrice').textContent = book.price;
@@ -80,7 +108,7 @@ function loadBookDetails(book) {
     document.getElementById('bookLocation').textContent = book.location;
     document.getElementById('bookDescription').textContent = book.description;
     document.getElementById('sellerName').textContent = book.seller;
-    
+
     // Set favorite button state
     const favoriteBtn = document.getElementById('favoriteBtn');
     if (book.isFavorite) {
@@ -88,29 +116,99 @@ function loadBookDetails(book) {
     }
 }
 
-// Go back to previous page
-function goBack() {
-    window.history.back();
+// ============================================
+// IMAGE GALLERY WITH THUMBNAILS
+// ============================================
+
+function loadImageGallery(images) {
+    const mainImage = document.getElementById('mainImage');
+    const thumbnailGallery = document.getElementById('thumbnailGallery');
+
+    // Set first image as main
+    mainImage.src = images[0];
+
+    // Create thumbnails
+    thumbnailGallery.innerHTML = '';
+    images.forEach((imgSrc, index) => {
+        const thumbnail = document.createElement('img');
+        thumbnail.src = imgSrc;
+        thumbnail.alt = `Image ${index + 1}`;
+        thumbnail.className = 'thumbnail';
+        if (index === 0) thumbnail.classList.add('active');
+
+        // Click handler to change main image
+        thumbnail.addEventListener('click', function() {
+            mainImage.src = imgSrc;
+            
+            // Update active state
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            thumbnail.classList.add('active');
+        });
+
+        thumbnailGallery.appendChild(thumbnail);
+    });
 }
 
-// Toggle favorite
+// ============================================
+// ZOOM FUNCTIONALITY
+// ============================================
+
+function initializeZoomFunctionality() {
+    const mainImage = document.getElementById('mainImage');
+    const zoomOverlay = document.getElementById('zoomOverlay');
+    const zoomedImage = document.getElementById('zoomedImage');
+    const zoomBackBtn = document.getElementById('zoomBackBtn');
+
+    if (!mainImage || !zoomOverlay || !zoomedImage || !zoomBackBtn) return;
+
+    // Open zoom when clicking main image
+    mainImage.addEventListener('click', function() {
+        zoomedImage.src = mainImage.src;
+        zoomOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+    });
+
+    // Close zoom with back button
+    zoomBackBtn.addEventListener('click', closeZoom);
+
+    // Close zoom when clicking outside image
+    zoomOverlay.addEventListener('click', function(e) {
+        if (e.target === zoomOverlay) {
+            closeZoom();
+        }
+    });
+
+    // Close zoom with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && zoomOverlay.classList.contains('active')) {
+            closeZoom();
+        }
+    });
+
+    function closeZoom() {
+        zoomOverlay.classList.remove('active');
+        document.body.style.overflow = ''; // Restore scroll
+    }
+}
+
+// ============================================
+// TOGGLE FAVORITE
+// ============================================
+
 function toggleFavorite() {
     if (!book) return;
-    
-    // If already favorited, ask for confirmation
+
     if (book.isFavorite) {
         if (!confirm('Remove this book from your favorites?')) {
             return;
         }
     }
-    
+
     book.isFavorite = !book.isFavorite;
-    
-    // Update button state
+
     const favoriteBtn = document.getElementById('favoriteBtn');
     favoriteBtn.classList.toggle('active');
-    
-    // Show toast
+
     if (book.isFavorite) {
         showToast('Added to favorites');
     } else {
@@ -118,21 +216,24 @@ function toggleFavorite() {
     }
 }
 
-// Go to seller profile
+// ============================================
+// NAVIGATION FUNCTIONS
+// ============================================
+
 function goToSellerProfile() {
     if (!book) return;
     window.location.href = `foreignprofile.html?id=${book.sellerId}`;
 }
 
-// Send message
 function sendMessage() {
     if (!book) return;
-    window.location.href = 'chat.html';
+    window.location.href = 'messages.html';
 }
 
+// ============================================
+// TOAST NOTIFICATION
+// ============================================
 
-
-// Toast notification
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.textContent = message;
@@ -149,17 +250,18 @@ function showToast(message, type = 'success') {
         z-index: 10000;
         animation: slideUp 0.3s ease;
         font-family: 'Segoe UI', sans-serif;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'slideDown 0.3s ease';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
 
-// Add CSS for animations
+// Add CSS animations for toast
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideUp {
