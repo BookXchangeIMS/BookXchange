@@ -7,7 +7,8 @@ CREATE TABLE Locations(
     LocationID INT IDENTITY(1,1) PRIMARY KEY,
     Longitude FLOAT NOT NULL,
     Latitude FLOAT NOT NULL,
-    [Description] NVARCHAR(512) 
+    Address NVARCHAR(512) NOT NULL,
+    [Description] NVARCHAR(512) NOT NULL
 );
 GO
 
@@ -21,7 +22,7 @@ CREATE TABLE Users(
     UserRole NVARCHAR(64) NOT NULL,
     AboutMe NVARCHAR(512),
     CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    LocationID INT,
+    LocationID INT NOT NULL,
     FOREIGN KEY(LocationID) REFERENCES Locations(LocationID)
 );
 

@@ -5,6 +5,7 @@ from typing import Annotated
 from backend.scripts.auth import *
 from backend.scripts.profile_crud import *
 from backend.config.db import get_db
+from backend.scripts.location_scripts import *
 
 tags_metadata = [
     {
@@ -33,23 +34,33 @@ Endpoints for user authentication and management:
 - POST /api/refresh_access_token: Refreshes the access token using a valid refresh token
 - POST /api/logout: Invalidates the refresh token associated with a user's access token
 """
-@app.post("/api/sign_up", status_code=status.HTTP_201_CREATED, tags=["Authentication"], response_model=Tokens)
+@app.post("/api/sign_up", status_code=status.HTTP_201_CREATED, tags=["Authentication"])
 async def sign_up(sign_up_form: Annotated[SignUp, Form()], db= Depends(get_db)):
     """
-    Handles the user sign-up process. It checks if the email already exists in the database,
-    and if not, creates the user account. Upon successful account creation, the function
-    generates access and refresh tokens and stores the refresh token in the database.
+    Handles user sign-up by creating a new user account, storing their information, and
+    generating access and refresh tokens. This endpoint also validates if the email already
+    exists in the database, ensures the user's location is added to the database, and securely
+    saves refresh tokens for future use.
 
-    :param sign_up_form: The form data submitted by the user for sign-up
-    :param db: A database session dependency
-    :return: An instance of Tokens containing access and refresh tokens
-    :raises HTTPException: Raised if the email already exists, there is an issue with storing
-                           the refresh token, or there is an authentication failure
+    :param sign_up_form: The form containing user sign-up information such as name, email,
+        password hash, and location address.
+    :type sign_up_form: Annotated[SignUp, Form()]
+    :param db: The database session dependency used to perform various database operations.
+    :type db: Dependency (Session)
+
+    :return: A token object containing access and refresh tokens for the signed-up user.
+    :rtype: Tokens
     """
     if check_if_email_exists(sign_up_form, db):
         raise HTTPException(status_code=409, detail="This email already exists")
     else:
-        sign_user_up(sign_up_form, db)
+        latitude, longitude = address_to_coordinates(sign_up_form.LocationAddress)
+        locationid = post_location(Location(
+            Latitude=latitude,
+            Longitude=longitude,
+            Address=sign_up_form.LocationAddress,
+            Description=""), db)
+        sign_user_up(sign_up_form, locationid, db)
         userid = get_userid_by_credentials(sign_up_form, db)
         if userid:
             access_token = create_access_token(SignIn(Email=sign_up_form.Email, PasswordHash=sign_up_form.PasswordHash).dict())
@@ -163,6 +174,13 @@ async def does_user_exist(email: str = Form(...), db= Depends(get_db)):
 # ===================================================================================================================
 # PREFERENCES ENDPOINTS
 # ===================================================================================================================
+
+"""
+Endpoints for user preferences:
+- POST /api/post_preferences: Stores user preferences based on access token and genre names.
+- GET /api/get_preferences: Retrieves user preferences based on access token.
+- DELETE /api/delete_preferences: Deletes a user's preference for a given genre.
+"""
 @app.post("/api/post_preferences", status_code=status.HTTP_201_CREATED, tags=["Preferences"])
 async def post_preferences(preferences: list[str], access_token: str = Header(None), db= Depends(get_db)):
     """
@@ -221,27 +239,35 @@ async def delete_preference(genre_name: str, access_token: str = Header(None), d
 # ===================================================================================================================
 # PROFILE ENDPOINTS
 # ===================================================================================================================
-
+"""
+Endpoints for user profile management:
+- GET /api/get_your_profile: Retrieves the authenticated user's profile information.
+- GET /api/get_profile: Retrieves the profile information for a given user ID.
+- PUT /api/update_profile: Updates a user's profile information based on the provided details.
+- DELETE /api/delete_profile: Deletes a user's profile based on their access token.
+"""
 @app.get("/api/get_your_profile", response_model=GetMyUser, status_code=status.HTTP_200_OK, tags=["Profile"])
 async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)):
     """
-    Fetches the profile information of the user associated with the provided access token.
-    The function retrieves the user ID using the access token and queries the database
-    to fetch the user's profile details. It then returns the user information formatted
-    as a response model.
+    Fetches the authenticated user's profile information.
 
-    :param access_token: The access token provided to authenticate and identify the user.
-        This is required for fetching the profile details.
+    This function retrieves user profile details for an authenticated user
+    by verifying their access token. It queries the database to get the
+    user details, their location information, and compiles it into a
+    response model.
+
+    :param access_token: The token provided for authentication to verify the user's identity.
     :type access_token: str
-    :param db: The database session instance used to execute queries.
-        Dependency injection via FastAPI's `Depends` is used to provide this parameter.
-    :return: A response object containing the user's profile information, including user
-        ID, email, name, profile image path, user role, about me, and account creation
-        date.
+    :param db: A database session dependency used to interact with the application database.
+    :type db: sqlalchemy.orm.Session
+
+    :return: The user's profile information including UserID, Email, Name,
+        Profile ImagePath, Role, AboutMe, Account Creation Date, and Location details.
     :rtype: GetMyUser
     """
     userid = get_userid_by_access_token(access_token, db)
     user_data = get_user_by_id(userid, db)
+    location = get_location_by_id(user_data.LocationID, db)
     return GetMyUser(
         UserID=user_data.UserID,
         Email=user_data.Email,
@@ -249,27 +275,32 @@ async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)
         ProfileImagePath=user_data.ProfileImagePath,
         UserRole=user_data.UserRole,
         AboutMe=user_data.AboutMe,
-        CreationDate=user_data.CreationDate
+        CreationDate=user_data.CreationDate,
+        Location= Location(Longitude=location.Longitude,
+                           Latitude=location.Latitude,
+                           Address=location.Address,
+                           Description=location.Description)
     )
 
 @app.get("/api/get_profile", response_model=GetUser, status_code=status.HTTP_200_OK, tags=["Profile"])
 async def get_profile(userid: int, access_token: str = Header(None), db= Depends(get_db)):
     """
-    Fetches the profile of a user based on their user ID. The endpoint
-    validates the provided access token and retrieves the user data from the database
-    if the token is valid. Returns user profile details in the specified response model.
+    Fetches the user's profile associated with the given user ID. The API checks for
+    authentication using the provided access token. If the access token is valid
+    and the user exists in the database, the user's profile details are retrieved
+    and returned.
 
-    :param userid: Unique identifier of the user whose profile is to be fetched.
+    :param userid: The ID of the user whose profile is being retrieved.
     :type userid: int
-    :param access_token: A token required for accessing the API, provided in the
-        request header. Defaults to None.
-    :type access_token: str, optional
-    :param db: Database dependency for interacting with the database.
-    :type db: Depends
-    :return: Returns a response model containing the user's profile data
-        including UserID, Name, ProfileImagePath, UserRole, and AboutMe.
+    :param access_token: JWT access token provided for authentication.
+    :type access_token: str
+    :param db: Database session dependency for the operation.
+    :type db: Session
+    :return: A dictionary containing the user's profile details if the access
+        token is valid and the user exists.
     :rtype: GetUser
-    :raises HTTPException: Raised with a 401 status code if the access token is invalid.
+    :raises HTTPException: Raised with a 401 status code if the access token is
+        invalid.
     """
     if verify_access_token(access_token):
         user_data = get_user_by_id(userid, db)
@@ -284,28 +315,43 @@ async def get_profile(userid: int, access_token: str = Header(None), db= Depends
         raise HTTPException(status_code=401, detail="Invalid access token")
 
 @app.put("/api/update_profile", response_model=UpdateUser, status_code=status.HTTP_200_OK, tags=["Profile"])
-async def get_profile(new_info: UpdateUser, access_token: str = Header(None), db= Depends(get_db)):
+async def update_profile(new_info: UpdateUser, access_token: str = Header(None), db= Depends(get_db)):
     """
-    Updates the user profile information based on the provided details. The function requires
-    an access token to authenticate the user and identify their `userid`.
-    It updates the profile data in the database for the `userid` associated
-    with the access token provided. The newly updated user information is
-    returned upon successful execution.
+    Updates a user's profile information based on the provided details such as location and address.
+    It ensures the user is authorized via the `access_token` and utilizes the database dependency to
+    update the user's data. The new location is converted to geographic coordinates before updating.
 
-    :param new_info: Data containing updated user profile information
-    :type new_info: UpdateUser
-    :param access_token: The access token string used for user authentication
-    :type access_token: str
-    :param db: Dependency injection for database session
-    :type db: Depends
-    :return: The updated user profile information
-    :rtype: UpdateUser
+    :param new_info: An instance of `UpdateUser` containing the updated user information.
+    :param access_token: A string representing the user's access token for authorization.
+    :param db: Database dependency injected for database operations.
+    :return: Updated user profile information as an instance of `UpdateUser`.
+
     """
     userid = get_userid_by_access_token(access_token, db)
-    return update_profile_by_userid(userid, new_info, db)
+    latitude, longitude = address_to_coordinates(new_info.LocationAddress)
+    new_locationid = post_location(Location(
+        Latitude=latitude,
+        Longitude=longitude,
+        Address=new_info.LocationAddress,
+        Description=""), db)
+    return update_profile_by_userid(userid, new_info, new_locationid, db)
 
 @app.delete("/api/delete_profile", status_code=status.HTTP_204_NO_CONTENT, tags=["Profile"])
 async def delete_profile(tokens: Tokens = Header(None), db= Depends(get_db)):
+    """
+    Deletes a user profile based on the provided access token.
+
+    This function is an API endpoint that deletes a user profile by resolving
+    the user's ID from the provided access token. The database session is used
+    to perform the deletion operation. If the user profile is successfully
+    deleted, the endpoint will return a 204 No Content HTTP status code.
+
+    :param tokens: The ``Tokens`` object containing the access token
+                   provided in the request header.
+    :param db: The database session dependency provided by the ``get_db``
+               function.
+    :return: None
+    """
     userid = get_userid_by_access_token(tokens.access_token, db)
     return delete_profile_by_userid(userid, db)
 

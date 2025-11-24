@@ -2,13 +2,13 @@ USE BookXchange;
 GO
 
 
-INSERT INTO Locations (Longitude, Latitude, [Description])
+INSERT INTO Locations (Longitude, Latitude, Address, [Description])
 VALUES
-(-74.0060, 40.7128, 'New York City, NY'),
-(-118.2437, 34.0522, 'Los Angeles, CA'),
-(-0.1276, 51.5074, 'London, UK'),
-(151.2093, -33.8688, 'Sydney, Australia'),
-(139.6917, 35.6895, 'Tokyo, Japan');
+(-74.0060, 40.7128, '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 'room 5'),
+(-118.2437, 34.0522, '1 Apple Park Way, Cupertino, CA 95014, USA', ''),
+(-0.1276, 51.5074, '221B Baker Street, London NW1 6XE, United Kingdom', ''),
+(151.2093, -33.8688, '350 Fifth Avenue, New York, NY 10118, USA', ''),
+(139.6917, 35.6895, 'Piazza del Colosseo, 1, 00184 Rome RM, Italy', '');
 
 
 INSERT INTO Users ([Name], Email, PasswordHash, ProfileImagePath, UserRole, AboutMe, CreationDate, DateOfBirth, LocationID)

@@ -16,10 +16,14 @@ class Tokens(BaseModel):
 #==================================================================================
 
 # Location model
-class Location(BaseModel):
-    LocationID: int
-    Country: str
-    City: str
+
+class PostLocation(BaseModel):
+    Address: str
+    Description: str
+
+class Location(PostLocation):
+    Longitude: float
+    Latitude: float
 
 # User model
 
@@ -30,22 +34,26 @@ class SignIn(BaseModel):
 class SignUp(SignIn):
     Name: str
     DateOfBirth: datetime
+    LocationAddress: str
 
 class UpdateUser(BaseModel):
     Name: str
     ProfileImagePath: str
     AboutMe: str
+    LocationAddress: str
 
-class GetUser(UpdateUser):
+class GetUser(BaseModel):
+    Name: str
+    ProfileImagePath: str
+    AboutMe: str
     UserID: int
     UserRole: str
 
 class GetMyUser(GetUser):
     Email: str
     CreationDate: datetime
+    Location: Location
 
-class User(GetUser, SignUp):
-    CreationDate: datetime
 
 # Error log model
 class Error_Log(BaseModel):
