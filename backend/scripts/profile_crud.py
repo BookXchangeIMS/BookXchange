@@ -119,7 +119,7 @@ def delete_preference_by_userid(userid: int, genre_name: str, db):
 # Profile
 # ===============================================================================================================
 
-def update_profile_by_userid(userid: int, new_info: UpdateUser, db):
+def update_profile_by_userid(userid: int, new_info: UpdateUser, new_location_id: int, db):
     """
     Updates a user profile in the database based on the provided user ID and new information. The function
     executes an update statement to modify the user record and commits the changes. If any exception occurs
@@ -135,7 +135,11 @@ def update_profile_by_userid(userid: int, new_info: UpdateUser, db):
     """
     users = metadata.tables["Users"]
     try:
-        stmt = users.update().where(users.c.UserID == userid).values(Name=new_info.Name, ProfileImagePath=new_info.ProfileImagePath, AboutMe=new_info.AboutMe)
+        stmt = users.update().where(users.c.UserID == userid).values(
+            Name=new_info.Name,
+            ProfileImagePath=new_info.ProfileImagePath,
+            AboutMe=new_info.AboutMe,
+            LocationID=new_location_id)
         db.execute(stmt)
         db.commit()
     except Exception as e:

@@ -60,7 +60,7 @@ def check_if_email_exists(data: SignUp, db):
     row = db.execute(stmt).fetchone()
     return True if row else False
 
-def sign_user_up(data: SignUp, db):
+def sign_user_up(data: SignUp, locationid: int, db):
     """
     Inserts a new user into the "Users" table in the database. The function takes
     user sign-up data and a database connection to create a user account record.
@@ -82,7 +82,8 @@ def sign_user_up(data: SignUp, db):
         CreationDate= datetime.now(),
         ProfileImagePath= "/image.png",
         UserRole= "User",
-        AboutMe= ""
+        AboutMe= "",
+        LocationID= locationid
     )
     try:
         db.execute(stmt)
