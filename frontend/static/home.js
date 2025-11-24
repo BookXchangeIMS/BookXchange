@@ -75,7 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function() {
     // Pass bookData and loadBooks callback to SearchManager
-    SearchManager.init(bookData, loadBooks);
+    if (window.SearchManager && typeof SearchManager.init === 'function') {
+        SearchManager.init(bookData, loadBooks);
+    }
 });
 
 // Load books into the grid
@@ -84,6 +86,11 @@ function loadBooks(books) {
     if (!booksGrid) return;
 
     booksGrid.innerHTML = '';
+    
+    if (books.length === 0) {
+        booksGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No books found.</p>';
+        return;
+    }
     
     books.forEach(book => {
         const bookCard = createBookCard(book);
@@ -138,6 +145,15 @@ function viewBookDetails(bookId) {
 // Contact seller
 function contactSeller(bookId) {
     console.log('Contacting seller for book ID:', bookId);
+    // TODO: Implement contact seller functionality
+}
+
+// Show error message
+function showError(message) {
+    const booksGrid = document.getElementById('booksGrid');
+    if (booksGrid) {
+        booksGrid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #c84c3d;">${message}</p>`;
+    }
 }
 
 // Navigation functions
