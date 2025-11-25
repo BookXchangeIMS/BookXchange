@@ -34,7 +34,7 @@ Endpoints for user authentication and management:
 - POST /api/refresh_access_token: Refreshes the access token using a valid refresh token
 - POST /api/logout: Invalidates the refresh token associated with a user's access token
 """
-@app.post("/api/sign_up", status_code=status.HTTP_201_CREATED, tags=["Authentication"])
+@app.post("/api/sign_up", status_code=status.HTTP_201_CREATED, response_model= Tokens, tags=["Authentication"])
 async def sign_up(sign_up_form: Annotated[SignUp, Form()], db= Depends(get_db)):
     """
     Handles user sign-up by creating a new user account, storing their information, and
@@ -51,7 +51,7 @@ async def sign_up(sign_up_form: Annotated[SignUp, Form()], db= Depends(get_db)):
     :return: A token object containing access and refresh tokens for the signed-up user.
     :rtype: Tokens
     """
-    if check_if_email_exists(sign_up_form, db):
+    if check_if_email_exists(sign_up_form.Email, db):
         raise HTTPException(status_code=409, detail="This email already exists")
     else:
         latitude, longitude = address_to_coordinates(sign_up_form.LocationAddress)
@@ -155,7 +155,7 @@ async def logout(tokens: Tokens = Header(None), db= Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid access token")
 
 @app.get("/api/does_user_exist", status_code=status.HTTP_200_OK, tags=["Authentication"])
-async def does_user_exist(email: str = Form(...), db= Depends(get_db)):
+async def does_user_exist(email: str, db= Depends(get_db)):
     """
     For the 1-st step of the registration process on the page, this endpoint checks if the provided email address already exists in the system.
 
@@ -166,10 +166,7 @@ async def does_user_exist(email: str = Form(...), db= Depends(get_db)):
     :return: A result indicating whether the email exists in the system.
     :rtype: Any
     """
-    if check_if_email_exists(SignUp(Name="", Email=email, PasswordHash=""), db):
-        raise HTTPException(status_code=409, detail="This email already exists")
-    else:
-        return False
+    return check_if_email_exists(email=email, db=db)
 
 # ===================================================================================================================
 # PREFERENCES ENDPOINTS

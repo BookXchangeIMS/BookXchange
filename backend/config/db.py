@@ -2,7 +2,11 @@ from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
 from backend.config.config import *
 
-DATABASE_URL = f"mssql+pyodbc://sa:{Settings.SA_PASSWORD}@localhost:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
+# Inside of container Testing
+DATABASE_URL = f"mssql+pyodbc://sa:{Settings.SA_PASSWORD}@sqlserver2022:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
+
+# Out of container Testing
+#DATABASE_URL = f"mssql+pyodbc://sa:{Settings.SA_PASSWORD}@localhost:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
 
 engine = create_engine(DATABASE_URL)
 

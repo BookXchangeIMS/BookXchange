@@ -38,7 +38,7 @@ def get_userid_by_credentials(data: SignIn, db):
     row = db.execute(stmt).fetchone()
     return row.UserID if row else None
 
-def check_if_email_exists(data: SignUp, db):
+def check_if_email_exists(email: str, db):
     """
     Check if an email already exists in the database.
 
@@ -56,7 +56,7 @@ def check_if_email_exists(data: SignUp, db):
     :rtype: bool
     """
     users = metadata.tables["Users"]
-    stmt = select(users).where(users.c.Email == data.Email)
+    stmt = select(users).where(users.c.Email == email)
     row = db.execute(stmt).fetchone()
     return True if row else False
 
