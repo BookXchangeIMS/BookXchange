@@ -1,6 +1,40 @@
-from datetime import datetime
-from pydantic import BaseModel
+# Your existing main API file
+from http import HTTPStatus
+from fastapi import FastAPI, Depends, Form, Header
+from typing import Annotated
 
+# Your existing imports
+from backend.scripts.auth import *
+from backend.scripts.profile_crud import *
+from backend.config.db import get_db
+from backend.scripts.location_scripts import *
+
+# Import the recommendation router
+from backend.recommendations import router as recommendations_router
+
+tags_metadata = [
+    {
+        "name": "Authentication",
+        "description": "Operations with user's authentication. The **login** logic is here.",
+    },
+    {
+        "name": "Profile",
+        "description": "Operations with user's profile that are not related to authentication.",
+    },
+    {
+        "name": "Preferences",
+        "description": "Operations with user's preferences in genres.",
+    },
+    {
+        "name": "Recommendations",
+        "description": "Book recommendation system based on user preferences and behavior.",
+    },
+]
+
+app = FastAPI(openapi_tags=tags_metadata)
+
+# Include the recommendation router
+app.include_router(recommendations_router)
 #==================================================================================
 # JWT MODELS
 #==================================================================================
@@ -139,10 +173,3 @@ class ReportPost(BaseModel):
 
 class Reports(ReportPost):
     ReportID: int
-
-
-
-
-
-
-
