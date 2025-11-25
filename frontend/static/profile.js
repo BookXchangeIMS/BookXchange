@@ -57,10 +57,8 @@ function loadUserProfile() {
 // ============================================
 
 function editProfile() {
-    // In a real app, this would open an edit profile modal or page
-    console.log('Edit Profile clicked');
-    showToast('Edit Profile feature coming soon!', 'info');
-    // window.location.href = 'edit-profile.html';
+    // Go to the edit profile page (feature is now implemented)
+    window.location.href = 'editprofile.html';
 }
 
 function viewTransactionHistory() {
@@ -72,17 +70,14 @@ function viewTransactionHistory() {
 
 function logout() {
     const confirmLogout = confirm('Are you sure you want to log out?');
-    
     if (confirmLogout) {
         // In a real app, this would:
         // 1. Clear session/auth tokens
         // 2. Clear local storage
         // 3. Redirect to login page
         console.log('Logging out...');
-        
         // Simulate logout
         showToast('Logged out successfully', 'success');
-        
         // Redirect to login page after a short delay
         setTimeout(() => {
             window.location.href = 'login.html';
