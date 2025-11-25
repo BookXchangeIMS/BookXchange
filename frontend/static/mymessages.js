@@ -25,19 +25,16 @@ window.goToProfile = function() {
 
 // Wait for DOM to load
 document.addEventListener("DOMContentLoaded", () => {
-  
   const messageList = document.getElementById("messageList");
   const cards = messageList ? messageList.getElementsByClassName("message-card") : [];
 
   // Add click handlers for message cards
   Array.from(cards).forEach((card) => {
     card.addEventListener("click", () => {
-      console.log("Card clicked:", card.querySelector("h3").textContent);
-      // TODO: Navigate to specific message/conversation
-      // window.location.href = `messages.html?user=...`;
+      // NAVIGATE to messages.html on click
+      window.location.href = "messages.html";
     });
   });
-
 });
 
 // Initialize search after components are loaded
