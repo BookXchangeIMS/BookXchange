@@ -8,6 +8,7 @@ function handleRegistration3(event) {
     // Check if passwords match
     if (password !== confirmPassword) {
         errorMessage.textContent = 'Passwords do not match!';
+        errorMessage.style.color = '#e74c3c'; // RED
         document.getElementById('confirmPassword').focus();
         return;
     }
@@ -33,30 +34,35 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmPassword.addEventListener('input', () => {
         if (confirmPassword.value === '') {
             errorMessage.textContent = '';
+            errorMessage.style.color = ''; // Reset
         } else if (password.value !== confirmPassword.value) {
             errorMessage.textContent = 'Passwords do not match!';
+            errorMessage.style.color = '#e74c3c'; // RED
         } else {
             errorMessage.textContent = '✓ Passwords match';
-            errorMessage.style.color = '#27ae60';
+            errorMessage.style.color = '#27ae60'; // GREEN
         }
     });
     
-    // Reset error color when typing again
     password.addEventListener('input', () => {
-        errorMessage.style.color = '#e74c3c';
-        if (confirmPassword.value !== '' && password.value !== confirmPassword.value) {
-            errorMessage.textContent = 'Passwords do not match!';
-        } else if (confirmPassword.value !== '' && password.value === confirmPassword.value) {
-            errorMessage.textContent = '✓ Passwords match';
-            errorMessage.style.color = '#27ae60';
+        if (confirmPassword.value !== '') {
+            if (password.value !== confirmPassword.value) {
+                errorMessage.textContent = 'Passwords do not match!';
+                errorMessage.style.color = '#e74c3c'; // RED
+            } else {
+                errorMessage.textContent = '✓ Passwords match';
+                errorMessage.style.color = '#27ae60'; // GREEN
+            }
+        } else {
+            errorMessage.textContent = '';
+            errorMessage.style.color = '';
         }
     });
-    
-    // Add fade-in animation
+
+    // Fade-in animation for container
     const container = document.querySelector('.container');
     container.style.opacity = '0';
     container.style.transform = 'translateY(20px)';
-    
     setTimeout(() => {
         container.style.transition = 'all 0.6s ease';
         container.style.opacity = '1';
