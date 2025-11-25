@@ -1,48 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foreign Profile</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="/frontend/static/foreignprofile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/foreignprofile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-
 <body>
     <div class="app-container">
         <!-- Top Navbar -->
-       <!-- Header Section -->
-    <header>
-        <div class="logo">
-            <div class="logo-icon">
-                <img src="../static/resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="../static/resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
+                </div>
             </div>
-        </div>
-
-        <div class="search-bar">
-            <input type="text" placeholder="Find books" id="searchInput">
-            <i class="fas fa-search"></i>
-        </div>
-
-        <div class="header-actions">
-            <button class="chat-btn" onclick="goToMessages()">
-                <i class="fas fa-comments"></i>
-            </button>
-            <button class="profile-btn" onclick="goToProfile()">
-                <i class="fas fa-user"></i>
-            </button>
-        </div>
-    </header>
+            <div class="search-bar">
+                <input type="text" placeholder="Find books" id="searchInput">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="header-actions">
+                <button class="chat-btn" onclick="goToMyMessages()">
+                    <i class="fas fa-comments"></i>
+                </button>
+                <button class="profile-btn" onclick="goToProfile()">
+                    <i class="fas fa-user"></i>
+                </button>
+            </div>
+        </header>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Profile Section -->
             <section class="profile-section">
                 <div class="profile-header">
                     <div class="avatar">
@@ -57,14 +49,10 @@
                         <a href="mailto:johndoe@gmail.com" class="email">johndoe@gmail.com</a>
                     </div>
                 </div>
-
                 <div class="info-bubble about-me">
                     <h3>About me:</h3>
-                    <p>I am John Doe, an Information Systems student with all the dreams in the world. I've been a
-                        cruise-ship pianist, President of the Youth Parliament and a vocalist on a Grammy-winning
-                        track—and I still want to become a pilot!</p>
+                    <p>I am John Doe, an Information Systems student with all the dreams in the world...</p>
                 </div>
-
                 <div class="info-bubble interests">
                     <h3>My interests:</h3>
                     <p class="tags">Horror, Thriller; Romance</p>
@@ -73,7 +61,7 @@
 
             <!-- Listings Section -->
             <section class="listings-section">
-                <h2>My Listings</h2>
+                <h2>Jane Doe's Listings</h2>
                 <div id="listings-grid" class="listings-grid">
                     <!-- Listings will be injected here by JavaScript -->
                 </div>
@@ -93,10 +81,6 @@
             </button>
         </nav>
     </div>
-
-
-
-    <script src="/frontend/static/foreignprofile.js"></script>
+    <script src="../static/foreignprofile.js"></script>
 </body>
-
 </html>
