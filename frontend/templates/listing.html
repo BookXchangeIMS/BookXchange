@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookXchange - Book Details</title>
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- CSS File -->
     <link rel="stylesheet" href="../static/listing.css">
-    
+
     <!-- Page JavaScript -->
     <script src="../static/listing.js"></script>
 </head>
+
 <body>
-    
+
     <!-- Floating Back Button -->
     <button class="back-btn" onclick="goBack()" aria-label="Go back">
         <i class="fas fa-arrow-left"></i>
@@ -23,14 +25,15 @@
 
     <!-- Main Container -->
     <div class="container">
-        
+
         <!-- Gallery Section: Multiple Images -->
         <section class="gallery-section">
-            
+
             <!-- Main Image Display -->
             <div class="main-image-wrapper">
                 <img id="mainImage" src="" alt="Book Cover" class="main-image">
-                <button class="favorite-btn-hero" id="favoriteBtn" onclick="toggleFavorite()" aria-label="Add to favorites">
+                <button class="favorite-btn-hero" id="favoriteBtn" onclick="toggleFavorite()"
+                    aria-label="Add to favorites">
                     <i class="fas fa-heart"></i>
                 </button>
             </div>
@@ -44,7 +47,7 @@
 
         <!-- Content Section -->
         <section class="content-section">
-            
+
             <!-- Book Title & Author -->
             <div class="title-section">
                 <h1 id="bookTitle" class="book-title">Book Title</h1>
@@ -116,4 +119,5 @@
     </div>
 
 </body>
+
 </html>

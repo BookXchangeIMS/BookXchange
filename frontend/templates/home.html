@@ -1,47 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookXchange - Home</title>
-   
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   
+
     <!-- CSS Files -->
     <link rel="stylesheet" href="../static/home.css">
     <link rel="stylesheet" href="../static/header.css">
     <link rel="stylesheet" href="../static/footer.css">
-   
+
     <!-- Script to load header and footer -->
     <script src="../static/include.js"></script>
 </head>
+
 <body>
     <!-- Header -->
     <div id="header-placeholder"></div>
 
-
     <!-- Main Content -->
     <main>
-        <!-- Logo Section -->
-        <div class="logo-section">
-            <img src="../static/resources/full_logo.png" class="logo-img" alt="BookXchange Logo">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="logo-section fade-in">
+                <img src="../static/resources/full_logo.png" class="logo-img" alt="BookXchange Logo">
+            </div>
         </div>
 
-
+        <!-- Book Listings Section -->
         <section class="book-listings">
-            <div class="books-grid" id="booksGrid">
-                <!-- Book listings here -->
+            <!-- Loading skeleton -->
+            <div class="books-grid skeleton-grid" id="skeletonGrid">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+
+            <!-- Actual book grid -->
+            <div class="books-grid" id="booksGrid" style="display: none;">
+                <!-- Book listings loaded here -->
             </div>
         </section>
     </main>
 
-
     <!-- Footer -->
     <div id="footer-placeholder"></div>
 
-
-    <!-- JS-->
+    <!-- JS -->
     <script src="../static/home.js"></script>
 </body>
+
 </html>

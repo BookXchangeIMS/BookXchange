@@ -69,12 +69,12 @@ let filteredFavorites = ALL_LISTINGS_DATA.filter(book => book.isFavorite);
 const booksGrid = document.getElementById('favoritesGrid');
 
 // Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadBooks(filteredFavorites);
 });
 
 // Initialize search after components are loaded
-document.addEventListener('componentsLoaded', function() {
+document.addEventListener('componentsLoaded', function () {
     // Pass only favorites to SearchManager
     SearchManager.init(filteredFavorites, loadBooks);
 });
@@ -84,7 +84,7 @@ function loadBooks(books) {
     if (!booksGrid) return;
 
     booksGrid.innerHTML = '';
-    
+
     if (books.length === 0) {
         booksGrid.innerHTML = `
             <div class="empty-state">
@@ -98,10 +98,27 @@ function loadBooks(books) {
         `;
         return;
     }
-    
+
+
     books.forEach(book => {
         const bookCard = createBookCard(book);
         booksGrid.appendChild(bookCard);
+    });
+
+    // Add stagger animation to cards
+    const bookCards = booksGrid.querySelectorAll('.book-card');
+    bookCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+            // Remove inline styles after animation
+            setTimeout(() => {
+                card.style.opacity = '';
+                card.style.transform = '';
+            }, 500);
+        }, index * 100);
     });
 }
 
@@ -109,7 +126,7 @@ function loadBooks(books) {
 function createBookCard(book) {
     const card = document.createElement('div');
     card.className = 'book-card';
-    
+
     card.innerHTML = `
         <img src="${book.imagePath}" 
              alt="${book.title}" 
@@ -131,30 +148,30 @@ function createBookCard(book) {
             </div>
         </div>
     `;
-    
+
     // Setup event listeners
     const contactBtn = card.querySelector('.contact-btn');
     const favoriteBtn = card.querySelector('.favorite-btn');
-    
+
     // Contact button click
     contactBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         viewListing(book.id);
     });
-    
+
     // Favorite button click (Removal logic)
     favoriteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         removeFavorite(book.id);
     });
-    
+
     // Make card clickable
     card.addEventListener('click', (e) => {
         if (!e.target.closest('.contact-btn') && !e.target.closest('.favorite-btn')) {
-             viewListing(book.id); 
+            viewListing(book.id);
         }
     });
-    
+
     return card;
 }
 
@@ -163,7 +180,7 @@ function viewListing(bookId) {
     const book = ALL_LISTINGS_DATA.find(b => b.id === bookId);
     if (book) {
         console.log(`Navigating to listing page for: ${book.title}`);
-        window.location.href = `listing.html?id=${bookId}`; 
+        window.location.href = `listing.html?id=${bookId}`;
     }
 }
 
@@ -172,16 +189,16 @@ function removeFavorite(bookId) {
     if (!confirm('Remove this book from your favorites?')) {
         return;
     }
-    
+
     const book = ALL_LISTINGS_DATA.find(b => b.id === bookId);
     if (book) {
         book.isFavorite = false;
         showToast('Removed from favorites');
-        
+
         // Update filtered list and reload
         filteredFavorites = ALL_LISTINGS_DATA.filter(b => b.isFavorite);
         loadBooks(filteredFavorites);
-        
+
         // Update SearchManager with new data
         SearchManager.updateData(filteredFavorites);
     }
@@ -227,9 +244,9 @@ function showToast(message, type = 'success') {
         animation: slideUp 0.3s ease;
         font-family: 'Segoe UI', sans-serif;
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'slideDown 0.3s ease';
         setTimeout(() => toast.remove(), 300);

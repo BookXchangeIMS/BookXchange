@@ -4,16 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Profile</title>
+  <title>BookXchange - Edit Profile</title>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="../static/header.css">
-  <link rel="stylesheet" href="../static/footer.css">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- CSS Files -->
   <link rel="stylesheet" href="../static/editprofile.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../static/header.css">
+
+  <!-- Script to load header -->
   <script src="../static/include.js"></script>
 </head>
 
@@ -21,6 +27,11 @@
   <div class="app-container">
     <!-- Header Section -->
     <div id="header-placeholder"></div>
+
+    <!-- Back Button -->
+    <button class="back-btn" onclick="window.history.back()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
 
     <main class="main-content">
       <section class="edit-profile-section">
@@ -81,8 +92,6 @@
       </section>
     </main>
 
-    <!-- Bottom nav -->
-    <div id="footer-placeholder"></div>
   </div>
 
   <script src="../static/editprofile.js"></script>

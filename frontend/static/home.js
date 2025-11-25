@@ -69,7 +69,7 @@ const bookData = [
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
-    loadBooks(bookData);
+    hideSkeletonAndShowBooks();
 });
 
 // Initialize search after components are loaded
@@ -79,6 +79,37 @@ document.addEventListener('componentsLoaded', function () {
         SearchManager.init(bookData, loadBooks);
     }
 });
+
+// Hide skeleton and show books with animation
+function hideSkeletonAndShowBooks() {
+    const skeletonGrid = document.getElementById('skeletonGrid');
+    const booksGrid = document.getElementById('booksGrid');
+
+    if (skeletonGrid) {
+        skeletonGrid.style.display = 'none';
+    }
+
+    if (booksGrid) {
+        booksGrid.style.display = 'grid';
+        loadBooks(bookData);
+
+        // Add stagger animation to cards
+        const cards = booksGrid.querySelectorAll('.book-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+                // Remove inline transition after animation completes
+                setTimeout(() => {
+                    card.style.opacity = '';
+                    card.style.transform = '';
+                }, 500);
+            }, index * 100);
+        });
+    }
+}
 
 // Load books into the grid
 function loadBooks(books) {

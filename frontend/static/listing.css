@@ -77,7 +77,8 @@ body {
     position: relative;
     width: 100%;
     max-width: 520px;
-    aspect-ratio: 3 / 4; /* Fixed proportions: 3:4 ratio (portrait book cover) */
+    aspect-ratio: 3 / 4;
+    /* Fixed proportions: 3:4 ratio (portrait book cover) */
     background-color: white;
     border-radius: 20px;
     padding: 20px;
@@ -88,7 +89,8 @@ body {
 .main-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Maintains aspect ratio, fills container */
+    object-fit: cover;
+    /* Maintains aspect ratio, fills container */
     border-radius: 12px;
     cursor: zoom-in;
     transition: transform 0.3s ease;
@@ -150,7 +152,8 @@ body {
 
 .thumbnail {
     width: 70px;
-    aspect-ratio: 3 / 4; /* Same ratio as main image */
+    aspect-ratio: 3 / 4;
+    /* Same ratio as main image */
     object-fit: cover;
     border-radius: 10px;
     cursor: pointer;
@@ -196,6 +199,7 @@ body {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -215,6 +219,7 @@ body {
         transform: scale(0.9);
         opacity: 0;
     }
+
     to {
         transform: scale(1);
         opacity: 1;
@@ -491,19 +496,22 @@ body {
 }
 
 @media (max-width: 1023px) {
+
     /* Gallery section compact */
     .gallery-section {
         padding: 0;
         min-height: auto;
-        background-color: rgba(255, 255, 255, 0.95); 
+        background-color: rgba(255, 255, 255, 0.95);
     }
 
     /* Main image wrapper - full width but limited height */
     .main-image-wrapper {
         max-width: 100%;
         width: 100vw;
-        max-height: 40vh; /* Limit to 40% of viewport height */
-        aspect-ratio: 16 / 9; /* Wider ratio for mobile (landscape-ish) */
+        max-height: 40vh;
+        /* Limit to 40% of viewport height */
+        aspect-ratio: 16 / 9;
+        /* Wider ratio for mobile (landscape-ish) */
         border-radius: 0;
         padding: 0;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -536,7 +544,8 @@ body {
     .thumbnail-gallery {
         padding: 12px 20px;
         gap: 10px;
-        max-height: 10vh; /* Limit thumbnail area height */
+        max-height: 10vh;
+        /* Limit thumbnail area height */
     }
 
     .thumbnail {
@@ -551,7 +560,7 @@ body {
 }
 
 @media (max-width: 480px) {
-    
+
     /* Back button smaller */
     .back-btn {
         width: 45px;
@@ -567,8 +576,10 @@ body {
     /* Image even more compact on small phones */
     .main-image-wrapper {
         width: 100vw;
-        max-height: 35vh; /* 35% of screen height */
-        aspect-ratio: 4 / 3; /* Slightly taller than 16:9 */
+        max-height: 35vh;
+        /* 35% of screen height */
+        aspect-ratio: 4 / 3;
+        /* Slightly taller than 16:9 */
     }
 
     /* Favorite button smaller */
