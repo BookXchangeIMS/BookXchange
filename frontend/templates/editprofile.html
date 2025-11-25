@@ -1,39 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Profile</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="../static/header.css">
-  <link rel="stylesheet" href="/frontend/static/editprofile.css">
+  <link rel="stylesheet" href="../static/footer.css">
+  <link rel="stylesheet" href="../static/editprofile.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="../static/include.js"></script>
 </head>
 
 <body>
   <div class="app-container">
     <!-- Header Section -->
-    <header>
-      <div class="logo">
-        <div class="logo-icon">
-          <img src="../static/resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
-        </div>
-      </div>
-      <div class="search-bar">
-        <input type="text" placeholder="Find books" id="searchInput">
-        <i class="fas fa-search"></i>
-      </div>
-      <div class="header-actions">
-        <button class="chat-btn" onclick="goToMessages()">
-          <i class="fas fa-comments"></i>
-        </button>
-        <button class="profile-btn" onclick="goToProfile()">
-          <i class="fas fa-user"></i>
-        </button>
-      </div>
-    </header>
+    <div id="header-placeholder"></div>
 
     <main class="main-content">
       <section class="edit-profile-section">
@@ -68,10 +55,10 @@
 
             <div class="form-group form-group-full">
               <label>Preferred Genres</label>
-              
+
               <!-- Selected genres display -->
               <div id="selectedGenres" class="selected-genres"></div>
-              
+
               <!-- Available genres to choose from -->
               <div class="genre-selection">
                 <label class="subtitle-label">Available genres:</label>
@@ -81,7 +68,7 @@
           </div>
 
           <div class="form-actions">
-            <button type="button" class="secondary-btn" onclick="goBackToForeignProfile()">
+            <button type="button" class="secondary-btn" onclick="goToProfile()">
               Back
             </button>
             <button type="submit" class="primary-btn">
@@ -95,19 +82,10 @@
     </main>
 
     <!-- Bottom nav -->
-    <nav class="bottom-nav">
-      <button class="nav-btn" onclick="goToHome()">
-        <i class="fas fa-book"></i>
-      </button>
-      <button class="nav-btn" onclick="goToAnnouncements()">
-        <i class="fas fa-search"></i>
-      </button>
-      <button class="nav-btn" onclick="goToFavorites()">
-        <i class="fas fa-heart"></i>
-      </button>
-    </nav>
+    <div id="footer-placeholder"></div>
   </div>
 
-  <script src="/frontend/static/editprofile.js"></script>
+  <script src="../static/editprofile.js"></script>
 </body>
+
 </html>

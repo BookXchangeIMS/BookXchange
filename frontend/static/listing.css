@@ -6,7 +6,6 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-image: url('../static/resources/backgroundopacity2.png');
     background-color: #c84c3d;
     min-height: 100vh;
     padding: 0;

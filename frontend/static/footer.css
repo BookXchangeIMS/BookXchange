@@ -16,8 +16,8 @@
 }
 
 .bottom-nav .nav-btn {
-    padding: 0;           
-    overflow: hidden;    
+    padding: 0;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -32,7 +32,7 @@
 /* Show inactive image by default */
 .bottom-nav .nav-btn .btn-icon-inactive {
     display: block;
-    width: 990%;
+    width: 90%;
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
@@ -41,7 +41,7 @@
 /* When button is active, show active image and hide inactive */
 .bottom-nav .nav-btn.active .btn-icon-active {
     display: block;
-    width: 990%;
+    width: 90%;
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
@@ -51,8 +51,8 @@
     display: none;
 }
 
-.nav-btn { 
-    background-color: #d6c0a6;
+.nav-btn {
+    background-color: #F3E6CF;
     border: none;
     display: flex;
     align-items: center;
@@ -62,14 +62,14 @@
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s;
-    color: #2c3e50;
+    color: #1a1a2e;
     font-size: clamp(16px, 2.8vw, 28px);
     padding: 0;
 }
 
 .nav-btn.active {
-    background-color: #2c3e50;
-    color: #d6c0a6;
+    background-color: #1a1a2e;
+    color: #F3E6CF;
     transform: scale(1.1);
 }
 

@@ -1,13 +1,13 @@
 function handleLogin(event) {
     event.preventDefault();
     const email = event.target[0].value;
-    alert(`Welcome back to BookXchange, ${email}!`);
-    event.target.reset();
+    // In a real app, we would validate credentials here
+    window.location.href = 'home.html';
 }
 
 function handleRegister() {
     window.location.href = 'registration.html';
-    
+
 }
 
 // Add subtle animation on page load

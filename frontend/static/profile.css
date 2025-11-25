@@ -10,18 +10,16 @@ body {
     min-height: 100vh;
     padding: 0;
     overflow-x: hidden;
-     background-image: url('../static/resources/backgroundopacity.png');
+    background-image: url('../static/resources/backgroundopacity.png');
     background-size: auto;
     background-repeat: repeat;
     background-attachment: fixed;
     background-color: #FFF1D8;
 }
 
-/* Floating Back Button - Fixed top-left */
+/* Back Button - Below Header */
 .back-btn {
-    position: fixed;
-    top: 20px;
-    left: 20px;
+    margin: 20px 0 0 20px;
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border: none;
@@ -33,7 +31,6 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
     transition: all 0.3s ease;
 }
 
@@ -270,8 +267,7 @@ body {
     .back-btn {
         width: 45px;
         height: 45px;
-        top: 15px;
-        left: 15px;
+        margin: 15px 0 0 15px;
     }
 
     .back-btn i {

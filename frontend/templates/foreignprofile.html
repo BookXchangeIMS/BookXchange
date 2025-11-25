@@ -10,35 +10,18 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="/frontend/static/foreignprofile.css">
+    <link rel="stylesheet" href="../static/foreignprofile.css">
+    <link rel="stylesheet" href="../static/header.css">
+    <link rel="stylesheet" href="../static/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="../static/include.js"></script>
 </head>
 
 <body>
     <div class="app-container">
         <!-- Top Navbar -->
-       <!-- Header Section -->
-    <header>
-        <div class="logo">
-            <div class="logo-icon">
-                <img src="../static/resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
-            </div>
-        </div>
-
-        <div class="search-bar">
-            <input type="text" placeholder="Find books" id="searchInput">
-            <i class="fas fa-search"></i>
-        </div>
-
-        <div class="header-actions">
-            <button class="chat-btn" onclick="goToMessages()">
-                <i class="fas fa-comments"></i>
-            </button>
-            <button class="profile-btn" onclick="goToProfile()">
-                <i class="fas fa-user"></i>
-            </button>
-        </div>
-    </header>
+        <!-- Header Section -->
+        <div id="header-placeholder"></div>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -81,22 +64,12 @@
         </main>
 
         <!-- Floating Notch Navbar -->
-        <nav class="bottom-nav">
-            <button class="nav-btn active" onclick="goToHome()">
-                <i class="fas fa-book"></i>
-            </button>
-            <button class="nav-btn" onclick="goToAnnouncements()">
-                <i class="fas fa-search"></i>
-            </button>
-            <button class="nav-btn" onclick="goToFavorites()">
-                <i class="fas fa-heart"></i>
-            </button>
-        </nav>
+        <div id="footer-placeholder"></div>
     </div>
 
 
 
-    <script src="/frontend/static/foreignprofile.js"></script>
+    <script src="../static/foreignprofile.js"></script>
 </body>
 
 </html>

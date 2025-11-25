@@ -43,14 +43,14 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Initialize search after components are loaded
-document.addEventListener('componentsLoaded', function() {
+document.addEventListener('componentsLoaded', function () {
     // Convert to format SearchManager expects (with title and author)
     const searchableData = MOCK_USER_BOOKS_DATA.map(book => ({
         ...book,
         title: book.Name,
         author: '' // Announcements don't have author, so search only by title
     }));
-    
+
     SearchManager.init(searchableData, displayUserBooks);
 });
 
@@ -69,10 +69,10 @@ function displayUserBooks(books) {
 
     // Get the add-book-card element (first child)
     const addBookCard = userBooksGrid.querySelector('.add-book-card');
-    
+
     // Clear grid but keep add-book-card
     userBooksGrid.innerHTML = '';
-    
+
     // Re-add the add-book-card as first item
     if (addBookCard) {
         userBooksGrid.appendChild(addBookCard);
@@ -144,27 +144,6 @@ function editListing(listingId) {
     console.log('Editing listing:', listingId);
     // TODO: Navigate to edit page
     // window.location.href = `edit-listing.html?id=${listingId}`;
-}
-
-// Navigation functions
-function goToHome() {
-    window.location.href = 'home.html';
-}
-
-function goToAnnouncements() {
-    window.location.href = 'announcements.html';
-}
-
-function goToFavorites() {
-    window.location.href = 'favourites.html';
-}
-
-function goToMessages() {
-    window.location.href = 'messages.html';
-}
-
-function goToProfile() {
-    window.location.href = 'profile.html';
 }
 
 function goToAddListing() {

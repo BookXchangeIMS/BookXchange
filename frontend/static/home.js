@@ -32,7 +32,7 @@ const bookData = [
         date: "Posted 1 week ago",
         isFavorite: false,
         imagePath: "../static/resources/sapiens.png"
- 
+
     },
     {
         id: 1,
@@ -42,7 +42,7 @@ const bookData = [
         location: "New York, NY",
         date: "Posted 2 days ago",
         isFavorite: false,
-        imagePath: "../static/resources/gatsby.jpg" 
+        imagePath: "../static/resources/gatsby.jpg"
     },
     {
         id: 2,
@@ -52,7 +52,7 @@ const bookData = [
         location: "Chicago, IL",
         date: "Posted 1 week ago",
         isFavorite: true,
-        imagePath: "../static/resources/mockingbird.png" 
+        imagePath: "../static/resources/mockingbird.png"
     },
     {
         id: 3,
@@ -62,18 +62,18 @@ const bookData = [
         location: "Boston, MA",
         date: "Posted 3 days ago",
         isFavorite: false,
-        imagePath: "../static/resources/1984.png" 
+        imagePath: "../static/resources/1984.png"
     }
 
 ];
 
 // Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadBooks(bookData);
 });
 
 // Initialize search after components are loaded
-document.addEventListener('componentsLoaded', function() {
+document.addEventListener('componentsLoaded', function () {
     // Pass bookData and loadBooks callback to SearchManager
     if (window.SearchManager && typeof SearchManager.init === 'function') {
         SearchManager.init(bookData, loadBooks);
@@ -86,12 +86,12 @@ function loadBooks(books) {
     if (!booksGrid) return;
 
     booksGrid.innerHTML = '';
-    
+
     if (books.length === 0) {
         booksGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No books found.</p>';
         return;
     }
-    
+
     books.forEach(book => {
         const bookCard = createBookCard(book);
         booksGrid.appendChild(bookCard);
@@ -144,8 +144,7 @@ function viewBookDetails(bookId) {
 
 // Contact seller
 function contactSeller(bookId) {
-    console.log('Contacting seller for book ID:', bookId);
-    // TODO: Implement contact seller functionality
+    window.location.href = `messages.html?bookId=${bookId}`;
 }
 
 // Show error message
@@ -156,23 +155,4 @@ function showError(message) {
     }
 }
 
-// Navigation functions
-function goToHome() {
-    window.location.href = 'home.html';
-}
-
-function goToAnnouncements() {
-    window.location.href = 'announcements.html';
-}
-
-function goToFavorites() {
-    window.location.href = 'favourites.html';
-}
-
-function goToMessages() {
-    window.location.href = "mymessages.html"
-}
-
-function goToProfile() {
-    window.location.href = 'profile.html';
-}
+// Navigation functions are now handled in include.js
