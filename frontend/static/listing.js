@@ -40,7 +40,7 @@ const bookData = [
         date: "Posted 3 days ago",
         year: "2013",
         condition: "Almost new",
-        genres: "Fantasy, adventure",
+        genres: "Fantasy, Adventure",
         description: "A classic masterpiece by J.R.R. Tolkien! This book will take you on an unforgettable journey through Middle-earth with Frodo, Gandalf, Aragorn, and the rest of the Fellowship.",
         seller: "John Doe",
         sellerId: 1,
@@ -69,8 +69,63 @@ const bookData = [
             "../static/resources/sapiens.png",
             "../static/resources/sapiens.png"
         ]
+    },
+    {
+        id: 1,
+        title: "The Great Gatsby",
+        author: "F. Scott Fitzgerald",
+        price: "$12.99",
+        location: "New York, NY",
+        date: "Posted 2 days ago",
+        year: "1925",
+        condition: "Like new",
+        genres: "Classic, Fiction",
+        description: "An American classic set in the Roaring Twenties, following Jay Gatsby and his mysterious, lavish lifestyle.",
+        seller: "Emily Johnson",
+        sellerId: 3,
+        isFavorite: false,
+        images: [
+            "../static/resources/gatsby.jpg"
+        ]
+    },
+    {
+        id: 2,
+        title: "To Kill a Mockingbird",
+        author: "Harper Lee",
+        price: "$14.50",
+        location: "Chicago, IL",
+        date: "Posted 1 week ago",
+        year: "1960",
+        condition: "Acceptable",
+        genres: "Classic, Drama",
+        description: "A powerful novel about racial injustice in the American South, seen through the eyes of young Scout Finch.",
+        seller: "Michael Smith",
+        sellerId: 4,
+        isFavorite: true,
+        images: [
+            "../static/resources/mockingbird.png"
+        ]
+    },
+    {
+        id: 3,
+        title: "1984",
+        author: "George Orwell",
+        price: "$10.99",
+        location: "Boston, MA",
+        date: "Posted 3 days ago",
+        year: "1949",
+        condition: "Used",
+        genres: "Dystopian, Fiction",
+        description: "A chilling depiction of perpetual war, omnipresent government surveillance, and public manipulation.",
+        seller: "Samantha Lee",
+        sellerId: 5,
+        isFavorite: false,
+        images: [
+            "../static/resources/1984.png"
+        ]
     }
 ];
+
 
 // Get book ID from URL
 const urlParams = new URLSearchParams(window.location.search);
