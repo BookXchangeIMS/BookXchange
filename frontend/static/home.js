@@ -145,6 +145,7 @@ function viewBookDetails(bookId) {
 // Contact seller
 function contactSeller(bookId) {
     console.log('Contacting seller for book ID:', bookId);
+    window.location.href = "messages.html";
     // TODO: Implement contact seller functionality
 }
 
