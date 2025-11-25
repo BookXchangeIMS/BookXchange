@@ -1,6 +1,5 @@
 function handleRegistration2(event) {
     event.preventDefault();
-    
     // Navigate to registration3.html
     window.location.href = 'registration3.html';
 }
@@ -14,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateInput = document.querySelector('.date-input');
     const today = new Date().toISOString().split('T')[0];
     dateInput.setAttribute('max', today);
-    
+
     // Add fade-in animation
     const container = document.querySelector('.container');
     container.style.opacity = '0';
