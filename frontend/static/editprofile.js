@@ -1,6 +1,11 @@
 // ============================================
-// LOCAL TESTING MODE - No database required
+// EDIT PROFILE - Real Backend Integration
 // ============================================
+
+// Require login
+if (!isLoggedIn()) {
+  window.location.href = 'Login.html';
+}
 
 // All available genres
 const ALL_GENRES = [
@@ -21,16 +26,13 @@ const ALL_GENRES = [
   "Adventure"
 ];
 
-// Mock profile data
-const mockProfileData = {
-  fullName: "Jane Doe",
-  email: "johndoe@gmail.com",
-  aboutMe: "I am John Doe, an Information Systems student with all the dreams in the world. I've been a cruise-ship pianist, President of the Youth Parliament and a vocalist on a Grammy-winning track—and I still want to become a pilot!",
-  interests: ["Horror", "Thriller", "Romance"] // Now an array
-};
-
 // Track selected genres
 let selectedGenres = [];
+let currentProfile = null;
+
+// ============================================
+// GENRE MANAGEMENT
+// ============================================
 
 // Render available genre checkboxes
 function renderGenreCheckboxes() {
@@ -105,66 +107,130 @@ function removeGenre(genre) {
   renderGenreCheckboxes();
 }
 
-// Load profile data
-function loadProfile() {
+// ============================================
+// LOAD PROFILE DATA
+// ============================================
+
+async function loadProfile() {
+  const token = getAccessToken();
+
+  if (!token) {
+    setFormMessage("Not logged in. Redirecting...", "error");
+    setTimeout(() => window.location.href = 'Login.html', 1000);
+    return;
+  }
+
   try {
-    setTimeout(() => {
-      console.log("Loading mock profile data...");
+    setFormMessage("Loading profile...", "");
 
-      document.getElementById("fullName").value = mockProfileData.fullName || "";
-      document.getElementById("email").value = mockProfileData.email || "";
-      document.getElementById("aboutMe").value = mockProfileData.aboutMe || "";
+    // Fetch user profile from API
+    currentProfile = await getMyProfile(token);
+    console.log('Loaded profile:', currentProfile);
 
-      // Load selected genres
-      selectedGenres = mockProfileData.interests || [];
+    // Populate form fields
+    document.getElementById("fullName").value = currentProfile.Name || "";
+    document.getElementById("email").value = currentProfile.Email || "";
+    document.getElementById("aboutMe").value = currentProfile.AboutMe || "";
+
+    // Email is read-only
+    document.getElementById("email").readOnly = true;
+
+    // Fetch and load preferences
+    try {
+      const preferences = await getPreferences(token);
+      console.log('Loaded preferences:', preferences);
+      selectedGenres = preferences || [];
       renderGenreCheckboxes();
       renderSelectedGenres();
+    } catch (error) {
+      console.error('Could not load preferences:', error);
+      selectedGenres = [];
+      renderGenreCheckboxes();
+      renderSelectedGenres();
+    }
 
-      setFormMessage("Profile loaded (mock data)", "success");
-      console.log("Mock profile loaded:", mockProfileData);
-    }, 300);
-  } catch (err) {
-    setFormMessage("Could not load profile data. Please try again.", "error");
-    console.error(err);
+    setFormMessage("Profile loaded successfully", "success");
+  } catch (error) {
+    console.error('Error loading profile:', error);
+    setFormMessage("Could not load profile. Please try again.", "error");
   }
 }
 
-// Save profile data
-function saveProfile(event) {
+// ============================================
+// SAVE PROFILE DATA
+// ============================================
+
+async function saveProfile(event) {
   event.preventDefault();
+
+  const token = getAccessToken();
+  if (!token) {
+    setFormMessage("Not logged in. Please login again.", "error");
+    return;
+  }
 
   const form = event.target;
   const formData = new FormData(form);
 
   const payload = {
-    fullName: formData.get("fullName"),
-    email: formData.get("email"),
-    aboutMe: formData.get("aboutMe"),
-    interests: selectedGenres // Save as array
+    Name: formData.get("fullName").trim(),
+    AboutMe: formData.get("aboutMe").trim() || "",
+    LocationAddress: currentProfile?.Location?.Address || "Unknown",
+    ProfileImagePath: currentProfile?.ProfileImagePath || ""
   };
 
+  console.log('Sending payload:', payload);
+
+  // Validate
+  if (!payload.Name || payload.Name.length < 2) {
+    setFormMessage("Name must be at least 2 characters", "error");
+    return;
+  }
+
   try {
-    setTimeout(() => {
-      console.log("Saving profile data...");
-      console.log("New data:", payload);
+    setFormMessage("Saving profile...", "");
 
-      // Update mock data
-      mockProfileData.fullName = payload.fullName;
-      mockProfileData.email = payload.email;
-      mockProfileData.aboutMe = payload.aboutMe;
-      mockProfileData.interests = payload.interests;
+    // Update profile
+    await updateProfile(payload, token);
+    console.log('Profile updated successfully');
 
-      setFormMessage("✓ Profile updated successfully!", "success");
-      console.log("Mock profile saved:", mockProfileData);
+    // Update preferences if changed
+    const originalPreferences = await getPreferences(token);
+    const preferencesChanged = JSON.stringify(originalPreferences.sort()) !== JSON.stringify(selectedGenres.sort());
 
-      // Optional: Redirect after success
-      // setTimeout(() => goBackToForeignProfile(), 1000);
-    }, 500);
-  } catch (err) {
+    if (preferencesChanged) {
+      // First delete all preferences
+      for (const genre of originalPreferences) {
+        try {
+          await fetch(`${API_BASE_URL}/api/delete_preferences?genre_name=${encodeURIComponent(genre)}`, {
+            method: 'DELETE',
+            headers: { 'access-token': token }
+          });
+        } catch (e) {
+          console.warn('Could not delete preference:', genre);
+        }
+      }
+
+      // Then add new ones
+      if (selectedGenres.length > 0) {
+        await savePreferences(selectedGenres, token);
+      }
+      console.log('Preferences updated successfully');
+    }
+
+    setFormMessage("✓ Profile updated successfully!", "success");
+
+    // Redirect after success
+    setTimeout(() => window.location.href = 'profile.html', 1500);
+  } catch (error) {
+    console.error('Error saving profile:', error);
     setFormMessage("Error saving profile. Please try again.", "error");
-    console.error(err);
   }
 }
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 
 function setFormMessage(message, type) {
   const msgEl = document.getElementById("formMessage");
@@ -173,11 +239,6 @@ function setFormMessage(message, type) {
   if (type) {
     msgEl.classList.add(type);
   }
-}
-
-// Require login
-if (!isLoggedIn()) {
-  window.location.href = 'Login.html';
 }
 
 // Navigation functions
@@ -205,9 +266,12 @@ function goBackToForeignProfile() {
   window.location.href = "foreignprofile.html";
 }
 
-// Initialize
+// ============================================
+// INITIALIZE
+// ============================================
+
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Edit Profile page loaded - LOCAL TESTING MODE");
+  console.log("Edit Profile page loaded - REAL API MODE");
   loadProfile();
 
   const form = document.getElementById("editProfileForm");

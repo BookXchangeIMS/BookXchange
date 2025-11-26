@@ -153,6 +153,28 @@ async function getMyProfile(accessToken) {
 }
 
 /**
+ * Update user profile
+ */
+async function updateProfile(profileData, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/update_profile`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'access-token': accessToken
+        },
+        body: JSON.stringify(profileData)  // Send as JSON, not FormData
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        console.error('UpdateProfile API Error:', error);
+        throw new Error(JSON.stringify(error.detail || error));
+    }
+
+    return await response.json();
+}
+
+/**
  * Get user preferences (genres)
  */
 async function getPreferences(accessToken) {
