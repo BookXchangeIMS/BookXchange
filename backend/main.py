@@ -6,6 +6,7 @@ from backend.scripts.auth import *
 from backend.scripts.profile_crud import *
 from backend.config.db import get_db
 from backend.scripts.location_scripts import *
+from backend.scripts.listings_crud import *
 
 tags_metadata = [
     {
@@ -19,6 +20,10 @@ tags_metadata = [
     {
         "name": "Preferences",
         "description": "Operations with user's preferences in genres.",
+    },
+    {
+        "name": "Listings",
+        "description": "Operations concerned with listings",
     },
 ]
 app = FastAPI(openapi_tags=tags_metadata)
@@ -352,6 +357,54 @@ async def delete_profile(tokens: Tokens = Header(None), db= Depends(get_db)):
     userid = get_userid_by_access_token(tokens.access_token, db)
     return delete_profile_by_userid(userid, db)
 
+# ===================================================================================================================
+# LISTINGS ENDPOINTS
+# ===================================================================================================================
+# TODO change the db to accept description, location and conservation_state
+@app.post("/api/post_listing", status_code=status.HTTP_201_CREATED, tags=["Listings"])
+async def post_listing(listing_form: PostListing, access_token = Header(None), db= Depends(get_db)):
+    """
+    Posts a new listing based on the provided details. This endpoint allows users to create a listing
+    by providing the necessary information. It handles user authentication via an access token,
+    converts a provided address into geographic coordinates, and stores the listing details including
+    location and book data into the database.
 
+    :param listing_form: An object containing the details required for the listing, including
+        book and location data.
+    :type listing_form: PostListing
+    :param access_token: A string representing the user's access token for authentication.
+    :type access_token: str
+    :param db: The database session dependency used to interact with the database.
+    :type db: Session
+    :return: The response of the newly created listing, which may include the listing data or
+        an acknowledgment of its successful creation.
+    :rtype: JSONResponse
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+    new_locationid = post_location(Location(
+        Latitude=latitude,
+        Longitude=longitude,
+        Address=listing_form.LocationAddress,
+        Description=""), db)
+    new_bookid = post_book(listing_form.Book, db)
+    return post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
 
+@app.get("/api/get_listing", status_code=status.HTTP_200_OK, tags=["Listings"])
+async def get_listing(listing_id: int, access_token = Header(None), db= Depends(get_db)):
+    pass
+
+@app.put("/api/update_listing", status_code=status.HTTP_200_OK, tags=["Listings"])
+async def update_listing(listing_form: UpdateListing, access_token = Header(None), db= Depends(get_db)):
+    userid = get_userid_by_access_token(access_token, db)
+    latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+    new_locationid = post_location(Location(
+        Latitude=latitude,
+        Longitude=longitude,
+        Address=listing_form.LocationAddress,
+        Description=""), db)
+
+@app.delete("/api/delete_listing", status_code=status.HTTP_204_NO_CONTENT, tags=["Listings"])
+async def delete_listing(listing_id: int, access_token = Header(None), db= Depends(get_db)):
+    pass
 
