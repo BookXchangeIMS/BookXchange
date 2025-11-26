@@ -69,6 +69,66 @@ const bookData = [
             "../static/resources/sapiens.png",
             "../static/resources/sapiens.png"
         ]
+    },
+    {
+        id: 1,
+        title: "The Great Gatsby",
+        author: "F. Scott Fitzgerald",
+        price: "$12.99",
+        location: "New York, NY",
+        date: "Posted 2 days ago",
+        year: "1925",
+        condition: "Good",
+        genres: "Fiction, Classic",
+        description: "A classic novel of the Jazz Age, exploring themes of idealism, resistance to change, social upheaval, and excess.",
+        seller: "John Doe",
+        sellerId: 1,
+        isFavorite: false,
+        images: [
+            "../static/resources/gatsby.jpg",
+            "../static/resources/gatsby.jpg",
+            "../static/resources/gatsby.jpg"
+        ]
+    },
+    {
+        id: 2,
+        title: "To Kill a Mockingbird",
+        author: "Harper Lee",
+        price: "$14.50",
+        location: "Chicago, IL",
+        date: "Posted 1 week ago",
+        year: "1960",
+        condition: "Good",
+        genres: "Fiction, Classic",
+        description: "A gripping story of racial injustice and moral growth in the American South.",
+        seller: "Jane Smith",
+        sellerId: 2,
+        isFavorite: true,
+        images: [
+            "../static/resources/mockingbird.png",
+            "../static/resources/mockingbird.png",
+            "../static/resources/mockingbird.png"
+        ]
+    },
+    {
+        id: 3,
+        title: "1984",
+        author: "George Orwell",
+        price: "$10.99",
+        location: "Boston, MA",
+        date: "Posted 3 days ago",
+        year: "1949",
+        condition: "Fair",
+        genres: "Fiction, Dystopian",
+        description: "A dystopian social science fiction novel that examines the consequences of totalitarianism, mass surveillance, and repressive regimentation.",
+        seller: "John Doe",
+        sellerId: 1,
+        isFavorite: false,
+        images: [
+            "../static/resources/1984.png",
+            "../static/resources/1984.png",
+            "../static/resources/1984.png"
+        ]
     }
 ];
 
@@ -84,13 +144,18 @@ const book = bookData.find(b => b.id === bookId);
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if book exists
     if (book) {
         loadBookDetails(book);
         loadImageGallery(book.images);
         initializeZoomFunctionality();
     } else {
-        // If book not found, redirect to home
-        window.location.href = 'home.html';
+        // If book not found, show error and redirect after a delay
+        console.error('Book not found for ID:', bookId);
+        showError('Book not found. Redirecting to home page...');
+        setTimeout(() => {
+            window.location.href = 'home.html';
+        }, 2000);
     }
 });
 
@@ -113,6 +178,8 @@ function loadBookDetails(book) {
     const favoriteBtn = document.getElementById('favoriteBtn');
     if (book.isFavorite) {
         favoriteBtn.classList.add('active');
+    } else {
+        favoriteBtn.classList.remove('active');
     }
 }
 
@@ -124,15 +191,18 @@ function loadImageGallery(images) {
     const mainImage = document.getElementById('mainImage');
     const thumbnailGallery = document.getElementById('thumbnailGallery');
 
+    if (!mainImage || !thumbnailGallery) return;
+
     // Set first image as main
     mainImage.src = images[0];
+    mainImage.alt = book.title;
 
     // Create thumbnails
     thumbnailGallery.innerHTML = '';
     images.forEach((imgSrc, index) => {
         const thumbnail = document.createElement('img');
         thumbnail.src = imgSrc;
-        thumbnail.alt = `Image ${index + 1}`;
+        thumbnail.alt = `${book.title} - Image ${index + 1}`;
         thumbnail.className = 'thumbnail';
         if (index === 0) thumbnail.classList.add('active');
 
@@ -164,6 +234,7 @@ function initializeZoomFunctionality() {
     // Open zoom when clicking main image
     mainImage.addEventListener('click', function() {
         zoomedImage.src = mainImage.src;
+        zoomedImage.alt = `Zoomed view of ${book.title}`;
         zoomOverlay.classList.add('active');
         document.body.style.overflow = 'hidden'; // Prevent background scroll
     });
@@ -228,6 +299,26 @@ function goToSellerProfile() {
 function sendMessage() {
     if (!book) return;
     window.location.href = 'messages.html';
+}
+
+// ============================================
+// ERROR HANDLING
+// ============================================
+
+function showError(message) {
+    const mainContent = document.querySelector('.listing-container');
+    if (mainContent) {
+        mainContent.innerHTML = `
+            <div style="text-align: center; padding: 50px;">
+                <h2 style="color: #c84c3d;">Error</h2>
+                <p>${message}</p>
+                <button onclick="window.location.href='home.html'" 
+                        style="margin-top: 20px; padding: 10px 20px; background: #c84c3d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Return to Home
+                </button>
+            </div>
+        `;
+    }
 }
 
 // ============================================

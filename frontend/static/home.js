@@ -1,6 +1,3 @@
-
-
-
 // Sample book data (in a real app, this would come from a database)
 const bookData = [
     {
@@ -32,7 +29,6 @@ const bookData = [
         date: "Posted 1 week ago",
         isFavorite: false,
         imagePath: "../static/resources/sapiens.png"
-
     },
     {
         id: 1,
@@ -64,17 +60,24 @@ const bookData = [
         isFavorite: false,
         imagePath: "../static/resources/1984.png"
     }
-
 ];
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
+    // Check if api.js is properly loaded
+    if (typeof isLoggedIn === 'undefined') {
+        console.error('api.js not loaded properly. Token management functions are missing.');
+        showError('Authentication system not available. Please refresh the page.');
+        return;
+    }
+
     // Require login - redirect to Login if not authenticated
     if (!isLoggedIn()) {
         window.location.href = 'Login.html';
         return;
     }
 
+    // If logged in, proceed to load books
     hideSkeletonAndShowBooks();
 });
 
@@ -153,8 +156,8 @@ function createBookCard(book) {
                 <button class="contact-btn" onclick="event.stopPropagation(); contactSeller(${book.id})">
                     Contact Seller
                 </button>
-                <button class="favorite-btn ${book.isFavorite ? 'active' : ''}" 
-                        onclick="event.stopPropagation(); toggleFavorite(${book.id})">
+                <button class="favorite-btn ${book.isFavorite ? 'active' : ''}"
+                    onclick="event.stopPropagation(); toggleFavorite(${book.id})">
                     <i class="fas fa-heart"></i>
                 </button>
             </div>
