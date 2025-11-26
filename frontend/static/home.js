@@ -69,6 +69,12 @@ const bookData = [
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
+    // Require login - redirect to Login if not authenticated
+    if (!isLoggedIn()) {
+        window.location.href = 'Login.html';
+        return;
+    }
+
     hideSkeletonAndShowBooks();
 });
 

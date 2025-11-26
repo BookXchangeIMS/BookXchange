@@ -175,6 +175,11 @@ function setFormMessage(message, type) {
   }
 }
 
+// Require login
+if (!isLoggedIn()) {
+  window.location.href = 'Login.html';
+}
+
 // Navigation functions
 function goToHome() {
   window.location.href = "home.html";

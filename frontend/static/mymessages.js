@@ -1,3 +1,10 @@
+
+
+// Require login
+if (!isLoggedIn()) {
+  window.location.href = 'Login.html';
+}
+
 // Navigation functions - MUST be in global scope for onclick to work
 window.goBack = function () {
   window.history.back();

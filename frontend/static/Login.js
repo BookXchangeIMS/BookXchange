@@ -1,8 +1,31 @@
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
+
     const email = event.target[0].value;
-    // In a real app, we would validate credentials here
-    window.location.href = 'home.html';
+    const password = event.target[1].value;
+    const submitButton = event.target.querySelector('button[type="submit"]');
+
+    // Disable button and show loading
+    submitButton.disabled = true;
+    submitButton.textContent = 'Logging in...';
+
+    try {
+        // Call backend API
+        const tokens = await signIn(email, password);
+
+        // Save tokens
+        saveTokens(tokens.access_token, tokens.refresh_token);
+
+        // Redirect to home
+        window.location.href = 'home.html';
+    } catch (error) {
+        // Show error
+        alert('Login failed: ' + error.message);
+
+        // Re-enable button
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    }
 }
 
 function handleRegister() {

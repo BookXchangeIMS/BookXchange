@@ -34,17 +34,17 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'GET',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
                 }
             });
-            
+
             if (response.status === 401) {
                 await this.refreshAccessToken();
                 return await this.get(endpoint);
             }
-            
+
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             return await response.json();
         } catch (error) {
@@ -62,18 +62,18 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
                 },
                 body: JSON.stringify(data)
             });
-            
+
             if (response.status === 401) {
                 await this.refreshAccessToken();
                 return await this.put(endpoint, data);
             }
-            
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
@@ -94,27 +94,27 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'DELETE',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
                 }
             });
-            
+
             if (response.status === 401) {
                 await this.refreshAccessToken();
                 return await this.delete(endpoint);
             }
-            
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
             }
-            
+
             // 204 No Content doesn't have a body
             if (response.status === 204) {
                 return { success: true, message: 'Deleted successfully' };
             }
-            
+
             return await response.json();
         } catch (error) {
             console.error('DELETE request failed:', error);
@@ -135,7 +135,7 @@ const api = {
 
         try {
             const formData = new FormData();
-            
+
             // Append all files
             for (let i = 0; i < files.length; i++) {
                 formData.append('images', files[i]);
@@ -175,7 +175,7 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/images/${photoId}`, {
                 method: 'DELETE',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
                 }
@@ -187,11 +187,11 @@ const api = {
             }
 
             if (!response.ok) throw new Error('Failed to delete image');
-            
+
             if (response.status === 204) {
                 return { success: true, message: 'Image deleted' };
             }
-            
+
             return await response.json();
         } catch (error) {
             console.error('Delete image failed:', error);
@@ -208,7 +208,7 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/images/${photoId}/primary`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
                 }
@@ -271,7 +271,7 @@ let newImages = []; // [{file, preview, tempId}]
 let deletedImageIds = [];
 
 // Initialize
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to edit listings', 'error');
@@ -316,10 +316,10 @@ async function fetchListingDetails(id) {
         showToast('Loading listing details...', 'success');
         const response = await api.get(`/api/listings/${id}`);
         book = response.data || response;
-        
+
         // Load existing images (from ListingPhoto table)
         existingImages = book.images || book.photos || [];
-        
+
         // For mock data, convert single imagePath to array
         if (!existingImages.length && book.imagePath) {
             existingImages = [{
@@ -328,10 +328,10 @@ async function fetchListingDetails(id) {
                 isPrimary: true
             }];
         }
-        
+
         console.log('Loaded listing:', book);
         console.log('Existing images:', existingImages);
-        
+
         loadListingDetailsIntoForm(book);
         renderImagePreviews();
         showToast('Listing loaded successfully', 'success');
@@ -358,16 +358,16 @@ function loadListingDetailsIntoForm(book) {
 function setupEventListeners() {
     const uploadZone = document.getElementById('uploadZone');
     const imageInput = document.getElementById('imageInput');
-    
+
     // Click to upload
     uploadZone.addEventListener('click', () => imageInput.click());
     imageInput.addEventListener('change', handleFileSelect);
-    
+
     // Drag and drop
     uploadZone.addEventListener('dragover', handleDragOver);
     uploadZone.addEventListener('dragleave', handleDragLeave);
     uploadZone.addEventListener('drop', handleDrop);
-    
+
     // Form events
     document.getElementById('bookDescription').addEventListener('input', updateCharacterCount);
     document.getElementById('bookPrice').addEventListener('blur', formatPrice);
@@ -387,7 +387,7 @@ function handleDragLeave(e) {
 function handleDrop(e) {
     e.preventDefault();
     e.currentTarget.classList.remove('drag-over');
-    
+
     const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
     if (files.length > 0) {
         processFiles(files);
@@ -405,27 +405,27 @@ function handleFileSelect(e) {
 function processFiles(files) {
     const currentTotal = existingImages.length + newImages.length;
     const availableSlots = MAX_IMAGES - currentTotal;
-    
+
     if (availableSlots <= 0) {
         showToast(`Maximum ${MAX_IMAGES} images allowed`, 'error');
         return;
     }
-    
+
     const filesToProcess = files.slice(0, availableSlots);
-    
+
     filesToProcess.forEach(file => {
         // Validate file type
         if (!file.type.startsWith('image/')) {
             showToast(`${file.name} is not an image file`, 'error');
             return;
         }
-        
+
         // Validate file size
         if (file.size > MAX_FILE_SIZE) {
             showToast(`${file.name} exceeds 10MB limit`, 'error');
             return;
         }
-        
+
         // Create preview
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -438,7 +438,7 @@ function processFiles(files) {
         };
         reader.readAsDataURL(file);
     });
-    
+
     if (filesToProcess.length < files.length) {
         showToast(`Only ${filesToProcess.length} images added (${MAX_IMAGES} max)`, 'error');
     }
@@ -448,19 +448,19 @@ function processFiles(files) {
 function renderImagePreviews() {
     const grid = document.getElementById('imagePreviewGrid');
     grid.innerHTML = '';
-    
+
     const totalImages = existingImages.length + newImages.length;
-    
+
     // Render existing images
     existingImages.forEach((img, index) => {
         grid.appendChild(createImagePreviewElement(img, 'existing', index));
     });
-    
+
     // Render new images
     newImages.forEach((img, index) => {
         grid.appendChild(createImagePreviewElement(img, 'new', index));
     });
-    
+
     // Update counter
     updateImageCounter(totalImages);
 }
@@ -469,12 +469,12 @@ function renderImagePreviews() {
 function createImagePreviewElement(img, type, index) {
     const div = document.createElement('div');
     div.className = 'image-preview-item';
-    
+
     const isPrimary = type === 'existing' && img.isPrimary;
     if (isPrimary) div.classList.add('primary');
-    
+
     const imgSrc = type === 'existing' ? img.imagePath : img.preview;
-    
+
     div.innerHTML = `
         ${isPrimary ? '<span class="primary-badge">Primary</span>' : ''}
         <img src="${imgSrc}" alt="Preview">
@@ -489,17 +489,17 @@ function createImagePreviewElement(img, type, index) {
             </button>
         </div>
     `;
-    
+
     // Event listeners
     const primaryBtn = div.querySelector('.overlay-btn.primary');
     const deleteBtn = div.querySelector('.overlay-btn.delete');
-    
+
     if (primaryBtn) {
         primaryBtn.addEventListener('click', () => handleSetPrimary(type, index));
     }
-    
+
     deleteBtn.addEventListener('click', () => handleDeleteImage(type, index));
-    
+
     return div;
 }
 
@@ -514,7 +514,7 @@ function handleSetPrimary(type, index) {
         const [selectedImage] = newImages.splice(index, 1);
         newImages.unshift(selectedImage);
     }
-    
+
     renderImagePreviews();
     showToast('Primary image updated', 'success');
 }
@@ -522,18 +522,18 @@ function handleSetPrimary(type, index) {
 // Delete image
 function handleDeleteImage(type, index) {
     if (!confirm('Delete this image?')) return;
-    
+
     if (type === 'existing') {
         const deletedImage = existingImages.splice(index, 1)[0];
         deletedImageIds.push(deletedImage.photoId);
-        
+
         if (deletedImage.isPrimary && existingImages.length > 0) {
             existingImages[0].isPrimary = true;
         }
     } else {
         newImages.splice(index, 1);
     }
-    
+
     renderImagePreviews();
     showToast('Image removed', 'success');
 }
@@ -542,13 +542,13 @@ function handleDeleteImage(type, index) {
 function updateImageCounter(count) {
     const grid = document.getElementById('imagePreviewGrid');
     let counter = grid.querySelector('.image-counter');
-    
+
     if (!counter) {
         counter = document.createElement('div');
         counter.className = 'image-counter';
         grid.appendChild(counter);
     }
-    
+
     counter.textContent = `${count} / ${MAX_IMAGES} images`;
     counter.classList.toggle('limit', count >= MAX_IMAGES);
 }
@@ -559,9 +559,9 @@ function updateCharacterCount() {
     const charCount = document.getElementById('charCount');
     const length = description.length;
     const maxLength = 500;
-    
+
     charCount.textContent = length;
-    
+
     if (length > maxLength) {
         charCount.style.color = '#e74c3c';
     } else if (length > maxLength * 0.9) {
@@ -575,7 +575,7 @@ function updateCharacterCount() {
 function formatPrice(event) {
     let value = event.target.value.trim().replace(/[\$\s]/g, '');
     const number = parseFloat(value);
-    
+
     if (!isNaN(number) && number >= 0) {
         event.target.value = '$' + number.toFixed(2);
     } else if (value !== '') {
@@ -585,60 +585,69 @@ function formatPrice(event) {
 
 // Validate form
 function validateForm() {
+    // Require login
+    if (!isLoggedIn()) {
+        window.location.href = 'Login.html';
+        return false;
+    }
+
     const errors = [];
-    
+
+    // ===================================================
+    // LISTING IMAGE UPLOAD FUNCTIONALITY
+    // ===================================================
     if (existingImages.length === 0 && newImages.length === 0) {
         errors.push('Please add at least one image');
     }
-    
+
     const title = document.getElementById('bookTitle').value.trim();
     if (title.length < 3) errors.push('Title must be at least 3 characters');
-    
+
     const author = document.getElementById('bookAuthor').value.trim();
     if (author.length < 2) errors.push('Author name must be at least 2 characters');
-    
+
     const price = document.getElementById('bookPrice').value.trim();
     const priceValue = parseFloat(price.replace('$', ''));
     if (isNaN(priceValue) || priceValue < 0) errors.push('Please enter a valid price');
-    
+
     const year = parseInt(document.getElementById('bookYear').value);
     const currentYear = new Date().getFullYear();
     if (isNaN(year) || year < 1000 || year > currentYear) {
         errors.push(`Publication year must be between 1000 and ${currentYear}`);
     }
-    
+
     const condition = document.getElementById('bookCondition').value;
     if (!condition) errors.push('Please select a condition');
-    
+
     const location = document.getElementById('bookLocation').value.trim();
     if (location.length < 3) errors.push('Location must be at least 3 characters');
-    
+
     const genres = document.getElementById('bookGenres').value.trim();
     if (genres.length < 3) errors.push('Please enter at least one genre');
-    
+
     const description = document.getElementById('bookDescription').value.trim();
     if (description.length < 20) errors.push('Description must be at least 20 characters');
     if (description.length > 500) errors.push('Description must not exceed 500 characters');
-    
+
     if (errors.length > 0) {
         showToast(errors[0], 'error');
         return false;
     }
-    
+
     return true;
 }
 
 // Handle form submission
 async function handleFormSubmit(event) {
     event.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     const submitButton = event.target.querySelector('button[type="submit"]');
     const originalButtonText = submitButton.innerHTML;
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    
+
     try {
         // 1. Delete removed images
         if (deletedImageIds.length > 0) {
@@ -647,7 +656,7 @@ async function handleFormSubmit(event) {
                 await api.deleteImage(listingId, photoId);
             }
         }
-        
+
         // 2. Upload new images to Azure Blob Storage
         let newImageUrls = [];
         if (newImages.length > 0) {
@@ -656,7 +665,7 @@ async function handleFormSubmit(event) {
             const uploadResponse = await api.uploadImages(listingId, files);
             newImageUrls = uploadResponse.imageUrls || uploadResponse.image_urls || [];
         }
-        
+
         // 3. Update listing data
         const updatedListingData = {
             title: document.getElementById('bookTitle').value.trim(),
@@ -668,24 +677,24 @@ async function handleFormSubmit(event) {
             genres: document.getElementById('bookGenres').value.trim(),
             description: document.getElementById('bookDescription').value.trim()
         };
-        
+
         // 4. Update primary image if changed
         const primaryImage = existingImages.find(img => img.isPrimary);
         if (primaryImage) {
             await api.setPrimaryImage(listingId, primaryImage.photoId);
         }
-        
+
         console.log('Updating listing with data:', updatedListingData);
-        
+
         const response = await api.put(`/api/listings/${listingId}`, updatedListingData);
-        
+
         console.log('Update response:', response);
         showToast('Listing updated successfully!', 'success');
-        
+
         setTimeout(() => {
             window.location.href = `listing.html?id=${listingId}`;
         }, 1500);
-        
+
     } catch (error) {
         console.error('Failed to update listing:', error);
         showToast(error.message || 'Failed to update listing', 'error');
@@ -705,15 +714,15 @@ function confirmCancel() {
 async function confirmDelete() {
     const confirmation = confirm('Are you sure you want to delete this listing? This action cannot be undone.');
     if (!confirmation) return;
-    
+
     const doubleCheck = confirm('This will permanently delete your listing and all its images. Are you absolutely sure?');
     if (!doubleCheck) return;
-    
+
     try {
         const response = await api.delete(`/api/listings/${listingId}`);
         console.log('Delete response:', response);
         showToast('Listing deleted successfully', 'success');
-        
+
         setTimeout(() => {
             window.location.href = 'home.html';
         }, 1500);
@@ -742,9 +751,9 @@ function showToast(message, type = 'success') {
         font-family: 'Segoe UI', sans-serif; max-width: 90%;
         text-align: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'slideDown 0.3s ease';
         setTimeout(() => toast.remove(), 300);

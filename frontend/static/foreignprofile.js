@@ -4,6 +4,11 @@ const profileData = {
   email: "johndoe@gmail.com"
 }
 
+// Require login
+if (!isLoggedIn()) {
+  window.location.href = 'Login.html';
+}
+
 // Data for the listings
 const listings = [
   {
@@ -87,7 +92,7 @@ function renderListings() {
                 </div>
             </div>
         `
-    
+
     // Make card clickable to view listing (except when clicking buttons)
     card.addEventListener('click', (e) => {
       if (!e.target.closest('.contact-btn') && !e.target.closest('.heart-btn')) {
@@ -134,23 +139,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Navigation functions
 function goToHome() {
-    window.location.href = 'home.html';
+  window.location.href = 'home.html';
 }
 
 function goToAnnouncements() {
-    window.location.href = 'announcements.html';
+  window.location.href = 'announcements.html';
 }
 
 function goToFavorites() {
-    window.location.href = 'favourites.html';
+  window.location.href = 'favourites.html';
 }
 
 function goToProfile() {
-    window.location.href = 'profile.html';
+  window.location.href = 'profile.html';
 }
 
 function goToMessages() {
-    window.location.href = "messages.html"
+  window.location.href = "messages.html"
 }
 
 // Navigate to listing details page

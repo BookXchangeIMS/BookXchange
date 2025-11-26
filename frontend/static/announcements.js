@@ -23,6 +23,11 @@ const MOCK_USER_BOOKS_DATA = [
     }
 ];
 
+// Require login
+if (!isLoggedIn()) {
+    window.location.href = 'Login.html';
+}
+
 // Simple HTML escaping function
 function escapeHtml(unsafe) {
     if (!unsafe) return '';

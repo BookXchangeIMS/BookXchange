@@ -1,4 +1,9 @@
-// Sample book data (Copied from the Home page script, maintaining local state)
+// Require login
+if (!isLoggedIn()) {
+    window.location.href = 'Login.html';
+}
+
+// Sample book data (in a real app, this would come from a database)
 const ALL_LISTINGS_DATA = [
     {
         id: 101,

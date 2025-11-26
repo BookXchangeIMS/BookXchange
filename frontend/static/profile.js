@@ -2,7 +2,7 @@
 // GLOBAL NAVIGATION FUNCTIONS
 // ============================================
 
-window.goBack = function() {
+window.goBack = function () {
     window.history.back();
 };
 
@@ -21,7 +21,7 @@ const userData = {
 // PAGE INITIALIZATION
 // ============================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadUserProfile();
 });
 
@@ -70,23 +70,33 @@ function viewTransactionHistory() {
     // window.location.href = 'transaction-history.html';
 }
 
-function logout() {
+// Add login check at page load
+if (!isLoggedIn()) {
+    window.location.href = 'Login.html';
+}
+
+function handleLogout() {
     const confirmLogout = confirm('Are you sure you want to log out?');
-    
+
     if (confirmLogout) {
-        // In a real app, this would:
-        // 1. Clear session/auth tokens
-        // 2. Clear local storage
-        // 3. Redirect to login page
-        console.log('Logging out...');
-        
-        // Simulate logout
+        const accessToken = getAccessToken();
+        const refreshToken = getRefreshToken();
+
+        // Always clear tokens and redirect, even if API call fails
+        clearTokens();
+
+        // Try to call logout API (don't wait for it)
+        if (accessToken && refreshToken) {
+            logout(accessToken, refreshToken).catch(err => {
+                console.error('Logout API error:', err);
+            });
+        }
+
+        // Show toast and redirect
         showToast('Logged out successfully', 'success');
-        
-        // Redirect to login page after a short delay
         setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1500);
+            window.location.href = 'Login.html';
+        }, 1000);
     }
 }
 
@@ -121,9 +131,9 @@ function goToMessages() {
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.textContent = message;
-    
+
     let backgroundColor;
-    switch(type) {
+    switch (type) {
         case 'success':
             backgroundColor = '#27ae60';
             break;
@@ -136,7 +146,7 @@ function showToast(message, type = 'success') {
         default:
             backgroundColor = '#27ae60';
     }
-    
+
     toast.style.cssText = `
         position: fixed;
         bottom: 30px;
