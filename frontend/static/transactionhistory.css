@@ -1,0 +1,225 @@
+/* PERFECT ALIGNMENT - Header top + Filters centered */
+
+/* Body - EXACT HOME PAGE */
+body {
+    background-image: url('../static/resources/backgroundopacity2.png');
+    background-color: #FFF1D8;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0; /* CRITICAL - Removes default margin */
+    padding-top: 0; /* CRITICAL - No top padding */
+}
+
+/* Main content - PERFECT spacing */
+main {
+    flex: 1;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Page Header - PERFECT center alignment */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* CENTER EVERYTHING */
+    gap: 24px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    position: relative;
+}
+.back-btn {
+    background: linear-gradient(135deg, #c84c3d, #b03a2e);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(200,76,61,0.3);
+    position: absolute; /* Back button positioned left */
+    left: 0;
+}
+.back-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(200,76,61,0.4); }
+.page-title {
+    font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    color: #1a1a2e;
+    margin: 0;
+    text-align: center;
+    flex-grow: 1; /* Takes available space */
+}
+
+/* Filter Tabs - PERFECTLY CENTERED under title */
+.filter-tabs {
+    display: flex;
+    justify-content: center; /* PERFECT CENTER */
+    align-items: center;
+    gap: 12px;
+    margin: 0 auto 32px auto; /* CENTERED + perfect spacing */
+    flex-wrap: wrap;
+    max-width: 400px; /* Prevents stretching on large screens */
+}
+.filter-tab {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(200,76,61,0.2);
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+.filter-tab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+.filter-tab.active {
+    background: linear-gradient(135deg, #c84c3d, #b03a2e);
+    color: white;
+    border-color: #c84c3d;
+}
+
+/* GRID - EXACT HOME PAGE */
+.transactions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* CARDS - EXACT HOME PAGE SIZING */
+.transaction-card {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 440px;
+}
+.transaction-card.sold { border-left: 4px solid #27ae60; }
+.transaction-card.bought { border-left: 4px solid #3498db; }
+.transaction-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.12), 0 0 0 1px rgba(200,76,61,0.1);
+}
+
+/* IMAGE - EXACT HOME PAGE */
+.transaction-image {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #f5f5f0 0%, #e8e8e0 100%);
+}
+
+/* INFO - EXACT HOME PAGE SPACING */
+.transaction-info {
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 8px;
+}
+.transaction-type {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 16px;
+    text-transform: uppercase;
+    width: fit-content;
+}
+.transaction-type.sold { background: rgba(39,174,96,0.15); color: #27ae60; }
+.transaction-type.bought { background: rgba(52,152,219,0.15); color: #3498db; }
+.book-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1a1a2e;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.book-author { color: #666; font-size: 0.85rem; font-weight: 600; }
+.transaction-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.8rem;
+    color: #888;
+    margin: 8px 0 10px 0;
+}
+.transaction-meta span { display: flex; align-items: center; gap: 5px; }
+.transaction-price {
+    font-weight: 800;
+    color: #c84c3d;
+    font-size: 1.35rem;
+    margin: 0 0 12px 0;
+}
+.transaction-status {
+    padding: 8px 18px;
+    border-radius: 18px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #27ae60, #229954);
+    color: white;
+    width: fit-content;
+    margin-top: auto;
+}
+
+/* Skeleton */
+.skeleton-grid { animation: shimmer 1.5s infinite; }
+.skeleton-card {
+    background: rgba(255,255,255,0.5);
+    border-radius: 20px;
+    height: 440px;
+    position: relative;
+    overflow: hidden;
+    animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+/* Empty */
+.empty-state { text-align: center; padding: 80px 20px; grid-column: 1/-1; }
+.empty-state i { font-size: 4rem; color: #ddd; margin-bottom: 1.5rem; }
+.empty-state h3 { font-size: 1.5rem; color: #1a1a2e; margin-bottom: 0.5rem; }
+.empty-state p { color: #888; font-size: 1rem; }
+
+/* Responsive */
+@media (max-width: 1200px) { .transactions-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; } }
+@media (max-width: 768px) {
+    .transactions-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; padding: 0 12px; }
+    .transaction-image { height: 200px; }
+    main { padding: 16px 12px; }
+    .back-btn { position: static; }
+}
+@media (max-width: 480px) {
+    .transactions-grid { grid-template-columns: 1fr; gap: 16px; }
+    .transaction-image { height: 240px; }
+}
