@@ -149,7 +149,8 @@ async function loadProfile() {
       renderSelectedGenres();
     }
 
-    setFormMessage("Profile loaded successfully", "success");
+    // Clear the loading message
+    setFormMessage("", "");
   } catch (error) {
     console.error('Error loading profile:', error);
     setFormMessage("Could not load profile. Please try again.", "error");
@@ -227,6 +228,81 @@ async function saveProfile(event) {
     setFormMessage("Error saving profile. Please try again.", "error");
   }
 }
+
+// ============================================
+// DELETE ACCOUNT
+// ============================================
+
+let deleteStep = 1;
+
+function confirmDeleteAccount() {
+  deleteStep = 1;
+  const modal = document.getElementById('deleteModal');
+  const title = document.getElementById('modalTitle');
+  const message = document.getElementById('modalMessage');
+
+  title.textContent = '⚠️ Delete Account?';
+  message.innerHTML = `
+    This action will permanently delete:<br><br>
+    • Your profile and all personal information<br>
+    • All your listings<br>
+    • All your messages<br>
+    • All your preferences<br><br>
+    <strong>This action CANNOT be undone!</strong>
+  `;
+
+  modal.classList.add('active');
+}
+
+function closeDeleteModal() {
+  const modal = document.getElementById('deleteModal');
+  modal.classList.remove('active');
+  deleteStep = 1;
+}
+
+function proceedDeleteAccount() {
+  if (deleteStep === 1) {
+    // Show second confirmation
+    deleteStep = 2;
+    const title = document.getElementById('modalTitle');
+    const message = document.getElementById('modalMessage');
+
+    title.textContent = '🚨 FINAL WARNING!';
+    message.innerHTML = `
+      Are you <strong>absolutely sure</strong>?<br><br>
+      Everything will be <strong>lost forever</strong>.<br><br>
+      This is your last chance to cancel.
+    `;
+  } else {
+    // Actually delete the account
+    closeDeleteModal();
+    executeDeleteAccount();
+  }
+}
+
+async function executeDeleteAccount() {
+  const token = getAccessToken();
+  const refreshToken = getRefreshToken();
+
+  if (!token || !refreshToken) {
+    setFormMessage('Not logged in', 'error');
+    return;
+  }
+
+  try {
+    setFormMessage('Deleting account...', '');
+    await deleteAccount(token, refreshToken);
+    clearTokens();
+    setFormMessage('✓ Account deleted. Redirecting...', 'success');
+    setTimeout(() => {
+      window.location.href = 'Login.html';
+    }, 1500);
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    setFormMessage('Error deleting account. Please try again.', 'error');
+  }
+}
+
 
 // ============================================
 // HELPER FUNCTIONS

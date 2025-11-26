@@ -129,6 +129,27 @@ async function savePreferences(genres, accessToken) {
     return await response.json();
 }
 
+/**
+ * Delete user account
+ */
+async function deleteAccount(accessToken, refreshToken) {
+    const response = await fetch(`${API_BASE_URL}/api/delete_profile`, {
+        method: 'DELETE',
+        headers: {
+            'access-token': accessToken,
+            'refresh-token': refreshToken
+        }
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        console.error('DeleteAccount API Error:', error);
+        throw new Error(JSON.stringify(error.detail || error));
+    }
+
+    return { success: true };
+}
+
 // ============================================
 // PROFILE
 // ============================================
