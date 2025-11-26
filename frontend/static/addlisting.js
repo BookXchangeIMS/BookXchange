@@ -25,43 +25,14 @@ function clearTokens() {
 
 // API Helper Functions
 const api = {
-    async get(endpoint) {
+    async post(endpoint, data) {
         if (USE_MOCK_DATA && window.mockAPI) {
-            const id = endpoint.split('/').pop();
-            return await window.mockAPI.getBook(id);
+            return await window.mockAPI.createBook(data);
         }
 
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'access-token': getAccessToken() || ''
-                }
-            });
-
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return await this.get(endpoint);
-            }
-
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return await response.json();
-        } catch (error) {
-            console.error('GET request failed:', error);
-            throw error;
-        }
-    },
-
-    async put(endpoint, data) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            const id = endpoint.split('/').pop();
-            return await window.mockAPI.updateBook(id, data);
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
@@ -71,7 +42,7 @@ const api = {
 
             if (response.status === 401) {
                 await this.refreshAccessToken();
-                return await this.put(endpoint, data);
+                return await this.post(endpoint, data);
             }
 
             if (!response.ok) {
@@ -80,44 +51,7 @@ const api = {
             }
             return await response.json();
         } catch (error) {
-            console.error('PUT request failed:', error);
-            throw error;
-        }
-    },
-
-    async delete(endpoint) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            const id = endpoint.split('/').pop();
-            return await window.mockAPI.deleteBook(id);
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'access-token': getAccessToken() || ''
-                }
-            });
-
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return await this.delete(endpoint);
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
-            }
-
-            // 204 No Content doesn't have a body
-            if (response.status === 204) {
-                return { success: true, message: 'Deleted successfully' };
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('DELETE request failed:', error);
+            console.error('POST request failed:', error);
             throw error;
         }
     },
@@ -166,67 +100,6 @@ const api = {
         }
     },
 
-    // Delete specific image from listing
-    async deleteImage(listingId, photoId) {
-        if (USE_MOCK_DATA) {
-            return { success: true, message: 'Image deleted' };
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/images/${photoId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'access-token': getAccessToken() || ''
-                }
-            });
-
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return await this.deleteImage(listingId, photoId);
-            }
-
-            if (!response.ok) throw new Error('Failed to delete image');
-
-            if (response.status === 204) {
-                return { success: true, message: 'Image deleted' };
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Delete image failed:', error);
-            throw error;
-        }
-    },
-
-    // Set primary image for listing
-    async setPrimaryImage(listingId, photoId) {
-        if (USE_MOCK_DATA) {
-            return { success: true, message: 'Primary image set' };
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/images/${photoId}/primary`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'access-token': getAccessToken() || ''
-                }
-            });
-
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return await this.setPrimaryImage(listingId, photoId);
-            }
-
-            if (!response.ok) throw new Error('Failed to set primary image');
-            return await response.json();
-        } catch (error) {
-            console.error('Set primary image failed:', error);
-            throw error;
-        }
-    },
-
     // Refresh access token
     async refreshAccessToken() {
         try {
@@ -260,41 +133,21 @@ const api = {
     }
 };
 
-// Get listing ID from URL
-const urlParams = new URLSearchParams(window.location.search);
-const listingId = parseInt(urlParams.get('id'));
-
 // State management
-let book = null;
-let existingImages = []; // [{photoId, imagePath, isPrimary}]
 let newImages = []; // [{file, preview, tempId}]
-let deletedImageIds = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
-        showToast('Please login to edit listings', 'error');
+        showToast('Please login to add listings', 'error');
         setTimeout(() => window.location.href = '/login.html', 2000);
         return;
     }
 
     if (USE_MOCK_DATA) showMockModeIndicator();
 
-    if (!listingId || isNaN(listingId)) {
-        showToast('Invalid listing ID', 'error');
-        setTimeout(() => window.location.href = 'home.html', 2000);
-        return;
-    }
-
-    try {
-        await fetchListingDetails(listingId);
-        setupEventListeners();
-    } catch (error) {
-        console.error('Error loading listing:', error);
-        showToast('Failed to load listing details', 'error');
-        setTimeout(() => window.location.href = 'home.html', 2000);
-    }
+    setupEventListeners();
 });
 
 function showMockModeIndicator() {
@@ -308,50 +161,6 @@ function showMockModeIndicator() {
         z-index: 10000; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     `;
     document.body.appendChild(indicator);
-}
-
-// Fetch listing details including images
-async function fetchListingDetails(id) {
-    try {
-        showToast('Loading listing details...', 'success');
-        const response = await api.get(`/api/listings/${id}`);
-        book = response.data || response;
-
-        // Load existing images (from ListingPhoto table)
-        existingImages = book.images || book.photos || [];
-
-        // For mock data, convert single imagePath to array
-        if (!existingImages.length && book.imagePath) {
-            existingImages = [{
-                photoId: 1,
-                imagePath: book.imagePath,
-                isPrimary: true
-            }];
-        }
-
-        console.log('Loaded listing:', book);
-        console.log('Existing images:', existingImages);
-
-        loadListingDetailsIntoForm(book);
-        renderImagePreviews();
-        showToast('Listing loaded successfully', 'success');
-    } catch (error) {
-        console.error('Failed to fetch listing details:', error);
-        throw error;
-    }
-}
-
-// Load form fields
-function loadListingDetailsIntoForm(book) {
-    document.getElementById('bookTitle').value = book.title || '';
-    document.getElementById('bookAuthor').value = book.author || '';
-    document.getElementById('bookPrice').value = book.price || '';
-    document.getElementById('bookYear').value = book.year || book.publication_year || book.releaseDate || '';
-    document.getElementById('bookCondition').value = book.condition || book.listingState || '';
-    document.getElementById('bookLocation').value = book.location || '';
-    document.getElementById('bookGenres').value = book.genres || '';
-    document.getElementById('bookDescription').value = book.description || '';
-    updateCharacterCount();
 }
 
 // Setup event listeners
@@ -371,7 +180,7 @@ function setupEventListeners() {
     // Form events
     document.getElementById('bookDescription').addEventListener('input', updateCharacterCount);
     document.getElementById('bookPrice').addEventListener('blur', formatPrice);
-    document.getElementById('editListingForm').addEventListener('submit', handleFormSubmit);
+    document.getElementById('addListingForm').addEventListener('submit', handleFormSubmit);
 }
 
 // Drag and drop handlers
@@ -403,7 +212,7 @@ function handleFileSelect(e) {
 
 // Process and validate files
 function processFiles(files) {
-    const currentTotal = existingImages.length + newImages.length;
+    const currentTotal = newImages.length;
     const availableSlots = MAX_IMAGES - currentTotal;
 
     if (availableSlots <= 0) {
@@ -449,16 +258,11 @@ function renderImagePreviews() {
     const grid = document.getElementById('imagePreviewGrid');
     grid.innerHTML = '';
 
-    const totalImages = existingImages.length + newImages.length;
-
-    // Render existing images
-    existingImages.forEach((img, index) => {
-        grid.appendChild(createImagePreviewElement(img, 'existing', index));
-    });
+    const totalImages = newImages.length;
 
     // Render new images
     newImages.forEach((img, index) => {
-        grid.appendChild(createImagePreviewElement(img, 'new', index));
+        grid.appendChild(createImagePreviewElement(img, index));
     });
 
     // Update counter
@@ -466,18 +270,16 @@ function renderImagePreviews() {
 }
 
 // Create image preview element
-function createImagePreviewElement(img, type, index) {
+function createImagePreviewElement(img, index) {
     const div = document.createElement('div');
     div.className = 'image-preview-item';
 
-    const isPrimary = type === 'existing' && img.isPrimary;
+    const isPrimary = index === 0; // First image is primary
     if (isPrimary) div.classList.add('primary');
-
-    const imgSrc = type === 'existing' ? img.imagePath : img.preview;
 
     div.innerHTML = `
         ${isPrimary ? '<span class="primary-badge">Primary</span>' : ''}
-        <img src="${imgSrc}" alt="Preview">
+        <img src="${img.preview}" alt="Preview">
         <div class="image-preview-overlay">
             ${!isPrimary ? `
                 <button type="button" class="overlay-btn primary" title="Set as primary">
@@ -495,45 +297,27 @@ function createImagePreviewElement(img, type, index) {
     const deleteBtn = div.querySelector('.overlay-btn.delete');
 
     if (primaryBtn) {
-        primaryBtn.addEventListener('click', () => handleSetPrimary(type, index));
+        primaryBtn.addEventListener('click', () => handleSetPrimary(index));
     }
 
-    deleteBtn.addEventListener('click', () => handleDeleteImage(type, index));
+    deleteBtn.addEventListener('click', () => handleDeleteImage(index));
 
     return div;
 }
 
 // Set primary image
-function handleSetPrimary(type, index) {
-    if (type === 'existing') {
-        existingImages.forEach((img, i) => {
-            img.isPrimary = (i === index);
-        });
-    } else {
-        existingImages.forEach(img => img.isPrimary = false);
-        const [selectedImage] = newImages.splice(index, 1);
-        newImages.unshift(selectedImage);
-    }
-
+function handleSetPrimary(index) {
+    const [selectedImage] = newImages.splice(index, 1);
+    newImages.unshift(selectedImage);
     renderImagePreviews();
     showToast('Primary image updated', 'success');
 }
 
 // Delete image
-function handleDeleteImage(type, index) {
+function handleDeleteImage(index) {
     if (!confirm('Delete this image?')) return;
 
-    if (type === 'existing') {
-        const deletedImage = existingImages.splice(index, 1)[0];
-        deletedImageIds.push(deletedImage.photoId);
-
-        if (deletedImage.isPrimary && existingImages.length > 0) {
-            existingImages[0].isPrimary = true;
-        }
-    } else {
-        newImages.splice(index, 1);
-    }
-
+    newImages.splice(index, 1);
     renderImagePreviews();
     showToast('Image removed', 'success');
 }
@@ -587,7 +371,7 @@ function formatPrice(event) {
 function validateForm() {
     const errors = [];
 
-    if (existingImages.length === 0 && newImages.length === 0) {
+    if (newImages.length === 0) {
         errors.push('Please add at least one image');
     }
 
@@ -601,24 +385,11 @@ function validateForm() {
     const priceValue = parseFloat(price.replace('$', ''));
     if (isNaN(priceValue) || priceValue < 0) errors.push('Please enter a valid price');
 
-    const year = parseInt(document.getElementById('bookYear').value);
-    const currentYear = new Date().getFullYear();
-    if (isNaN(year) || year < 1000 || year > currentYear) {
-        errors.push(`Publication year must be between 1000 and ${currentYear}`);
-    }
-
     const condition = document.getElementById('bookCondition').value;
     if (!condition) errors.push('Please select a condition');
 
     const location = document.getElementById('bookLocation').value.trim();
     if (location.length < 3) errors.push('Location must be at least 3 characters');
-
-    const genres = document.getElementById('bookGenres').value.trim();
-    if (genres.length < 3) errors.push('Please enter at least one genre');
-
-    const description = document.getElementById('bookDescription').value.trim();
-    if (description.length < 20) errors.push('Description must be at least 20 characters');
-    if (description.length > 500) errors.push('Description must not exceed 500 characters');
 
     if (errors.length > 0) {
         showToast(errors[0], 'error');
@@ -638,98 +409,65 @@ async function handleFormSubmit(event) {
     const submitButton = event.target.querySelector('button[type="submit"]');
     const originalButtonText = submitButton.innerHTML;
     submitButton.disabled = true;
-    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
     try {
-        // 1. Delete removed images
-        if (deletedImageIds.length > 0) {
-            showToast('Deleting removed images...', 'success');
-            for (const photoId of deletedImageIds) {
-                await api.deleteImage(listingId, photoId);
-            }
-        }
-
-        // 2. Upload new images to Azure Blob Storage
-        let newImageUrls = [];
-        if (newImages.length > 0) {
-            showToast(`Uploading ${newImages.length} new image(s)...`, 'success');
-            const files = newImages.map(img => img.file);
-            const uploadResponse = await api.uploadImages(listingId, files);
-            newImageUrls = uploadResponse.imageUrls || uploadResponse.image_urls || [];
-        }
-
-        // 3. Update listing data
-        const updatedListingData = {
+        // 1. Create the listing
+        const newListingData = {
             title: document.getElementById('bookTitle').value.trim(),
             author: document.getElementById('bookAuthor').value.trim(),
             price: parseFloat(document.getElementById('bookPrice').value.replace('$', '')),
-            year: parseInt(document.getElementById('bookYear').value),
+            year: parseInt(document.getElementById('bookYear').value) || null,
             condition: document.getElementById('bookCondition').value,
             location: document.getElementById('bookLocation').value.trim(),
-            genres: document.getElementById('bookGenres').value.trim(),
-            description: document.getElementById('bookDescription').value.trim()
+            genres: document.getElementById('bookGenres').value.trim() || '',
+            description: document.getElementById('bookDescription').value.trim() || ''
         };
 
-        // 4. Update primary image if changed
-        const primaryImage = existingImages.find(img => img.isPrimary);
-        if (primaryImage) {
-            await api.setPrimaryImage(listingId, primaryImage.photoId);
+        console.log('Creating listing with data:', newListingData);
+        showToast('Creating listing...', 'success');
+
+        const createResponse = await api.post('/api/listings', newListingData);
+        const listingId = createResponse.data?.listingId || createResponse.listingId || createResponse.id;
+
+        console.log('Listing created with ID:', listingId);
+
+        // 2. Upload images to Azure Blob Storage
+        if (newImages.length > 0) {
+            showToast(`Uploading ${newImages.length} image(s)...`, 'success');
+            const files = newImages.map(img => img.file);
+            await api.uploadImages(listingId, files);
         }
 
-        console.log('Updating listing with data:', updatedListingData);
-
-        const response = await api.put(`/api/listings/${listingId}`, updatedListingData);
-
-        console.log('Update response:', response);
-        showToast('Listing updated successfully!', 'success');
+        showToast('Listing created successfully!', 'success');
 
         setTimeout(() => {
             window.location.href = 'announcements.html';
         }, 1500);
 
     } catch (error) {
-        console.error('Failed to update listing:', error);
-        showToast(error.message || 'Failed to update listing', 'error');
+        console.error('Failed to create listing:', error);
+        showToast(error.message || 'Failed to create listing', 'error');
         submitButton.disabled = false;
         submitButton.innerHTML = originalButtonText;
     }
 }
 
+
 // Confirm cancel
 function confirmCancel() {
-    if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-        window.location.href = 'announcements.html';
+    if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
+        window.location.href = 'home.html';
     }
 }
 
-// Confirm delete
-async function confirmDelete() {
-    const confirmation = confirm('Are you sure you want to delete this listing? This action cannot be undone.');
-    if (!confirmation) return;
-
-    const doubleCheck = confirm('This will permanently delete your listing and all its images. Are you absolutely sure?');
-    if (!doubleCheck) return;
-
-    try {
-        const response = await api.delete(`/api/listings/${listingId}`);
-        console.log('Delete response:', response);
-        showToast('Listing deleted successfully', 'success');
-
-        setTimeout(() => {
-            window.location.href = 'announcements.html';
-        }, 1500);
-    } catch (error) {
-        console.error('Failed to delete listing:', error);
-        showToast(error.message || 'Failed to delete listing', 'error');
-    }
-}
-
-// Go back to announcements
+// Go back
 function goBack() {
-    if (confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
-        window.location.href = 'announcements.html';
+    if (confirm('Are you sure you want to go back? All entered data will be lost.')) {
+        window.history.back();
     }
 }
+
 
 // Toast notification
 function showToast(message, type = 'success') {

@@ -143,7 +143,7 @@ function createBookCard(book) {
 function editListing(listingId) {
     console.log('Editing listing:', listingId);
     // TODO: Navigate to edit page
-    // window.location.href = `edit-listing.html?id=${listingId}`;
+    window.location.href = `editlisting.html?id=${listingId}`;
 }
 
 // Navigation functions
@@ -170,5 +170,5 @@ function goToProfile() {
 function goToAddListing() {
     console.log('Navigate to add listing page');
     // TODO: Navigate to add listing page
-    // window.location.href = 'add-listing.html';
+    window.location.href = 'addlisting.html'
 }
