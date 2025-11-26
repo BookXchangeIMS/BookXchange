@@ -7,48 +7,79 @@ window.goBack = function () {
 };
 
 // ============================================
-// USER PROFILE DATA
-// ============================================
-
-const userData = {
-    name: "John Doe",
-    email: "johndoe@gmail.com",
-    about: "I am John Doe, an Information Systems student with all the dreams in the world. I've been a cruise-ship pianist, President of the Youth Parliament and a vocalist on a Grammy-winning track—and I still want to become a pilot!",
-    interests: "Horror, Thriller; Romance"
-};
-
-// ============================================
 // PAGE INITIALIZATION
 // ============================================
 
-document.addEventListener('DOMContentLoaded', function () {
-    loadUserProfile();
+document.addEventListener('DOMContentLoaded', async function () {
+    await loadUserProfile();
 });
 
 // ============================================
 // LOAD USER PROFILE DATA
 // ============================================
 
-function loadUserProfile() {
-    const userNameElement = document.getElementById('userName');
-    const userEmailElement = document.getElementById('userEmail');
-    const aboutTextElement = document.getElementById('aboutText');
-    const interestsTextElement = document.getElementById('interestsText');
+async function loadUserProfile() {
+    const token = getAccessToken();
 
-    if (userNameElement) {
-        userNameElement.textContent = `Hello, ${userData.name}!`;
+    console.log('Loading profile... Token:', token ? 'exists' : 'missing');
+    console.log('Token value:', token); // Show actual token
+
+    // Already checked by login protection at top of file
+    if (!token) {
+        console.error('No token found');
+        return;
     }
 
-    if (userEmailElement) {
-        userEmailElement.textContent = userData.email;
-    }
+    try {
+        // Fetch user profile from API
+        console.log('Fetching profile from API...');
+        const profile = await getMyProfile(token);
+        console.log('Profile loaded:', profile);
 
-    if (aboutTextElement) {
-        aboutTextElement.textContent = userData.about;
-    }
+        // Update DOM elements
+        const userNameElement = document.getElementById('userName');
+        const userEmailElement = document.getElementById('userEmail');
+        const aboutTextElement = document.getElementById('aboutText');
+        const interestsTextElement = document.getElementById('interestsText');
 
-    if (interestsTextElement) {
-        interestsTextElement.textContent = userData.interests;
+        if (userNameElement) {
+            userNameElement.textContent = `Hello, ${profile.Name}!`;
+        }
+
+        if (userEmailElement) {
+            userEmailElement.textContent = profile.Email;
+        }
+
+        if (aboutTextElement) {
+            aboutTextElement.textContent = profile.AboutMe || 'No information provided';
+        }
+
+        // Fetch and display preferences
+        try {
+            console.log('Fetching preferences...');
+            const preferences = await getPreferences(token);
+            console.log('Preferences loaded:', preferences);
+            if (interestsTextElement) {
+                interestsTextElement.textContent = preferences.length > 0
+                    ? preferences.join(', ')
+                    : 'No interests selected';
+            }
+        } catch (error) {
+            console.error('Error loading preferences:', error);
+            if (interestsTextElement) {
+                interestsTextElement.textContent = 'Unable to load interests';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        console.error('Error details:', error.message);
+        showToast('Failed to load profile: ' + error.message, 'error');
+
+        // Commented out to debug
+        // setTimeout(() => {
+        //     clearTokens();
+        //     window.location.href = 'Login.html';
+        // }, 2000);
     }
 }
 
