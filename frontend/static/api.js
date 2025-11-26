@@ -65,6 +65,71 @@ function isLoggedIn() {
 }
 
 // ============================================
+// REGISTRATION
+// ============================================
+
+/**
+ * Check if user email already exists
+ */
+async function doesUserExist(email) {
+    const response = await fetch(`${API_BASE_URL}/api/does_user_exist?email=${encodeURIComponent(email)}`);
+
+    if (!response.ok) {
+        throw new Error('Failed to check email');
+    }
+
+    const data = await response.json();
+    return data.exists || false;
+}
+
+/**
+ * Sign up a new user
+ */
+async function signUp(userData) {
+    const formData = new FormData();
+    formData.append('Name', userData.name);
+    formData.append('Email', userData.email);
+    formData.append('PasswordHash', userData.password);
+    formData.append('DateOfBirth', userData.dob);  // Backend expects DateOfBirth, not DOB
+    formData.append('LocationAddress', userData.location);
+
+    const response = await fetch(`${API_BASE_URL}/api/sign_up`, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        console.error('SignUp API Error:', error);
+        throw new Error(JSON.stringify(error.detail || error));
+    }
+
+    return await response.json();
+}
+
+/**
+ * Save user preferences (genres)
+ */
+async function savePreferences(genres, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/post_preferences`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'access-token': accessToken
+        },
+        body: JSON.stringify(genres)  // Send array directly, not wrapped in object
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        console.error('SavePreferences API Error:', error);
+        throw new Error(JSON.stringify(error.detail || error));
+    }
+
+    return await response.json();
+}
+
+// ============================================
 // PROFILE
 // ============================================
 
