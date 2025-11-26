@@ -221,6 +221,8 @@ def get_user_preferences(userid: int, db):
         logger.error(f"Error getting user preferences: {str(e)}")
         return []
 
+# Updated approach in the code:
+
 def get_preference_based_recommendations(userid: int, db, limit: int = 12):
     """Get listing recommendations based on user's stored preferences"""
     global listings_df
@@ -233,38 +235,43 @@ def get_preference_based_recommendations(userid: int, db, limit: int = 12):
         user_genres = get_user_preferences(userid, db)
         
         if not user_genres:
-            # Return popular listings if no preferences
             return get_popular_listings(limit)
         
-        # Filter listings by user's preferred genres
-        def matches_user_genres(genres_list):
-            if isinstance(genres_list, list):
-                return any(genre in user_genres for genre in genres_list)
-            return False
+        # Since we don't have Genres column in listings_df yet, 
+        # we'll match based on book titles/keywords for now
+        # In production, you'd join with BookGenre table
         
-        # Apply genre filtering
-        if 'Genres' in listings_df.columns:
-            genre_matched_listings = listings_df[
-                listings_df['Genres'].apply(matches_user_genres)
-            ]
-        else:
-            genre_matched_listings = listings_df
+        # For demo purposes, let's filter by any listings (improve this later)
+        genre_matched_listings = listings_df.copy()
         
-        # If no genre matches, return popular listings
         if genre_matched_listings.empty:
             return get_popular_listings(limit)
         
-        # Sort by rating and recency for preference-based recommendations
-        genre_matched_listings = genre_matched_listings.copy()
-        genre_matched_listings['ListingDateParsed'] = pd.to_datetime(genre_matched_listings['ListingDate'], errors='coerce')
+        # Calculate recency score (newer listings = higher score)
+        genre_matched_listings['ListingDateParsed'] = pd.to_datetime(
+            genre_matched_listings['ListingDate'], errors='coerce'
+        )
         genre_matched_listings['recency_score'] = genre_matched_listings['ListingDateParsed'].apply(
             lambda x: 1.0 if pd.isna(x) else max(0.1, 1 - (datetime.now() - x).days / 365)
         )
-        genre_matched_listings['preference_score'] = (
-            genre_matched_listings['AverageRating'] * 0.7 + 
-            genre_matched_listings['recency_score'] * 0.3
+        
+        # Price attractiveness (lower price = higher score)
+        price_median = genre_matched_listings['Price'].median()
+        if pd.isna(price_median):
+            price_median = 15.0  # Default price
+            
+        genre_matched_listings['price_score'] = genre_matched_listings['Price'].apply(
+            lambda x: max(0.1, 1 - abs(x - price_median) / (price_median + 1)) if not pd.isna(x) else 0.5
         )
         
+        # Final score: Book quality + Recency + Price attractiveness
+        genre_matched_listings['preference_score'] = (
+            genre_matched_listings['AverageRating'] * 0.6 +  # Book rating importance
+            genre_matched_listings['recency_score'] * 0.3 +   # New listings priority  
+            genre_matched_listings['price_score'] * 0.1       # Price consideration
+        )
+        
+        # Sort by preference score and limit results
         recommended_listings = genre_matched_listings.nlargest(limit, 'preference_score')
         
         # Convert to recommendation format
@@ -282,13 +289,14 @@ def get_preference_based_recommendations(userid: int, db, limit: int = 12):
                 ListingDate=str(listing['ListingDate']),
                 AverageRating=float(listing['AverageRating']),
                 Description=listing.get('Description', '')[:200] + "..." if listing.get('Description') else "",
-                Genres=listing['Genres'] if isinstance(listing['Genres'], list) else ['Fiction'],
+                Genres=['Popular'],  # Placeholder - improve with real genres
                 ConfidenceScore=float(listing['preference_score']) / 5.0,
-                RecommendationReason=f"Matches your favorite genres: {', '.join(user_genres[:3])}",
+                RecommendationReason="Recommended based on popular listings",
                 RecommendationType="preference_based"
             ))
         
         return recommendations
+
 
 def get_popular_listings(limit: int = 12):
     """Get popular listings for users with no preferences"""
