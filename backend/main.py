@@ -6,6 +6,7 @@ from backend.scripts.auth import *
 from backend.scripts.profile_crud import *
 from backend.config.db import get_db
 from backend.scripts.location_scripts import *
+from backend.scripts.listings_crud import *
 
 tags_metadata = [
     {
@@ -19,6 +20,10 @@ tags_metadata = [
     {
         "name": "Preferences",
         "description": "Operations with user's preferences in genres.",
+    },
+    {
+        "name": "Listings",
+        "description": "Operations concerned with listings",
     },
 ]
 app = FastAPI(openapi_tags=tags_metadata)
@@ -363,6 +368,299 @@ async def delete_profile(tokens: Tokens = Header(None), db= Depends(get_db)):
     userid = get_userid_by_access_token(tokens.access_token, db)
     return delete_profile_by_userid(userid, db)
 
+# ===================================================================================================================
+# LISTINGS ENDPOINTS
+# ===================================================================================================================
+
+@app.post("/api/post_listing", status_code=status.HTTP_201_CREATED, response_model=GetListing, tags=["Listings"])
+async def post_listing(listing_form: PostListing, access_token = Header(None), db= Depends(get_db)):
+    """
+    Handles the creation of a new listing for a book by processing user input, calculating location
+    coordinates, checking if the book exists in the database, and posting all relevant listing details.
+
+    :param listing_form: Form data containing all necessary details required to create a new listing.
+    :type listing_form: PostListing
+    :param access_token: The user's authentication token extracted from the request headers.
+    :type access_token: str
+    :param db: Dependency injection for the database session.
+    :type db: sqlalchemy.orm.Session
+    :return: A response model of the created listing, including its associated book, user, and location
+             details.
+    :rtype: GetListing
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+    new_location = Location(
+        Latitude=latitude,
+        Longitude=longitude,
+        Address=listing_form.LocationAddress,
+        Description="")
+    new_locationid = post_location(new_location, db)
+    new_bookid = get_bookid_by_isbn(listing_form.Book.ISBN, db)
+    if not new_bookid:
+        new_bookid = post_book(listing_form.Book, db)
+    post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
+    listingid = get_listingid_by_userid_and_bookit(userid, new_bookid, db)
+    new_listing = get_listing_by_listingid(listingid, db)
+    user = get_user_by_id(userid, db)
+    return GetListing(
+        ListingID=listingid,
+        ListingType=new_listing.ListingType,
+        Description=new_listing.Description,
+        Price=new_listing.Price,
+        BookCondition=new_listing.Condition,
+        Status=new_listing.ListingState,
+        CreationDate=new_listing.CreationDate,
+        Location=new_location,
+        Book=GetBook(
+            Title=listing_form.Book.Title,
+            Language=listing_form.Book.Language,
+            ReleaseDate=listing_form.Book.ReleaseDate,
+            ISBN=listing_form.Book.ISBN,
+            AvgRating=listing_form.Book.AvgRating,
+            Edition=listing_form.Book.Edition,
+            Author= listing_form.Book.Author,
+            Genre= listing_form.Book.Genre
+        ),
+        User=GetUser(
+            Name=user.Name,
+            ProfileImagePath=user.ProfileImagePath,
+            AboutMe=user.AboutMe,
+            UserRole=user.UserRole,
+            UserID=user.UserID
+        )
+    )
+
+@app.get("/api/get_users_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
+async def get_users_listings(user_id: int, access_token=Header(None), db=Depends(get_db)):
+    """
+    Retrieve a list of listings created by a specified user. This endpoint collects
+    the user's listings, including detailed book, location, and user metadata, and
+    returns them in a structured response format.
+
+    :param user_id: ID of the user whose listings are being fetched
+    :type user_id: int
+    :param access_token: Access token required for authentication and verification
+    :type access_token: str, optional
+    :param db: Database session dependency for performing database operations
+    :type db: sqlalchemy.orm.Session
+    :return: A list of listings created by the specified user, each containing book
+        details, the user's profile, and the location of the listing
+    :rtype: list[GetListing]
+    """
+    youruserid = get_userid_by_access_token(access_token, db)
+    listings = get_listings_by_userid(user_id, db)
+    result = []
+    user = get_user_by_id(user_id, db)
+    for listing in listings:
+        book = get_book_by_id(listing.BookID, db)
+        location = get_location_by_id(listing.LocationID, db)
+        result.append(GetListing(
+            ListingID=listing.ListingID,
+            ListingType=listing.ListingType,
+            Description=listing.Description,
+            Price=listing.Price,
+            BookCondition=listing.Condition,
+            Status=listing.ListingState,
+            CreationDate=listing.CreationDate,
+            Location=Location(
+                Longitude=location.Longitude,
+                Latitude=location.Latitude,
+                Address=location.Address,
+                Description=location.Description
+            ),
+            Book=GetBook(
+                Title=book.Title,
+                Language=book.Language,
+                ReleaseDate=book.ReleaseDate,
+                ISBN=book.ISBN,
+                AvgRating=book.AvgRating,
+                Edition=book.Edition,
+                Author=get_author_by_bookid(book.BookID, db),
+                Genre=get_genre_by_bookid(book.BookID, db)
+            ),
+            User=GetUser(
+                Name=user.Name,
+                ProfileImagePath=user.ProfileImagePath,
+                AboutMe=user.AboutMe,
+                UserRole=user.UserRole,
+                UserID=user.UserID
+            )
+        ))
+    return result
 
 
+@app.get("/api/get_your_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
+async def get_your_listings(access_token=Header(None), db=Depends(get_db)):
+    """
+    Retrieve the list of listings associated with the authenticated user.
+
+    This endpoint allows users to fetch the listings associated with their account,
+    based on the provided access token. It validates the access token to determine
+    the user's identity and subsequently retrieves the listings from the database.
+
+    :param access_token: The access token used for authentication and user identification.
+                         It should be passed in the request header.
+    :type access_token: str
+    :param db: A dependency-injected database session used for performing database
+               operations.
+    :type db: sqlalchemy.orm.Session
+    :return: A list of user's listings, represented by models that conform to the
+             GetListing response schema.
+    :rtype: list[GetListing]
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    return await get_users_listings(userid, access_token, db)
+
+@app.get("/api/get_listing_by_ListingID", status_code=status.HTTP_200_OK, response_model=GetListing, tags=["Listings"])
+async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get_db)):
+    """
+    Fetch a listing by its unique identifier.
+
+    This endpoint retrieves a specific listing based on the `listing_id`
+    provided. An access token is required to verify the user's authorization.
+    The database connection is also required to query the listing information.
+
+    :param listing_id: Unique identifier for the listing to be retrieved
+    :type listing_id: int
+    :param access_token: Authorization token required to verify the user
+    :type access_token: str (optional, retrieved via Header)
+    :param db: Database connection dependency, used to fetch the listing
+    :type db: sqlalchemy.orm.Session or equivalent
+    :return: A detailed object representing the requested listing if the
+        access token is valid
+    :rtype: dict
+
+    :raises HTTPException: If the access_token is invalid, an HTTP error
+        with status code 401 is raised
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    listing = get_listing_by_listingid(listing_id, db)
+    user = get_user_by_id(listing.UserID, db)
+    book = get_book_by_id(listing.BookID, db)
+    location = get_location_by_id(listing.LocationID, db)
+    return GetListing(
+        ListingID=listing.ListingID,
+        ListingType=listing.ListingType,
+        Description=listing.Description,
+        Price=listing.Price,
+        BookCondition=listing.Condition,
+        Status=listing.ListingState,
+        CreationDate=listing.CreationDate,
+        Location=Location(
+            Longitude=location.Longitude,
+            Latitude=location.Latitude,
+            Address=location.Address,
+            Description=location.Description
+        ),
+        Book=GetBook(
+            Title=book.Title,
+            Language=book.Language,
+            ReleaseDate=book.ReleaseDate,
+            ISBN=book.ISBN,
+            AvgRating=book.AvgRating,
+            Edition=book.Edition,
+            Author=get_author_by_bookid(book.BookID, db),
+            Genre=get_genre_by_bookid(book.BookID, db)
+        ),
+        User=GetUser(
+            Name=user.Name,
+            ProfileImagePath=user.ProfileImagePath,
+            AboutMe=user.AboutMe,
+            UserRole=user.UserRole,
+            UserID=user.UserID
+        )
+    )
+
+
+@app.put("/api/update_listing", status_code=status.HTTP_200_OK, response_model= GetListing, tags=["Listings"])
+async def update_listing(listing_form: UpdateListing, access_token = Header(None), db= Depends(get_db)):
+    """
+    Updates an existing listing with new information provided by the user.
+    The function retrieves the user information using the provided access token
+    and verifies if the user is authorized to update the listing. The location
+    and book information are also updated or created if necessary. The updated
+    listing information is then returned.
+
+    :param listing_form: An instance of the UpdateListing model containing the updated
+        details for the listing, including new location, book, and listing details.
+    :param access_token: The user's authorization token passed as an HTTP header.
+    :param db: The database session dependency to query and modify the database.
+    :return: Returns an instance of the GetListing model with the updated listing
+        details including location, book, and user information.
+    :rtype: GetListing
+    :raises HTTPException: Raises HTTPException with status code 401 if the user is
+        unauthorized to update the listing.
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    user = get_user_by_id(userid, db)
+    listing = get_listing_by_listingid(listing_form.ListingID, db)
+    if not(listing.UserID == userid):
+        raise HTTPException(status_code=401, detail="Unauthorized to update this listing")
+    latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+    new_location = Location(
+        Latitude=latitude,
+        Longitude=longitude,
+        Address=listing_form.LocationAddress,
+        Description="")
+    new_locationid = post_location(new_location, db)
+    new_bookid = get_bookid_by_book(listing_form.Book, db)
+    if not new_bookid:
+        new_bookid = post_book(listing_form.Book, db)
+    else:
+        update_book(new_bookid, listing_form.Book, db)
+    update_new_listing(listing_form, userid, new_locationid, new_bookid, db)
+    listing = get_listing_by_listingid(listing_form.ListingID, db)
+    return GetListing(
+        ListingID=listing.ListingID,
+        ListingType=listing.ListingType,
+        Description=listing.Description,
+        Price=listing.Price,
+        BookCondition=listing.Condition,
+        Status=listing.ListingState,
+        CreationDate=listing.CreationDate,
+        Location=new_location,
+        Book=GetBook(
+            Title=listing_form.Book.Title,
+            Language=listing_form.Book.Language,
+            ReleaseDate=listing_form.Book.ReleaseDate,
+            ISBN=listing_form.Book.ISBN,
+            AvgRating=listing_form.Book.AvgRating,
+            Edition=listing_form.Book.Edition,
+            Author= listing_form.Book.Author,
+            Genre= listing_form.Book.Genre
+        ),
+        User=GetUser(
+            Name=user.Name,
+            ProfileImagePath=user.ProfileImagePath,
+            AboutMe=user.AboutMe,
+            UserRole=user.UserRole,
+            UserID=user.UserID
+        )
+    )
+
+
+@app.delete("/api/delete_listing", status_code=status.HTTP_204_NO_CONTENT, tags=["Listings"])
+async def delete_listing(listing_id: int, access_token = Header(None), db= Depends(get_db)):
+    """
+    Deletes a listing specified by its identifier if the provided access token is valid
+    and the token's associated user is authorized to perform the deletion. The listing
+    is deleted from the database upon authorization.
+
+    :param listing_id: Identifier of the listing to be deleted
+    :type listing_id: int
+    :param access_token: Access token for authentication purposes
+    :type access_token: str
+    :param db: Database connection/session dependency
+    :type db: function
+    :return: Result of the delete operation indicating the deletion is complete
+    :rtype: None
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Unauthorized to delete this listing")
+    listing = get_listing_by_listingid(listing_id, db)
+    if userid != listing.UserID:
+        raise HTTPException(status_code=401, detail="Unauthorized to delete this listing")
+    return delete_new_listing(listing_id, db)
 

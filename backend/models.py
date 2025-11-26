@@ -54,91 +54,68 @@ class GetMyUser(GetUser):
     CreationDate: datetime
     Location: Location
 
-
-# Error log model
-class Error_Log(BaseModel):
-    LogID: int
-    UserID: int
-    Description: str
-    Type: int
-    LogDate: datetime
-
-# Genre model
-class Genre(BaseModel):
-    GenreID: int
-    GenreName: str
-
-# Authors model
-class Authors(BaseModel):
-    AuthorID: int
-    AuthorName: int
-
 # Book model
 class Book(BaseModel):
-    ISBN: int
-    AuthorID: int
+    BookID: int
     Title: str
-    Year: int
+    Language: str | None
+    ReleaseDate: datetime | None
+    ISBN: str | None
+    AvgRating: float | None
+    Edition: int | None
 
-# Book-genre model
-class Book_Genre(BaseModel):
-    GenreID: int
-    ISBN: int
+class PostBook(BaseModel):
+    Title: str
+    Author: list[str] = ["Anonymous"]
+    Genre: list[str] | None
+    AvgRating: float | None
+    Language: str | None
+    ReleaseDate: datetime | None
+    ISBN: str | None
+    Edition: int | None
 
-# Preferences model
-class Preferences(BaseModel):
-    GenreID: int
-    UserID: int
-
-# Notifications model
-class Notifications(BaseModel):
-    NotificationID: int
-    UserID: int
-    NotificationContent: str
-    Status: int
-
-# Image model
-class Image(BaseModel):
-    ImageID: int
-    Image_path: str
-    UploadedBy: int
-    UploadedAt: datetime
+class GetBook(BaseModel):
+    Title: str
+    Author: list[str] = ["Anonymous"]
+    Genre: list[str] | None
+    Language: str | None
+    AvgRating: float | None
+    ReleaseDate: datetime | None
+    ISBN: str | None
+    Edition: int | None
 
 # Listings model
-class ListingPost(BaseModel):
-    Location_ID: int
-    Item: Book
-    UserID: int
-    Image_Path: str
-    Type: str
-    Price: float
-
-class Listings(ListingPost):
-    ListingID: int
-    ListingState: int
-    DatePosted: datetime
-
-# Messages model
-class MessagePost(BaseModel):
-    SenderID: int
-    ReceiverID: int
-    Content: str
-    DateSent: datetime
-
-class Messages(MessagePost):
-    MessageID: int
-
-# Reports model
-class ReportPost(BaseModel):
+class PostListing(BaseModel):
+    Book: PostBook
     Description: str
-    Category: str
-    ListingID: int
-    UserID: int
-    ReportedUserID: int
-    CreatedAt: datetime
+    Status: str
+    Price: float | None
+    ListingType: str
+    BookCondition: str | None
+    LocationAddress: str
 
-class Reports(ReportPost):
-    ReportID: int
+class GetListing(BaseModel):
+    ListingID: int
+    Book: GetBook
+    User: GetUser
+    Description: str
+    Status: str
+    Price: float | None
+    ListingType: str
+    BookCondition: str | None
+    CreationDate: datetime
+    Location: Location
+
+class UpdateListing(BaseModel):
+    ListingID: int
+    Book: PostBook
+    Description: str
+    Status: str
+    Price: float | None
+    ListingType: str
+    BookCondition: str | None
+    LocationAddress: str
+
 
 
 

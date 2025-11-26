@@ -29,13 +29,19 @@ VALUES
 ('Romance');
 
 
-INSERT INTO Books (Title, [Language], ReleaseDate, [Edition])
+INSERT INTO Books (Title, [Language], ReleaseDate, [Edition], ISBN)
 VALUES
-('Dune', 'English', '1965-01-01', 1),
-('The Hound of the Baskervilles', 'English', '1902-01-01', 1),
-('The Hobbit', 'English', '1937-01-01', 2),
-('Sapiens: A Brief History of Humankind', 'English', '2011-01-01', 1),
-('Pride and Prejudice', 'English', '1813-01-01', 3);
+('Dune', 'English', '1965-01-01', 1, 123),
+('The Hound of the Baskervilles', 'English', '1902-01-01', 1, 132),
+('The Hobbit', 'English', '1937-01-01', 2, 312),
+('Sapiens: A Brief History of Humankind', 'English', '2011-01-01', 1, 213),
+('Pride and Prejudice', 'English', '1813-01-01', 3, 321);
+
+INSERT INTO BookGenre (BookID, GenreID)
+VALUES
+(1, 1),
+(1,2),
+(2,3)
 
 
 INSERT INTO Authors (AuthorName)
@@ -66,13 +72,13 @@ VALUES
 (5, 5); 
 
 
-INSERT INTO Listings (UserID, BookID, ListingType, Price, ListingState, CreationDate)
+INSERT INTO Listings (UserID, BookID, ListingType, Price, ListingState, CreationDate, [Description], LocationID, Condition)
 VALUES
-(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME()),
-(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME()),
-(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME()),
-(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME()),
-(5, 5, 'Donation', NULL, 'Active', SYSDATETIME());
+(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
+(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
+(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
+(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
+(5, 5, 'Donation', NULL, 'Active', SYSDATETIME(), "baaaad", 1, "good");
 
 
 INSERT INTO ListingPhoto (ListingID, ImagePath)
