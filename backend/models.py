@@ -60,51 +60,61 @@ class Book(BaseModel):
     Title: str
     Language: str | None
     ReleaseDate: datetime | None
+    ISBN: str | None
+    AvgRating: float | None
     Edition: int | None
 
 class PostBook(BaseModel):
     Title: str
     Author: list[str] = ["Anonymous"]
     Genre: list[str] | None
+    AvgRating: float | None
     Language: str | None
     ReleaseDate: datetime | None
+    ISBN: str | None
     Edition: int | None
 
 class GetBook(BaseModel):
     Title: str
-    Author: list[str] = "Anonymous"
+    Author: list[str] = ["Anonymous"]
     Genre: list[str] | None
     Language: str | None
+    AvgRating: float | None
     ReleaseDate: datetime | None
+    ISBN: str | None
     Edition: int | None
 
 # Listings model
 class PostListing(BaseModel):
     Book: PostBook
-    UserID: int
     Description: str
     Status: str
     Price: float | None
+    ListingType: str
     BookCondition: str | None
     LocationAddress: str
 
 class GetListing(BaseModel):
+    ListingID: int
     Book: GetBook
     User: GetUser
     Description: str
     Status: str
     Price: float | None
+    ListingType: str
     BookCondition: str | None
+    CreationDate: datetime
     Location: Location
 
 class UpdateListing(BaseModel):
-    Book: GetBook
-    User: GetUser
+    ListingID: int
+    Book: PostBook
     Description: str
     Status: str
     Price: float | None
+    ListingType: str
     BookCondition: str | None
-    Location: Location
+    LocationAddress: str
 
 
 
