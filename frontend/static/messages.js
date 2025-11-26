@@ -1,77 +1,119 @@
 document.addEventListener("DOMContentLoaded", () => {
-  
-  // ============================================
-// GLOBAL NAVIGATION FUNCTIONS
-// ============================================
+    // GLOBAL NAVIGATION FUNCTIONS
+    window.goBack = function() {
+        window.history.back();
+    };
 
-window.goBack = function() {
-    window.history.back();
-};
+    window.goToHome = function() {
+        window.location.href = 'home.html';
+    };
 
-window.goToHome = function() {
-    window.location.href = 'home.html';
-};
+    window.goToAnnouncements = function() {
+        window.location.href = 'announcements.html';
+    };
 
-window.goToAnnouncements = function() {
-    window.location.href = 'announcements.html';
-};
+    window.goToFavorites = function() {
+        window.location.href = 'favourites.html';
+    };
 
-window.goToFavorites = function() {
-    window.location.href = 'favourites.html';
-};
+    window.goToMessages = function() {
+        window.location.href = 'messages.html';
+    };
 
-window.goToMessages = function() {
-    window.location.href = 'messages.html';
-};
+    window.goToProfile = function() {
+        window.location.href = 'profile.html';
+    };
 
-window.goToProfile = function() {
-    window.location.href = 'profile.html';
-};
+    // CHAT FUNCTIONALITY
+    const chatForm = document.getElementById("chatForm");
+    const messageInput = document.getElementById("messageInput");
+    const chatMessages = document.getElementById("chatMessages");
 
-  
-  // Chat Functionality
-  const chatForm = document.getElementById("chatForm")
-  const messageInput = document.getElementById("messageInput")
-  const chatMessages = document.getElementById("chatMessages")
+    // Auto-scroll to bottom on load
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 
-  // Auto-scroll to bottom on load
-  chatMessages.scrollTop = chatMessages.scrollHeight
+    chatForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const text = messageInput.value.trim();
+        if (!text) return;
 
-  chatForm.addEventListener("submit", (e) => {
-    e.preventDefault()
+        addMessage(text, "sent");
+        messageInput.value = "";
 
-    const text = messageInput.value.trim()
-    if (!text) return
+        // Simulate Reply
+        setTimeout(() => {
+            addMessage("That sounds perfect! See you then.", "received");
+        }, 1000);
+    });
 
-    // Add User Message
-    addMessage(text, "sent")
+    function addMessage(text, type) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message", type);
 
-    // Clear Input
-    messageInput.value = ""
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    // Simulate Reply
-    setTimeout(() => {
-      addMessage("That sounds perfect! See you then.", "received")
-    }, 1000)
-  })
+        msgDiv.innerHTML = `
+            <div class="message-content">
+                <p>${text}</p>
+                <span class="message-time">${timeString}</span>
+            </div>
+        `;
 
-  function addMessage(text, type) {
-    const msgDiv = document.createElement("div")
-    msgDiv.classList.add("message", type)
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
-    const now = new Date()
-    const timeString = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    // TOGGLE DEAL BUTTON FUNCTIONALITY
+    const dealButton = document.getElementById('dealButton');
+    let isDealConfirmed = false;
 
-    msgDiv.innerHTML = `
-        <div class="message-content">
-            <p>${text}</p>
-            <span class="message-time">${timeString}</span>
-        </div>
-    `
+    dealButton.addEventListener('click', function() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    chatMessages.appendChild(msgDiv)
+        if (!isDealConfirmed) {
+            // CONFIRM DEAL
+            const confirmed = confirm("Are you sure you want to close the deal? This will mark the transaction as complete.");
 
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight
-  }
-})
+            if (confirmed) {
+                dealButton.classList.add('deal-confirmed');
+                dealButton.innerHTML = '<i class="fas fa-check-circle" style="font-size: 24px; color: white;"></i>';
+
+                const confirmationMsg = document.createElement('div');
+                confirmationMsg.className = 'message sent';
+                confirmationMsg.innerHTML = `
+                    <div class="message-content">
+                        <p><strong>✅ Deal Closed!</strong><br>Transaction marked as complete.</p>
+                        <span class="message-time">${timeString}</span>
+                    </div>
+                `;
+                chatMessages.appendChild(confirmationMsg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                isDealConfirmed = true;
+            }
+        } else {
+            // UNCONFIRM DEAL
+            const unconfirmed = confirm("Are you sure you want to undo the deal confirmation?");
+
+            if (unconfirmed) {
+                dealButton.classList.remove('deal-confirmed');
+                dealButton.innerHTML = '<img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake" class="handshake-img">';
+
+                const unconfirmationMsg = document.createElement('div');
+                unconfirmationMsg.className = 'message sent';
+                unconfirmationMsg.innerHTML = `
+                    <div class="message-content">
+                        <p><strong>❌ Deal Confirmation Removed</strong><br>Transaction status updated.</p>
+                        <span class="message-time">${timeString}</span>
+                    </div>
+                `;
+                chatMessages.appendChild(unconfirmationMsg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                isDealConfirmed = false;
+            }
+        }
+    });
+});

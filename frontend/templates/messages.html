@@ -10,25 +10,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- CSS Files -->
-    <link rel="stylesheet" href="../static/messages.css">
     <link rel="stylesheet" href="../static/header.css">
+    <link rel="stylesheet" href="../static/messages.css">
 
-    <!-- Script to load header -->
+    <!-- Scripts -->
     <script src="../static/include.js"></script>
-
-    <!-- Page JavaScript - Load BEFORE body for onclick to work -->
     <script src="../static/messages.js"></script>
 </head>
 
 <body>
-
     <!-- Header will be loaded here -->
     <div id="header-placeholder"></div>
 
@@ -40,13 +36,11 @@
         </button>
 
         <div class="content-wrapper">
-
             <!-- Left Column: Profile Info -->
             <aside class="profile-section">
                 <div class="profile-header">
                     <div class="avatar-large">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white"
-                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
@@ -88,19 +82,14 @@
                     </div>
 
                     <form class="chat-input-area" id="chatForm">
-                        <button type="button" class="attach-btn" aria-label="Attach file">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path
-                                    d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                            </svg>
+                        <!-- TOGGLE DEAL BUTTON -->
+                        <button type="button" class="attach-btn deal-btn" id="dealButton" aria-label="Close Deal">
+                            <img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake" class="handshake-img">
                         </button>
+
                         <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
                         <button type="submit" class="send-btn" aria-label="Send message">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
@@ -108,11 +97,7 @@
                     </form>
                 </div>
             </section>
-
         </div>
     </main>
-
-
 </body>
-
 </html>
