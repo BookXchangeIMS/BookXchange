@@ -1,8 +1,62 @@
 // API Configuration
-const API_BASE_URL = ''; // Empty since FastAPI routes start with /api
-const USE_MOCK_DATA = false; // Set to true for testing without backend
+const API_BASE_URL = '';
+const USE_MOCK_DATA = true; // Set to true for testing without backend
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+// Get books from localStorage (shared with announcements page)
+function getBooksDatabase() {
+    const stored = localStorage.getItem('MOCK_USER_BOOKS');
+    if (stored) {
+        return JSON.parse(stored);
+    }
+    // Default books if nothing in storage
+    const defaultBooks = {
+        101: {
+            ListingID: 101,
+            Name: "Harry Potter and the Sorcerer's Stone",
+            author: "J.K. Rowling",
+            price: "$18.25",
+            PublicationDate: "1997",
+            condition: "Good",
+            Location: "Benfica - Lisboa",
+            genres: "Fantasy, Adventure",
+            description: "A magical journey begins at Hogwarts! Follow Harry Potter as he discovers his true identity and battles the forces of darkness.",
+            Image_Path: "../static/resources/harrypotter.png"
+        },
+        102: {
+            ListingID: 102,
+            Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
+            author: "J.R.R. Tolkien",
+            price: "$45.00",
+            PublicationDate: "1954",
+            condition: "Almost new",
+            Location: "Benfica - Lisboa",
+            genres: "Fantasy, Adventure",
+            description: "A classic masterpiece by J.R.R. Tolkien! This book will take you on an unforgettable journey through Middle-earth.",
+            Image_Path: "../static/resources/lotr.png"
+        },
+        103: {
+            ListingID: 103,
+            Name: "Sapiens: A Brief History of Humankind",
+            author: "Yuval Noah Harari",
+            price: "$15.00",
+            PublicationDate: "2011",
+            condition: "Good",
+            Location: "Benfica - Lisboa",
+            genres: "Non-fiction, History",
+            description: "Explore the history of humankind from the Stone Age to the modern era in this thought-provoking book.",
+            Image_Path: "../static/resources/sapiens.png"
+        }
+    };
+    localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(defaultBooks));
+    return defaultBooks;
+}
+
+// Save books to localStorage
+function saveBooksDatabase(books) {
+    localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(books));
+}
 
 // Token Management
 function getAccessToken() {
@@ -26,9 +80,15 @@ function clearTokens() {
 // API Helper Functions
 const api = {
     async get(endpoint) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            const id = endpoint.split('/').pop();
-            return await window.mockAPI.getBook(id);
+        if (USE_MOCK_DATA) {
+            // Mock API - use localStorage
+            const id = parseInt(endpoint.split('/').pop());
+            const booksDB = getBooksDatabase();
+            const book = booksDB[id];
+            if (!book) {
+                throw new Error('Book not found');
+            }
+            return { data: book };
         }
 
         try {
@@ -54,9 +114,16 @@ const api = {
     },
 
     async put(endpoint, data) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            const id = endpoint.split('/').pop();
-            return await window.mockAPI.updateBook(id, data);
+        if (USE_MOCK_DATA) {
+            // Mock API - update localStorage
+            const id = parseInt(endpoint.split('/').pop());
+            const booksDB = getBooksDatabase();
+            if (booksDB[id]) {
+                booksDB[id] = { ...booksDB[id], ...data };
+                saveBooksDatabase(booksDB);
+                return { success: true, data: booksDB[id] };
+            }
+            throw new Error('Book not found');
         }
 
         try {
@@ -86,9 +153,16 @@ const api = {
     },
 
     async delete(endpoint) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            const id = endpoint.split('/').pop();
-            return await window.mockAPI.deleteBook(id);
+        if (USE_MOCK_DATA) {
+            // Mock API - delete from localStorage
+            const id = parseInt(endpoint.split('/').pop());
+            const booksDB = getBooksDatabase();
+            if (booksDB[id]) {
+                delete booksDB[id];
+                saveBooksDatabase(booksDB);
+                return { success: true, message: 'Deleted successfully' };
+            }
+            throw new Error('Book not found');
         }
 
         try {
@@ -124,11 +198,11 @@ const api = {
 
     // Upload multiple images to Azure Blob Storage
     async uploadImages(listingId, files) {
-        if (USE_MOCK_DATA && window.mockAPI) {
+        if (USE_MOCK_DATA) {
             const uploadedUrls = [];
             for (const file of files) {
-                const response = await window.mockAPI.uploadImage(file);
-                uploadedUrls.push(response.imageUrl);
+                // In mock mode, just return the file preview
+                uploadedUrls.push(`mock-url-${Date.now()}.jpg`);
             }
             return { success: true, imageUrls: uploadedUrls };
         }
@@ -283,7 +357,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     if (!listingId || isNaN(listingId)) {
         showToast('Invalid listing ID', 'error');
-        setTimeout(() => window.location.href = 'home.html', 2000);
+        setTimeout(() => window.location.href = 'announcements.html', 2000);
         return;
     }
 
@@ -293,7 +367,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('Error loading listing:', error);
         showToast('Failed to load listing details', 'error');
-        setTimeout(() => window.location.href = 'home.html', 2000);
+        setTimeout(() => window.location.href = 'announcements.html', 2000);
     }
 });
 
@@ -320,11 +394,11 @@ async function fetchListingDetails(id) {
         // Load existing images (from ListingPhoto table)
         existingImages = book.images || book.photos || [];
 
-        // For mock data, convert single imagePath to array
-        if (!existingImages.length && book.imagePath) {
+        // For mock data, convert single Image_Path to array
+        if (!existingImages.length && book.Image_Path) {
             existingImages = [{
                 photoId: 1,
-                imagePath: book.imagePath,
+                imagePath: book.Image_Path,
                 isPrimary: true
             }];
         }
@@ -343,12 +417,12 @@ async function fetchListingDetails(id) {
 
 // Load form fields
 function loadListingDetailsIntoForm(book) {
-    document.getElementById('bookTitle').value = book.title || '';
+    document.getElementById('bookTitle').value = book.Name || book.title || '';
     document.getElementById('bookAuthor').value = book.author || '';
     document.getElementById('bookPrice').value = book.price || '';
-    document.getElementById('bookYear').value = book.year || book.publication_year || book.releaseDate || '';
+    document.getElementById('bookYear').value = book.PublicationDate || book.year || book.publication_year || book.releaseDate || '';
     document.getElementById('bookCondition').value = book.condition || book.listingState || '';
-    document.getElementById('bookLocation').value = book.location || '';
+    document.getElementById('bookLocation').value = book.Location || book.location || '';
     document.getElementById('bookGenres').value = book.genres || '';
     document.getElementById('bookDescription').value = book.description || '';
     updateCharacterCount();
@@ -603,7 +677,7 @@ function validateForm() {
 
     const year = parseInt(document.getElementById('bookYear').value);
     const currentYear = new Date().getFullYear();
-    if (isNaN(year) || year < 1000 || year > currentYear) {
+    if (year && (isNaN(year) || year < 1000 || year > currentYear)) {
         errors.push(`Publication year must be between 1000 and ${currentYear}`);
     }
 
@@ -628,7 +702,6 @@ function validateForm() {
     return true;
 }
 
-// Handle form submission
 // Handle form submission
 async function handleFormSubmit(event) {
     event.preventDefault();
@@ -660,14 +733,16 @@ async function handleFormSubmit(event) {
 
         // 3. Update listing data
         const updatedListingData = {
-            title: document.getElementById('bookTitle').value.trim(),
+            ListingID: listingId,
+            Name: document.getElementById('bookTitle').value.trim(),
             author: document.getElementById('bookAuthor').value.trim(),
-            price: parseFloat(document.getElementById('bookPrice').value.replace('$', '')),
-            year: parseInt(document.getElementById('bookYear').value),
+            price: document.getElementById('bookPrice').value.trim(),
+            PublicationDate: document.getElementById('bookYear').value.trim(),
             condition: document.getElementById('bookCondition').value,
-            location: document.getElementById('bookLocation').value.trim(),
+            Location: document.getElementById('bookLocation').value.trim(),
             genres: document.getElementById('bookGenres').value.trim(),
-            description: document.getElementById('bookDescription').value.trim()
+            description: document.getElementById('bookDescription').value.trim(),
+            Image_Path: existingImages.length > 0 ? existingImages[0].imagePath : book.Image_Path
         };
 
         // 4. Update primary image if changed
@@ -703,26 +778,58 @@ function confirmCancel() {
 }
 
 // Confirm delete
+// Confirm delete - UPDATED WITH DEBUG LOGS
 async function confirmDelete() {
+    console.log('confirmDelete called for listing:', listingId);
+    
     const confirmation = confirm('Are you sure you want to delete this listing? This action cannot be undone.');
-    if (!confirmation) return;
+    if (!confirmation) {
+        console.log('User cancelled first confirmation');
+        return;
+    }
 
-    const doubleCheck = confirm('This will permanently delete your listing and all its images. Are you absolutely sure?');
-    if (!doubleCheck) return;
+    const doubleCheck = confirm('This will permanently delete your listing. Are you absolutely sure?');
+    if (!doubleCheck) {
+        console.log('User cancelled second confirmation');
+        return;
+    }
 
     try {
-        const response = await api.delete(`/api/listings/${listingId}`);
-        console.log('Delete response:', response);
+        console.log('Starting delete process...');
+        
+        // Get books database
+        const booksDB = getBooksDatabase();
+        console.log('Current books in database:', Object.keys(booksDB));
+
+        // Check if book exists
+        if (!booksDB[listingId]) {
+            console.error('Book not found:', listingId);
+            showToast('Book not found', 'error');
+            return;
+        }
+
+        // Delete the book
+        delete booksDB[listingId];
+        console.log('Book deleted. Remaining books:', Object.keys(booksDB));
+
+        // Save to localStorage
+        saveBooksDatabase(booksDB);
+        console.log('Saved to localStorage');
+
         showToast('Listing deleted successfully', 'success');
 
+        // Redirect after 1.5 seconds
         setTimeout(() => {
+            console.log('Redirecting to announcements...');
             window.location.href = 'announcements.html';
         }, 1500);
+        
     } catch (error) {
         console.error('Failed to delete listing:', error);
         showToast(error.message || 'Failed to delete listing', 'error');
     }
 }
+
 
 // Go back to announcements
 function goBack() {

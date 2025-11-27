@@ -1,27 +1,58 @@
-// Mock Data (replaces API calls)
-const MOCK_USER_BOOKS_DATA = [
-    {
-        ListingID: 101,
-        Name: "Harry Potter and the Sorcerer's Stone",
-        Image_Path: "../static/resources/harrypotter.png",
-        PublicationDate: "1997-06-26",
-        Location: "Benfica - Lisboa"
-    },
-    {
-        ListingID: 102,
-        Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-        Image_Path: "../static/resources/lotr.png",
-        PublicationDate: "1954-07-29",
-        Location: "Benfica - Lisboa"
-    },
-    {
-        ListingID: 103,
-        Name: "Sapiens: A Brief History of Humankind",
-        Image_Path: "../static/resources/sapiens.png",
-        PublicationDate: "2011-09-08",
-        Location: "Benfica - Lisboa"
+// Initialize books in localStorage on first load
+function initializeBooksStorage() {
+    if (!localStorage.getItem('MOCK_USER_BOOKS')) {
+        const defaultBooks = {
+            101: {
+                ListingID: 101,
+                Name: "Harry Potter and the Sorcerer's Stone",
+                Image_Path: "../static/resources/harrypotter.png",
+                PublicationDate: "1997-06-26",
+                Location: "Benfica - Lisboa",
+                author: "J.K. Rowling",
+                price: "$18.25",
+                condition: "Good",
+                genres: "Fantasy, Adventure",
+                description: "A magical journey begins at Hogwarts! Follow Harry Potter as he discovers his true identity and battles the forces of darkness."
+            },
+            102: {
+                ListingID: 102,
+                Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
+                Image_Path: "../static/resources/lotr.png",
+                PublicationDate: "1954-07-29",
+                Location: "Benfica - Lisboa",
+                author: "J.R.R. Tolkien",
+                price: "$45.00",
+                condition: "Almost new",
+                genres: "Fantasy, Adventure",
+                description: "A classic masterpiece by J.R.R. Tolkien! This book will take you on an unforgettable journey through Middle-earth."
+            },
+            103: {
+                ListingID: 103,
+                Name: "Sapiens: A Brief History of Humankind",
+                Image_Path: "../static/resources/sapiens.png",
+                PublicationDate: "2011-09-08",
+                Location: "Benfica - Lisboa",
+                author: "Yuval Noah Harari",
+                price: "$15.00",
+                condition: "Good",
+                genres: "Non-fiction, History",
+                description: "Explore the history of humankind from the Stone Age to the modern era in this thought-provoking book."
+            }
+        };
+        localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(defaultBooks));
     }
-];
+}
+
+// Get books from localStorage
+function getBooksFromStorage() {
+    const stored = localStorage.getItem('MOCK_USER_BOOKS');
+    if (stored) {
+        const booksObj = JSON.parse(stored);
+        // Convert object to array
+        return Object.values(booksObj);
+    }
+    return [];
+}
 
 // Simple HTML escaping function
 function escapeHtml(unsafe) {
@@ -34,6 +65,9 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
+// Initialize storage and get books
+initializeBooksStorage();
+
 // DOM elements
 const userBooksGrid = document.getElementById('userBooksGrid');
 
@@ -45,20 +79,22 @@ document.addEventListener('DOMContentLoaded', function () {
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function() {
     // Convert to format SearchManager expects (with title and author)
-    const searchableData = MOCK_USER_BOOKS_DATA.map(book => ({
+    const books = getBooksFromStorage();
+    const searchableData = books.map(book => ({
         ...book,
         title: book.Name,
-        author: '' // Announcements don't have author, so search only by title
+        author: book.author || ''
     }));
     
     SearchManager.init(searchableData, displayUserBooks);
 });
 
 /**
- * Load user books from mock data
+ * Load user books from localStorage
  */
 function loadUserBooks() {
-    displayUserBooks(MOCK_USER_BOOKS_DATA);
+    const books = getBooksFromStorage();
+    displayUserBooks(books);
 }
 
 /**
@@ -80,7 +116,7 @@ function displayUserBooks(books) {
         // If it doesn't exist, create it
         const newAddBookCard = document.createElement('div');
         newAddBookCard.className = 'book-card add-book-card';
-        newAddBookCard.onclick = goToHome;
+        newAddBookCard.onclick = goToAddListing;
         newAddBookCard.innerHTML = `
             <div class="add-book-content">
                 <i class="fas fa-plus"></i>
@@ -138,11 +174,10 @@ function createBookCard(book) {
 }
 
 /**
- * Edit listing (placeholder)
+ * Edit listing
  */
 function editListing(listingId) {
     console.log('Editing listing:', listingId);
-    // TODO: Navigate to edit page
     window.location.href = `editlisting.html?id=${listingId}`;
 }
 
@@ -169,6 +204,5 @@ function goToProfile() {
 
 function goToAddListing() {
     console.log('Navigate to add listing page');
-    // TODO: Navigate to add listing page
-    window.location.href = 'addlisting.html'
+    window.location.href = 'addlisting.html';
 }
