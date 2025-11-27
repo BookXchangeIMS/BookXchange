@@ -1,6 +1,6 @@
 // API Configuration
-const API_BASE_URL = '';
-const USE_MOCK_DATA = true; // Set to true for testing without backend
+const API_BASE_URL = 'http://localhost:8000';
+const USE_MOCK_DATA = false; // Change to false for backend
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -92,7 +92,9 @@ const api = {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            // Use backend endpoint: /api/get_listing_by_ListingID
+            const listingId = endpoint.split('/').pop();
+            const response = await fetch(`${API_BASE_URL}/api/get_listing_by_ListingID?listing_id=${listingId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -106,7 +108,25 @@ const api = {
             }
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return await response.json();
+            
+            const data = await response.json();
+            
+            // Transform backend response to match frontend format
+            return {
+                data: {
+                    ListingID: data.ListingID,
+                    Name: data.Book.Title,
+                    author: data.Book.Author,
+                    price: `$${data.Price}`,
+                    PublicationDate: data.Book.ReleaseDate,
+                    condition: data.BookCondition,
+                    Location: data.Location.Address,
+                    genres: data.Book.Genre,
+                    description: data.Description,
+                    Image_Path: data.Book.Image_Path || "../static/resources/placeholder.png",
+                    images: []
+                }
+            };
         } catch (error) {
             console.error('GET request failed:', error);
             throw error;
@@ -127,13 +147,33 @@ const api = {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            // Transform data to match backend UpdateListing model
+            const updateData = {
+                ListingID: data.ListingID,
+                ListingType: "Sale", // or get from form
+                Description: data.description,
+                Price: parseFloat(data.price.replace('$', '')),
+                Condition: data.condition,
+                LocationAddress: data.Location,
+                Book: {
+                    Title: data.Name,
+                    Language: "English", // Default or get from form
+                    ReleaseDate: data.PublicationDate,
+                    ISBN: "", // You might need to add this field
+                    AvgRating: 0,
+                    Edition: "",
+                    Author: data.author,
+                    Genre: data.genres
+                }
+            };
+
+            const response = await fetch(`${API_BASE_URL}/api/update_listing`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(updateData)
             });
 
             if (response.status === 401) {
@@ -166,7 +206,9 @@ const api = {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            // Use backend endpoint: /api/delete_listing
+            const listingId = endpoint.split('/').pop();
+            const response = await fetch(`${API_BASE_URL}/api/delete_listing?listing_id=${listingId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -201,7 +243,6 @@ const api = {
         if (USE_MOCK_DATA) {
             const uploadedUrls = [];
             for (const file of files) {
-                // In mock mode, just return the file preview
                 uploadedUrls.push(`mock-url-${Date.now()}.jpg`);
             }
             return { success: true, imageUrls: uploadedUrls };
@@ -778,7 +819,6 @@ function confirmCancel() {
 }
 
 // Confirm delete
-// Confirm delete - UPDATED WITH DEBUG LOGS
 async function confirmDelete() {
     console.log('confirmDelete called for listing:', listingId);
     
@@ -796,40 +836,19 @@ async function confirmDelete() {
 
     try {
         console.log('Starting delete process...');
-        
-        // Get books database
-        const booksDB = getBooksDatabase();
-        console.log('Current books in database:', Object.keys(booksDB));
-
-        // Check if book exists
-        if (!booksDB[listingId]) {
-            console.error('Book not found:', listingId);
-            showToast('Book not found', 'error');
-            return;
-        }
-
-        // Delete the book
-        delete booksDB[listingId];
-        console.log('Book deleted. Remaining books:', Object.keys(booksDB));
-
-        // Save to localStorage
-        saveBooksDatabase(booksDB);
-        console.log('Saved to localStorage');
-
+        const response = await api.delete(`/api/listings/${listingId}`);
+        console.log('Delete response:', response);
         showToast('Listing deleted successfully', 'success');
 
-        // Redirect after 1.5 seconds
         setTimeout(() => {
             console.log('Redirecting to announcements...');
             window.location.href = 'announcements.html';
         }, 1500);
-        
     } catch (error) {
         console.error('Failed to delete listing:', error);
         showToast(error.message || 'Failed to delete listing', 'error');
     }
 }
-
 
 // Go back to announcements
 function goBack() {
