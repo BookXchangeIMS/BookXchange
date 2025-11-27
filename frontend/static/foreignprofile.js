@@ -77,32 +77,66 @@ function renderListings() {
     card.className = "listing-card"
 
     card.innerHTML = `
-      <img src="${book.image}" alt="${book.title}" class="card-image">
+      <img src="${book.image}" 
+           alt="${book.title}" 
+           class="card-image"
+           onerror="this.src='../static/resources/placeholder.jpg'"
+           loading="lazy">
       <div class="card-content">
           <h4>${book.title}</h4>
           <p class="book-author">by ${book.author}</p>
           <div class="card-meta">
-              <span>${book.location}</span>
-              <span>${book.date}</span>
+              <span>📍 ${book.location}</span>
           </div>
           <p class="book-price">${book.price}</p>
           <div class="card-actions">
-              <button class="contact-btn" onclick="goToMessages(event)">Contact Seller</button>
-              <button class="heart-btn ${book.isFavorite ? 'active' : ''}" aria-label="Add to favorites">
+              <button class="contact-btn">Contact Seller</button>
+              <button class="heart-btn ${book.isFavorite ? 'active' : ''}">
                   <i class="fas fa-heart"></i>
               </button>
           </div>
       </div>
     `
     
-    // Make card clickable to view listing (except when clicking buttons)
+    // Setup event listeners
+    const contactBtn = card.querySelector('.contact-btn')
+    const heartBtn = card.querySelector('.heart-btn')
+    
+    // Contact button - go to messages
+    contactBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      e.preventDefault()
+      window.location.href = 'messages.html'
+    })
+    
+    // Heart button - toggle favorite
+    heartBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      e.preventDefault()
+      heartBtn.classList.toggle('active')
+      book.isFavorite = !book.isFavorite
+    })
+    
+    // Card click - go to listing
     card.addEventListener('click', (e) => {
       if (!e.target.closest('.contact-btn') && !e.target.closest('.heart-btn')) {
-        goToListing(book.id)
+        window.location.href = `listing.html?id=${book.id}`
       }
     })
 
     grid.appendChild(card)
+  })
+  
+  // Add stagger animation to cards
+  const bookCards = grid.querySelectorAll('.listing-card')
+  bookCards.forEach((card, index) => {
+    card.style.opacity = '0'
+    card.style.transform = 'translateY(20px)'
+    card.style.transition = 'all 0.5s ease'
+    setTimeout(() => {
+      card.style.opacity = '1'
+      card.style.transform = 'translateY(0)'
+    }, index * 100)
   })
 }
 
@@ -116,14 +150,6 @@ function updateListingsTitle() {
 document.addEventListener("DOMContentLoaded", () => {
   renderListings()
   updateListingsTitle()
-
-  // Add interaction for heart buttons
-  document.addEventListener("click", (e) => {
-    if (e.target.closest(".heart-btn")) {
-      const btn = e.target.closest(".heart-btn")
-      btn.classList.toggle("active")
-    }
-  })
 })
 
 // Navigation functions
@@ -146,6 +172,6 @@ function goToListing(listingId) {
     window.location.href = `listing.html?id=${listingId}`;
 }
 function goToMessages(event) {
-    event.stopPropagation(); // Prevent card click
+    if (event) event.stopPropagation()
     window.location.href = "messages.html";
 }
