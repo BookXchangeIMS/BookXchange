@@ -1,31 +1,113 @@
-// Mock Data (replaces API calls)
-const MOCK_USER_BOOKS_DATA = [
-    {
-        ListingID: 101,
-        Name: "Harry Potter and the Sorcerer's Stone",
-        Image_Path: "../static/resources/harrypotter.png",
-        PublicationDate: "1997-06-26",
-        Location: "Benfica - Lisboa"
-    },
-    {
-        ListingID: 102,
-        Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-        Image_Path: "../static/resources/lotr.png",
-        PublicationDate: "1954-07-29",
-        Location: "Benfica - Lisboa"
-    },
-    {
-        ListingID: 103,
-        Name: "Sapiens: A Brief History of Humankind",
-        Image_Path: "../static/resources/sapiens.png",
-        PublicationDate: "2011-09-08",
-        Location: "Benfica - Lisboa"
-    }
-];
+// API Configuration
+const API_BASE_URL = 'http://localhost:8000';
+const USE_MOCK_DATA = false; // Set to false to use backend
 
-// Require login
-if (!isLoggedIn()) {
-    window.location.href = 'Login.html';
+// Token Management
+function getAccessToken() {
+    return localStorage.getItem('access_token');
+}
+
+// Initialize books in localStorage on first load (for mock mode only)
+function initializeBooksStorage() {
+    if (!localStorage.getItem('MOCK_USER_BOOKS')) {
+        const defaultBooks = {
+            101: {
+                ListingID: 101,
+                Name: "Harry Potter and the Sorcerer's Stone",
+                Image_Path: "../static/resources/harrypotter.png",
+                PublicationDate: "1997-06-26",
+                Location: "Benfica - Lisboa",
+                author: "J.K. Rowling",
+                price: "$18.25",
+                condition: "Good",
+                genres: "Fantasy, Adventure",
+                description: "A magical journey begins at Hogwarts!"
+            },
+            102: {
+                ListingID: 102,
+                Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
+                Image_Path: "../static/resources/lotr.png",
+                PublicationDate: "1954-07-29",
+                Location: "Benfica - Lisboa",
+                author: "J.R.R. Tolkien",
+                price: "$45.00",
+                condition: "Almost new",
+                genres: "Fantasy, Adventure",
+                description: "A classic masterpiece!"
+            },
+            103: {
+                ListingID: 103,
+                Name: "Sapiens: A Brief History of Humankind",
+                Image_Path: "../static/resources/sapiens.png",
+                PublicationDate: "2011-09-08",
+                Location: "Benfica - Lisboa",
+                author: "Yuval Noah Harari",
+                price: "$15.00",
+                condition: "Good",
+                genres: "Non-fiction, History",
+                description: "History of humankind."
+            }
+        };
+        localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(defaultBooks));
+    }
+}
+
+// Get books from localStorage (mock mode only)
+function getBooksFromStorage() {
+    const stored = localStorage.getItem('MOCK_USER_BOOKS');
+    if (stored) {
+        const booksObj = JSON.parse(stored);
+        return Object.values(booksObj);
+    }
+    return [];
+}
+
+// Fetch listings from backend
+async function fetchListingsFromBackend() {
+    try {
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+            throw new Error('No access token found. Please login.');
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/get_your_listings`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'access-token': accessToken
+            }
+        });
+
+        if (response.status === 401) {
+            showToast('Session expired. Please login again.', 'error');
+            setTimeout(() => window.location.href = 'login.html', 2000);
+            throw new Error('Session expired');
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const listings = await response.json();
+        
+        // Transform backend data to match frontend format
+        return listings.map(listing => ({
+            ListingID: listing.ListingID,
+            Name: listing.Book.Title,
+            // FIXED: Use existing image as fallback instead of non-existent placeholder
+            Image_Path: listing.Book.Image_Path || "../static/resources/harrypotter.png",
+            PublicationDate: listing.Book.ReleaseDate,
+            Location: listing.Location.Address,
+            author: listing.Book.Author,
+            price: `$${listing.Price}`,
+            condition: listing.BookCondition,
+            genres: listing.Book.Genre,
+            description: listing.Description
+        }));
+    } catch (error) {
+        console.error('Failed to fetch listings from backend:', error);
+        throw error;
+    }
 }
 
 // Simple HTML escaping function
@@ -39,31 +121,54 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
+// Initialize storage (only used in mock mode)
+initializeBooksStorage();
+
 // DOM elements
 const userBooksGrid = document.getElementById('userBooksGrid');
 
 // Initial load
-document.addEventListener('DOMContentLoaded', function () {
-    loadUserBooks();
+document.addEventListener('DOMContentLoaded', async function () {
+    await loadUserBooks();
 });
 
 // Initialize search after components are loaded
-document.addEventListener('componentsLoaded', function () {
+document.addEventListener('componentsLoaded', async function() {
+    const books = USE_MOCK_DATA ? getBooksFromStorage() : await fetchListingsFromBackend();
+    
     // Convert to format SearchManager expects (with title and author)
-    const searchableData = MOCK_USER_BOOKS_DATA.map(book => ({
+    const searchableData = books.map(book => ({
         ...book,
         title: book.Name,
-        author: '' // Announcements don't have author, so search only by title
+        author: book.author || ''
     }));
-
+    
     SearchManager.init(searchableData, displayUserBooks);
 });
 
 /**
- * Load user books from mock data
+ * Load user books from backend or localStorage
  */
-function loadUserBooks() {
-    displayUserBooks(MOCK_USER_BOOKS_DATA);
+async function loadUserBooks() {
+    try {
+        let books;
+        
+        if (USE_MOCK_DATA) {
+            // Use localStorage
+            books = getBooksFromStorage();
+        } else {
+            // Fetch from backend
+            showToast('Loading your listings...', 'success');
+            books = await fetchListingsFromBackend();
+        }
+        
+        displayUserBooks(books);
+    } catch (error) {
+        console.error('Error loading books:', error);
+        showToast('Failed to load listings', 'error');
+        // Fallback to empty array
+        displayUserBooks([]);
+    }
 }
 
 /**
@@ -74,10 +179,10 @@ function displayUserBooks(books) {
 
     // Get the add-book-card element (first child)
     const addBookCard = userBooksGrid.querySelector('.add-book-card');
-
+    
     // Clear grid but keep add-book-card
     userBooksGrid.innerHTML = '';
-
+    
     // Re-add the add-book-card as first item
     if (addBookCard) {
         userBooksGrid.appendChild(addBookCard);
@@ -85,7 +190,7 @@ function displayUserBooks(books) {
         // If it doesn't exist, create it
         const newAddBookCard = document.createElement('div');
         newAddBookCard.className = 'book-card add-book-card';
-        newAddBookCard.onclick = goToHome;
+        newAddBookCard.onclick = goToAddListing;
         newAddBookCard.innerHTML = `
             <div class="add-book-content">
                 <i class="fas fa-plus"></i>
@@ -113,22 +218,6 @@ function displayUserBooks(books) {
         const bookCard = createBookCard(book);
         userBooksGrid.appendChild(bookCard);
     });
-
-    // Add stagger animation to cards (excluding add-book-card)
-    const bookCards = userBooksGrid.querySelectorAll('.book-card:not(.add-book-card)');
-    bookCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-            // Remove inline styles after animation
-            setTimeout(() => {
-                card.style.opacity = '';
-                card.style.transform = '';
-            }, 500);
-        }, index * 100);
-    });
 }
 
 /**
@@ -144,7 +233,7 @@ function createBookCard(book) {
         <img src="${escapeHtml(book.Image_Path)}" 
              alt="${escapeHtml(book.Name)}" 
              class="book-image"
-             onerror="this.src='../static/resources/placeholder.png'">
+             onerror="this.src='../static/resources/harrypotter.png'">
         <div class="book-info">
             <div class="book-title">${escapeHtml(book.Name)}</div>
             <div class="book-location">${location}</div>
@@ -159,16 +248,55 @@ function createBookCard(book) {
 }
 
 /**
- * Edit listing (placeholder)
+ * Edit listing
  */
 function editListing(listingId) {
     console.log('Editing listing:', listingId);
-    // TODO: Navigate to edit page
-    // window.location.href = `edit-listing.html?id=${listingId}`;
+    window.location.href = `editlisting.html?id=${listingId}`;
+}
+
+// Toast notification
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+        background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
+        color: white; padding: 15px 25px; border-radius: 25px;
+        font-weight: 600; z-index: 10000;
+        font-family: 'Segoe UI', sans-serif; max-width: 90%;
+        text-align: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Navigation functions
+function goToHome() {
+    window.location.href = 'home.html';
+}
+
+function goToAnnouncements() {
+    window.location.href = 'announcements.html';
+}
+
+function goToFavorites() {
+    window.location.href = 'favourites.html';
+}
+
+function goToMessages() {
+    window.location.href = 'messages.html';
+}
+
+function goToProfile() {
+    window.location.href = 'profile.html';
 }
 
 function goToAddListing() {
     console.log('Navigate to add listing page');
-    // TODO: Navigate to add listing page
-    // window.location.href = 'add-listing.html';
+    window.location.href = 'addlisting.html';
 }
