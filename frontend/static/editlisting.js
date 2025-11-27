@@ -427,11 +427,17 @@ function showMockModeIndicator() {
 }
 
 // Fetch listing details including images
+// Fetch listing details including images
 async function fetchListingDetails(id) {
     try {
         showToast('Loading listing details...', 'success');
         const response = await api.get(`/api/listings/${id}`);
         book = response.data || response;
+
+        // ADD THIS DEBUG LOG
+        console.log('=== DATA RETURNED FROM BACKEND ===');
+        console.log(JSON.stringify(book, null, 2));
+        console.log('===================================');
 
         // Load existing images (from ListingPhoto table)
         existingImages = book.images || book.photos || [];

@@ -7,6 +7,19 @@ function getAccessToken() {
     return localStorage.getItem('access_token');
 }
 
+// Helper function to extract year from date string
+function extractYear(dateString) {
+    if (!dateString) return '';
+    // Handle formats like "1902-01-01T00:00:00" or "2024-01-01"
+    if (dateString.includes('T')) {
+        return dateString.split('T')[0].split('-')[0];
+    }
+    if (dateString.includes('-')) {
+        return dateString.split('-')[0];
+    }
+    return dateString; // Already just a year
+}
+
 // Initialize books in localStorage on first load (for mock mode only)
 function initializeBooksStorage() {
     if (!localStorage.getItem('MOCK_USER_BOOKS')) {
@@ -237,7 +250,7 @@ function createBookCard(book) {
         <div class="book-info">
             <div class="book-title">${escapeHtml(book.Name)}</div>
             <div class="book-location">${location}</div>
-            <div class="book-date">${escapeHtml(book.PublicationDate)}</div>
+            <div class="book-date">${extractYear(book.PublicationDate)}</div>
             <button class="edit-btn" onclick="editListing(${book.ListingID})">
                 Edit Listing
             </button>
