@@ -26,53 +26,91 @@ function clearTokens() {
 // API Helper Functions
 const api = {
     async post(endpoint, data) {
-    if (USE_MOCK_DATA && window.mockAPI) {
-        return await window.mockAPI.createBook(data);
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'access-token': getAccessToken() || ''
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (response.status === 401) {
-            await this.refreshAccessToken();
-            return await this.post(endpoint, data);
+        if (USE_MOCK_DATA && window.mockAPI) {
+            return await window.mockAPI.createBook(data);
         }
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('=== BACKEND ERROR ===');
-            console.error('Status:', response.status);
-            console.error('Error Data:', errorData);
-            console.error('====================');
-            
-            // Format error message properly
-            let errorMessage = 'Failed to create listing';
-            if (errorData.detail) {
-                if (Array.isArray(errorData.detail)) {
-                    errorMessage = errorData.detail.map(err => `${err.loc.join('.')}: ${err.msg}`).join(', ');
-                } else if (typeof errorData.detail === 'string') {
-                    errorMessage = errorData.detail;
-                } else {
-                    errorMessage = JSON.stringify(errorData.detail);
-                }
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'access-token': getAccessToken() || ''
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.status === 401) {
+                await this.refreshAccessToken();
+                return await this.post(endpoint, data);
             }
-            throw new Error(errorMessage);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('=== BACKEND ERROR ===');
+                console.error('Status:', response.status);
+                console.error('Error Data:', errorData);
+                console.error('====================');
+
+                // Format error message properly
+                let errorMessage = 'Failed to create listing';
+                if (errorData.detail) {
+                    if (Array.isArray(errorData.detail)) {
+                        errorMessage = errorData.detail.map(err => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+                    } else if (typeof errorData.detail === 'string') {
+                        errorMessage = errorData.detail;
+                    } else {
+                        errorMessage = JSON.stringify(errorData.detail);
+                    }
+                }
+                throw new Error(errorMessage);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('POST request failed:', error);
+            throw error;
         }
-        return await response.json();
-    } catch (error) {
-        console.error('POST request failed:', error);
-        throw error;
     }
-}
 
     ,
+
+    // Post FormData (for file uploads) with retry logic
+    async postFormData(endpoint, formData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'access-token': getAccessToken() || ''
+                },
+                body: formData
+            });
+
+            if (response.status === 401) {
+                await this.refreshAccessToken();
+                // Retry with new token
+                return await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'access-token': getAccessToken() || ''
+                    },
+                    body: formData
+                }).then(res => {
+                    if (!res.ok) throw new Error('Request failed after token refresh');
+                    return res.json();
+                });
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Request failed');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('FormData request failed:', error);
+            throw error;
+        }
+    },
 
     // Upload multiple images to Azure Blob Storage
     async uploadImages(listingId, files) {
@@ -155,7 +193,7 @@ const api = {
 let newImages = []; // [{file, preview, tempId}]
 
 // Initialize
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to add listings', 'error');
@@ -498,6 +536,75 @@ async function handleFormSubmit(event) {
         submitButton.innerHTML = originalButtonText;
     }
 }
+
+// Handle AI Book Scan
+async function handleScanBook(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Reset input
+    event.target.value = '';
+
+    if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file', 'error');
+        return;
+    }
+
+    const btn = document.querySelector('.scan-btn');
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+
+    try {
+        showToast('Analyzing book cover...', 'success');
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // Use api.postFormData to handle 401 retries automatically
+        const data = await api.postFormData('/api/scan_book', formData);
+
+        console.log('AI Result:', data);
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        // Populate fields
+        if (data.Title) document.getElementById('bookTitle').value = data.Title;
+        if (data.Author) document.getElementById('bookAuthor').value = data.Author;
+        // if (data.ISBN) document.getElementById('bookISBN').value = data.ISBN; // No ISBN field in form?
+        if (data.Condition) {
+            const conditionSelect = document.getElementById('bookCondition');
+            // Try to match condition
+            for (let i = 0; i < conditionSelect.options.length; i++) {
+                if (conditionSelect.options[i].value.toLowerCase() === data.Condition.toLowerCase()) {
+                    conditionSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        if (data.Genre) document.getElementById('bookGenres').value = data.Genre;
+        if (data.Year) document.getElementById('bookYear').value = data.Year;
+        if (data.Description) document.getElementById('bookDescription').value = data.Description;
+
+        // Update char count
+        updateCharacterCount();
+
+        showToast('Book details filled by AI!', 'success');
+
+        // Also add the image to the preview list
+        processFiles([file]);
+
+    } catch (error) {
+        console.error('Scan failed:', error);
+        showToast('Failed to scan book: ' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+}
+
 
 // Confirm cancel
 function confirmCancel() {

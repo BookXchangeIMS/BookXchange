@@ -11,7 +11,8 @@
 
 <body>
     <!-- Back Button -->
-    <button class="back-btn" onclick="if(confirm('Are you sure you want to go back? All entered data will be lost.')) { window.location.href='announcements.html'; }">
+    <button class="back-btn"
+        onclick="if(confirm('Are you sure you want to go back? All entered data will be lost.')) { window.location.href='announcements.html'; }">
         <i class="fas fa-arrow-left"></i>
     </button>
 
@@ -37,6 +38,15 @@
                         onclick="document.getElementById('imageInput').click()">
                         <i class="fas fa-camera"></i> Add Images
                     </button>
+
+                    <button type="button" class="change-image-btn scan-btn"
+                        style="background-color: #8e44ad; margin-left: 10px;"
+                        onclick="document.getElementById('scanInput').click()">
+                        <i class="fas fa-magic"></i> Scan Book (AI)
+                    </button>
+                    <input type="file" id="scanInput" accept="image/*" style="display: none;"
+                        onchange="handleScanBook(event)">
+
 
                     <!-- Image Preview Grid -->
                     <div class="image-preview-grid" id="imagePreviewGrid">
@@ -106,7 +116,8 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button type="button" class="btn-secondary" onclick="if(confirm('Are you sure you want to cancel? All entered data will be lost.')) { window.location.href='announcements.html'; }">
+                <button type="button" class="btn-secondary"
+                    onclick="if(confirm('Are you sure you want to cancel? All entered data will be lost.')) { window.location.href='announcements.html'; }">
                     Cancel
                 </button>
                 <button type="submit" class="btn-primary">
