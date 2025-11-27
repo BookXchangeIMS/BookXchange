@@ -1,8 +1,13 @@
 from http import HTTPStatus
+import zipfile
 
-from fastapi import FastAPI, Depends, Form, Header
+from fastapi import FastAPI, Depends, Form, Header, UploadFile, File
 from typing import Annotated
+
+from starlette.responses import FileResponse
+
 from backend.scripts.auth import *
+from backend.scripts.image_management import *
 from backend.scripts.profile_crud import *
 from backend.config.db import get_db
 from backend.scripts.location_scripts import *
@@ -25,9 +30,13 @@ tags_metadata = [
         "name": "Listings",
         "description": "Operations concerned with listings",
     },
-{
+    {
         "name": "Favorites",
         "description": "Operations concerned with favorite listings",
+    },
+    {
+        "name": "Images",
+        "description": "Operations concerned with Image files",
     },
 ]
 app = FastAPI(openapi_tags=tags_metadata)
@@ -37,7 +46,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -289,7 +298,6 @@ async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)
         UserID=user_data.UserID,
         Email=user_data.Email,
         Name=user_data.Name,
-        ProfileImagePath=user_data.ProfileImagePath,
         UserRole=user_data.UserRole,
         AboutMe=user_data.AboutMe,
         CreationDate=user_data.CreationDate,
@@ -324,7 +332,6 @@ async def get_profile(userid: int, access_token: str = Header(None), db= Depends
         return GetUser(
             UserID=user_data.UserID,
             Name=user_data.Name,
-            ProfileImagePath=user_data.ProfileImagePath,
             UserRole=user_data.UserRole,
             AboutMe=user_data.AboutMe,
         )
@@ -428,11 +435,11 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
         ),
         User=GetUser(
             Name=user.Name,
-            ProfileImagePath=user.ProfileImagePath,
             AboutMe=user.AboutMe,
             UserRole=user.UserRole,
             UserID=user.UserID
-        )
+        ),
+        IsFavorite=False
     )
 
 @app.get("/api/get_users_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing],
@@ -488,7 +495,6 @@ async def get_users_listings(user_id: int, access_token=Header(None), db=Depends
             ),
             User=GetUser(
                 Name=user.Name,
-                ProfileImagePath=user.ProfileImagePath,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
                 UserID=user.UserID
@@ -572,7 +578,6 @@ async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get
         ),
         User=GetUser(
             Name=user.Name,
-            ProfileImagePath=user.ProfileImagePath,
             AboutMe=user.AboutMe,
             UserRole=user.UserRole,
             UserID=user.UserID
@@ -601,7 +606,6 @@ async def update_listing(listing_form: UpdateListing, access_token = Header(None
         unauthorized to update the listing.
     """
     userid = get_userid_by_access_token(access_token, db)
-    user = get_user_by_id(userid, db)
     listing = get_listing_by_listingid(listing_form.ListingID, db)
     if not(listing.UserID == userid):
         raise HTTPException(status_code=401, detail="Unauthorized to update this listing")
@@ -697,7 +701,6 @@ async def get_my_favorites(access_token: str = Header(None), db= Depends(get_db)
             ),
             User=GetUser(
                 Name=user.Name,
-                ProfileImagePath=user.ProfileImagePath,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
                 UserID=user.UserID
@@ -770,3 +773,148 @@ async def delete_favorite(listing_id: int, access_token: str = Header(None), db=
     """
     userid = get_userid_by_access_token(access_token, db)
     return delete_favorite_by_userid(userid, listing_id, db)
+
+
+# ===================================================================================================================
+# IMAGES ENDPOINTS
+# ===================================================================================================================
+
+@app.put("/api/update_profile_image", status_code=status.HTTP_200_OK, tags=["Images"])
+async def update_profile_image(file: UploadFile = File(...), access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Updates the user's profile image by storing the uploaded file and updating the
+    user's profile information in the database. Requires an access token for
+    authentication and validation.
+
+    :param file: File to be uploaded as the new profile image. Must be an instance
+        of `UploadFile`.
+    :param access_token: Token to authenticate and validate the user's identity.
+        Must be passed in the request header.
+    :param db: Database connection dependency provided through FastAPI's
+        dependency system.
+    :return: Result of the image path insertion operation, indicating whether the
+        profile image update was successful.
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    return insert_profile_image_path(userid, insert_profile_picture(file), db)
+
+@app.get("/api/get_users_profile_picture", status_code=status.HTTP_200_OK, tags=["Images"])
+async def get_users_profile_picture(userid: int, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Retrieve a user's profile picture.
+
+    This endpoint allows authenticated users to retrieve the profile picture
+    of a user specified by their unique ID. The access token is required
+    for authentication and validation. If the access token is invalid or
+    unauthorized, the request will fail.
+
+    :param userid: The unique identifier of the user whose profile picture
+        is to be retrieved.
+    :type userid: int
+    :param access_token: A required access token included as a header for
+        authentication and authorization.
+    :type access_token: str
+    :param db: An instance of the database session, provided through dependency
+        injection.
+    :type db: sqlalchemy.orm.Session
+    :return: A `FileResponse` containing the requested user's profile picture path.
+    """
+    if not verify_access_token(access_token):
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    user = get_user_by_id(userid, db)
+    return FileResponse(path=user.ProfileImagePath)
+
+
+@app.get("/api/get_listings_pictures",
+        response_class=FileResponse,
+        responses={
+        200: {
+            "content": {"application/zip": {}},
+            "description": "A ZIP file containing multiple files"
+            }
+        },
+         status_code=status.HTTP_200_OK,
+         tags=["Images"])
+async def get_listings_pictures(listingid: int, access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Retrieve pictures associated with a listing.
+
+    This endpoint allows authenticated users to retrieve the pictures
+    associated with a listing specified by its unique ID. The access token
+    is required for authentication and validation. If the access token is
+    invalid or unauthorized, the request will fail.
+
+    :param listingid: The unique identifier of the listing whose pictures
+        are to be retrieved.
+    :type listingid: int
+    :param access_token: A required access token included as a header for
+        authentication and authorization.
+    :type access_token: str
+    :param db: An instance of the database session, provided through dependency
+        injection.
+    :type db: sqlalchemy.orm.Session
+    :return: A list of `FileResponse` objects containing the requested listing's picture paths.
+    """
+    if not verify_access_token(access_token):
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    print(get_listing_image_paths(listingid, db))
+    listing_photo_paths = [row.ImagePath for row in get_listing_image_paths(listingid, db)]
+    zipfile_path = make_a_zipfile_of_pictures(listing_photo_paths)
+    return FileResponse(path=zipfile_path, media_type="application/zip", filename="listingphotos.zip")
+
+@app.post("/api/post_listings_picture", status_code=status.HTTP_200_OK, tags=["Images"])
+async def post_listings_picture(listingid: int, file: UploadFile = File(...), access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Upload and associate a picture with a specific listing.
+
+    This endpoint allows authenticated users to upload pictures for their listings.
+    The function validates the user's ownership of the listing, processes the uploaded
+    image file, and creates the necessary database records.
+
+    :param listingid: The unique identifier of the listing to add the picture to
+    :type listingid: int
+    :param file: The uploaded image file
+    :type file: UploadFile
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: Success status with the path to the saved image
+    :rtype: dict
+    :raises HTTPException: If authentication fails or user doesn't own the listing
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    listing = get_listing_by_listingid(listingid, db)
+
+    if listing.UserID != userid:
+        raise HTTPException(status_code=401, detail="User does not own this listing")
+
+    image_path = insert_listing_picture(file)
+    return insert_listing_image_path(listingid, image_path, db)
+
+@app.delete("/api/delete_listings_pictures", status_code=status.HTTP_204_NO_CONTENT, tags=["Images"])
+async def delete_listings_pictures(listingid: int, access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Delete pictures associated with a specific listing.
+
+    This endpoint allows authenticated users to delete pictures from their listings.
+    The function validates the user's ownership of the listing and removes all associated
+    image records from the database.
+
+    :param listingid: The unique identifier of the listing to remove pictures from
+    :type listingid: int
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: Success status of the deletion operation
+    :rtype: dict
+    :raises HTTPException: If authentication fails or user doesn't own the listing
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    listing = get_listing_by_listingid(listingid, db)
+
+    if listing.UserID != userid:
+        raise HTTPException(status_code=401, detail="User does not own this listing")
+
+    return delete_listing_image_paths(listingid, db)

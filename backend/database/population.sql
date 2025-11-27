@@ -13,11 +13,11 @@ VALUES
 
 INSERT INTO Users ([Name], Email, PasswordHash, ProfileImagePath, UserRole, AboutMe, CreationDate, DateOfBirth, LocationID)
 VALUES
-('Alice Johnson', 'alice@example.com', 'Password123!', 'images/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME(), '1990-05-15', 1),
-('Bob Smith', 'bob@example.com', 'Password123!', 'images/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME(), '1985-08-22', 2),
-('Charlie Brown', 'charlie@example.com', 'Password123!', 'images/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME(), '1992-11-30', 3),
-('Diana Prince', 'diana@example.com', 'Password123!', 'images/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME(), '1988-03-10', 4),
-('Ethan Hunt', 'ethan@example.com', 'Password123!', 'images/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME(),'1979-07-13', 5);
+('Alice Johnson', 'alice@example.com', 'Password123!', 'backend/images/profile_pictures/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME(), '1990-05-15', 1),
+('Bob Smith', 'bob@example.com', 'Password123!', 'backend/images/profile_pictures/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME(), '1985-08-22', 2),
+('Charlie Brown', 'charlie@example.com', 'Password123!', 'backend/images/profile_pictures/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME(), '1992-11-30', 3),
+('Diana Prince', 'diana@example.com', 'Password123!', 'backend/images/profile_pictures/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME(), '1988-03-10', 4),
+('Ethan Hunt', 'ethan@example.com', 'Password123!', 'backend/images/profile_pictures/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME(),'1979-07-13', 5);
 
 
 INSERT INTO Genres (GenreName)
@@ -83,12 +83,12 @@ VALUES
 
 INSERT INTO ListingPhoto (ListingID, ImagePath)
 VALUES
-(1, 'images/book1.jpg'),
-(1, 'images/book1_alt.jpg'),
-(2, 'images/book2.jpg'),
-(3, 'images/book3.jpg'),
-(4, 'images/book4.jpg'),
-(5, 'images/book5.jpg');
+(1, 'backend/images/listing_pictures/book1.jpg'),
+(2, 'backend/images/listing_pictures/book2-1.jpg'),
+(2, 'backend/images/listing_pictures/book2-2.jpg'),
+(3, 'backend/images/listing_pictures/book3.jpg'),
+(4, 'backend/images/listing_pictures/book4.jpg'),
+(5, 'backend/images/listing_pictures/book5.jpg');
 
 
 INSERT INTO Reports (UserID, ListingID, ReportType, [Description], CreationDate)
