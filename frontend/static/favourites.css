@@ -249,6 +249,32 @@ main {
     margin-bottom: 20px;
 }
 
+/* Ensure card and image are clickable */
+.book-card * {
+    pointer-events: auto;
+}
+
+.book-image {
+    pointer-events: none;
+}
+
+.book-info {
+    pointer-events: none;
+}
+
+.book-info * {
+    pointer-events: none;
+}
+
+.book-actions {
+    pointer-events: auto;
+}
+
+.book-actions * {
+    pointer-events: auto;
+}
+
+
 /* Responsive */
 @media (max-width: 1200px) {
     .books-grid {

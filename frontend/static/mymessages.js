@@ -1,5 +1,3 @@
-
-
 // Require login
 if (!isLoggedIn()) {
   window.location.href = 'Login.html';
@@ -36,12 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const messageList = document.getElementById("messageList");
   const cards = messageList ? messageList.getElementsByClassName("message-card") : [];
 
-  // Add click handlers for message cards
+  // Add click handlers for message cards - FIXED TO NAVIGATE
   Array.from(cards).forEach((card) => {
     card.addEventListener("click", () => {
-      console.log("Card clicked:", card.querySelector("h3").textContent);
-      // TODO: Navigate to specific message/conversation
-      // window.location.href = `messages.html?user=...`;
+      const bookTitle = card.querySelector("h3").textContent;
+      console.log("Card clicked:", bookTitle);
+      // Navigate to messages page
+      window.location.href = 'messages.html';
     });
   });
 

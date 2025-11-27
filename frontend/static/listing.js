@@ -69,8 +69,66 @@ const bookData = [
             "../static/resources/sapiens.png",
             "../static/resources/sapiens.png"
         ]
+    },
+    {
+        id: 1,
+        title: "The Great Gatsby",
+        author: "F. Scott Fitzgerald",
+        price: "$12.99",
+        location: "New York, NY",
+        date: "Posted 2 days ago",
+        year: "1925",
+        condition: "Very Good",
+        genres: "Classic, Fiction",
+        description: "The Great Gatsby is a 1925 novel by American writer F. Scott Fitzgerald. Set in the Jazz Age on Long Island, the novel depicts narrator Nick Carraway's interactions with mysterious millionaire Jay Gatsby.",
+        seller: "Emily Chen",
+        sellerId: 3,
+        isFavorite: false,
+        images: [
+            "../static/resources/gatsby.jpg",
+            "../static/resources/gatsby.jpg"
+        ]
+    },
+    {
+        id: 2,
+        title: "To Kill a Mockingbird",
+        author: "Harper Lee",
+        price: "$14.50",
+        location: "Chicago, IL",
+        date: "Posted 1 week ago",
+        year: "1960",
+        condition: "Good",
+        genres: "Classic, Drama",
+        description: "To Kill a Mockingbird is a novel by Harper Lee. It was immediately successful, winning the Pulitzer Prize, and has become a classic of modern American literature.",
+        seller: "Michael Brown",
+        sellerId: 4,
+        isFavorite: true,
+        images: [
+            "../static/resources/mockingbird.png",
+            "../static/resources/mockingbird.png"
+        ]
+    },
+    {
+        id: 3,
+        title: "1984",
+        author: "George Orwell",
+        price: "$10.99",
+        location: "Boston, MA",
+        date: "Posted 3 days ago",
+        year: "1949",
+        condition: "Fair",
+        genres: "Dystopian, Science Fiction",
+        description: "1984 is a dystopian social science fiction novel by English novelist George Orwell. It was published in 1949 as Orwell's ninth and final book completed in his lifetime.",
+        seller: "Sarah Wilson",
+        sellerId: 5,
+        isFavorite: false,
+        images: [
+            "../static/resources/1984.png",
+            "../static/resources/1984.png"
+        ]
     }
 ];
+
 
 // Get book ID from URL
 const urlParams = new URLSearchParams(window.location.search);

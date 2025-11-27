@@ -3,6 +3,7 @@ if (!isLoggedIn()) {
     window.location.href = 'Login.html';
 }
 
+
 // Sample book data (in a real app, this would come from a database)
 const ALL_LISTINGS_DATA = [
     {
@@ -67,16 +68,20 @@ const ALL_LISTINGS_DATA = [
     }
 ];
 
+
 // Filter only favorites
 let filteredFavorites = ALL_LISTINGS_DATA.filter(book => book.isFavorite);
 
+
 // DOM elements
 const booksGrid = document.getElementById('favoritesGrid');
+
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
     loadBooks(filteredFavorites);
 });
+
 
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function () {
@@ -84,11 +89,14 @@ document.addEventListener('componentsLoaded', function () {
     SearchManager.init(filteredFavorites, loadBooks);
 });
 
+
 // Load books into the grid
 function loadBooks(books) {
     if (!booksGrid) return;
 
+
     booksGrid.innerHTML = '';
+
 
     if (books.length === 0) {
         booksGrid.innerHTML = `
@@ -105,10 +113,12 @@ function loadBooks(books) {
     }
 
 
+
     books.forEach(book => {
         const bookCard = createBookCard(book);
         booksGrid.appendChild(bookCard);
     });
+
 
     // Add stagger animation to cards
     const bookCards = booksGrid.querySelectorAll('.book-card');
@@ -127,10 +137,14 @@ function loadBooks(books) {
     });
 }
 
+
+// Create a book card element (EXACTLY MATCHING HOME PAGE HTML STRUCTURE)
 // Create a book card element (EXACTLY MATCHING HOME PAGE HTML STRUCTURE)
 function createBookCard(book) {
     const card = document.createElement('div');
     card.className = 'book-card';
+    card.dataset.bookId = book.id; // Store book ID in data attribute
+
 
     card.innerHTML = `
         <img src="${book.imagePath}" 
@@ -146,39 +160,62 @@ function createBookCard(book) {
             <p class="book-price">${book.price}</p>
             
             <div class="book-actions">
-                <button class="contact-btn">Contact Seller</button>
-                <button class="favorite-btn active">
+                <button class="contact-btn" data-action="contact">Contact Seller</button>
+                <button class="favorite-btn active" data-action="favorite">
                     <i class="fas fa-heart"></i>
                 </button>
             </div>
         </div>
     `;
 
+
     // Setup event listeners
     const contactBtn = card.querySelector('.contact-btn');
     const favoriteBtn = card.querySelector('.favorite-btn');
 
-    // Contact button click
+
+    // Contact button click - NAVIGATE TO MESSAGES
     contactBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        viewListing(book.id);
+        e.preventDefault();
+        console.log('Contact button clicked');
+        window.location.href = 'messages.html';
     });
+
 
     // Favorite button click (Removal logic)
     favoriteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        e.preventDefault();
+        console.log('Favorite button clicked');
         removeFavorite(book.id);
     });
 
-    // Make card clickable
-    card.addEventListener('click', (e) => {
-        if (!e.target.closest('.contact-btn') && !e.target.closest('.favorite-btn')) {
-            viewListing(book.id);
+
+    // Make entire card clickable - USE MOUSEDOWN instead of CLICK
+    card.addEventListener('mousedown', (e) => {
+        // Check if click is on buttons
+        if (e.target.closest('.contact-btn') || e.target.closest('.favorite-btn')) {
+            console.log('Button area clicked, ignoring card click');
+            return;
         }
+        
+        e.stopPropagation();
+        e.preventDefault();
+        console.log(`Card clicked for book ID: ${book.id}, title: ${book.title}`);
+        console.log(`Navigating to: listing.html?id=${book.id}`);
+        
+        // Use setTimeout to ensure it executes
+        setTimeout(() => {
+            window.location.href = `listing.html?id=${book.id}`;
+        }, 10);
     });
+
 
     return card;
 }
+
+
 
 // View listing details
 function viewListing(bookId) {
@@ -189,46 +226,56 @@ function viewListing(bookId) {
     }
 }
 
+
 // Remove from favorites
 function removeFavorite(bookId) {
     if (!confirm('Remove this book from your favorites?')) {
         return;
     }
 
+
     const book = ALL_LISTINGS_DATA.find(b => b.id === bookId);
     if (book) {
         book.isFavorite = false;
         showToast('Removed from favorites');
 
+
         // Update filtered list and reload
         filteredFavorites = ALL_LISTINGS_DATA.filter(b => b.isFavorite);
         loadBooks(filteredFavorites);
+
 
         // Update SearchManager with new data
         SearchManager.updateData(filteredFavorites);
     }
 }
 
+
 // Navigation functions
 function goToHome() {
     window.location.href = 'home.html';
 }
 
+
 function goToAnnouncements() {
     window.location.href = 'announcements.html';
 }
+
 
 function goToFavorites() {
     window.location.href = 'favourites.html';
 }
 
+
 function goToProfile() {
     window.location.href = 'profile.html';
 }
 
+
 function goToMessages() {
-    window.location.href = 'messages.html';
+    window.location.href = 'mymessages.html';
 }
+
 
 // Toast notification
 function showToast(message, type = 'success') {
@@ -250,13 +297,16 @@ function showToast(message, type = 'success') {
         font-family: 'Segoe UI', sans-serif;
     `;
 
+
     document.body.appendChild(toast);
+
 
     setTimeout(() => {
         toast.style.animation = 'slideDown 0.3s ease';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
 
 // Add CSS for animations
 const style = document.createElement('style');
