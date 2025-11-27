@@ -606,40 +606,9 @@ async def update_listing(listing_form: UpdateListing, access_token = Header(None
         Address=listing_form.LocationAddress,
         Description="")
     new_locationid = post_location(new_location, db)
-    new_bookid = get_bookid_by_book(listing_form.Book, db)
-    if not new_bookid:
-        new_bookid = post_book(listing_form.Book, db)
-    else:
-        update_book(new_bookid, listing_form.Book, db)
-    update_new_listing(listing_form, userid, new_locationid, new_bookid, db)
-    listing = get_listing_by_listingid(listing_form.ListingID, db)
-    return GetListing(
-        ListingID=listing.ListingID,
-        ListingType=listing.ListingType,
-        Description=listing.Description,
-        Price=listing.Price,
-        BookCondition=listing.Condition,
-        Status=listing.ListingState,
-        CreationDate=listing.CreationDate,
-        Location=new_location,
-        Book=GetBook(
-            Title=listing_form.Book.Title,
-            Language=listing_form.Book.Language,
-            ReleaseDate=listing_form.Book.ReleaseDate,
-            ISBN=listing_form.Book.ISBN,
-            AvgRating=listing_form.Book.AvgRating,
-            Edition=listing_form.Book.Edition,
-            Author= listing_form.Book.Author,
-            Genre= listing_form.Book.Genre
-        ),
-        User=GetUser(
-            Name=user.Name,
-            ProfileImagePath=user.ProfileImagePath,
-            AboutMe=user.AboutMe,
-            UserRole=user.UserRole,
-            UserID=user.UserID
-        )
-    )
+    update_book(listing.BookID, listing_form.Book, db)
+    update_new_listing(listing_form, new_locationid, listing.BookID, db)
+    return await get_listing(listing_form.ListingID, access_token, db)
 
 
 @app.delete("/api/delete_listing", status_code=status.HTTP_204_NO_CONTENT, tags=["Listings"])

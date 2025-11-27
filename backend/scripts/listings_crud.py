@@ -248,10 +248,11 @@ def post_book(book: PostBook, db):
     :raises HTTPException: If any database operation fails, an HTTPException with status
         code 500 and an appropriate detail message is raised.
     """
+    authorids = get_authorids_by_names(book.Author, db)
+    for cur_authorid, cur_author in zip(authorids, book.Author):
+        if cur_authorid is None:
+            post_authors([cur_author], db)
     authorid = get_authorids_by_names(book.Author, db)
-    if not all(authorid):
-        post_authors(book.Author, db)
-        authorid = get_authorids_by_names(book.Author, db)
     stmt = metadata.tables["Books"].insert().values(
         Title=book.Title,
         ReleaseDate=book.ReleaseDate,
@@ -277,7 +278,7 @@ def post_book(book: PostBook, db):
             raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
     return bookid
 
-def update_book(bookid: int, book: Book, db):
+def update_book(bookid: int, book: PostBook, db):
     """
     Updates an existing book's details in the database by its unique identifier.
     This function constructs an SQL update statement based on the provided
@@ -293,6 +294,27 @@ def update_book(bookid: int, book: Book, db):
     :return: None. The function either updates the book successfully or raises an exception.
 
     """
+    stmt = metadata.tables["AuthorBook"].delete().where(metadata.tables["AuthorBook"].c.BookID == bookid)
+    try:
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't delete authors of the book. Please try again later.")
+    authorids = get_authorids_by_names(book.Author, db)
+    for cur_authorid, cur_author in zip(authorids, book.Author):
+        if cur_authorid is None:
+            post_authors([cur_author], db)
+    authorid = get_authorids_by_names(book.Author, db)
+    for cur_authorid in authorid:
+        stmt = metadata.tables["AuthorBook"].insert().values(
+            BookID=bookid,
+            AuthorID=cur_authorid
+        )
+        try:
+            db.execute(stmt)
+            db.commit()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
     stmt = metadata.tables["Books"].update().where(metadata.tables["Books"].c.BookID == bookid).values(
         Title=book.Title,
         ReleaseDate=book.ReleaseDate,
@@ -346,6 +368,11 @@ def update_new_listing(listing_form: UpdateListing, new_locationid: int, new_boo
         LocationID=new_locationid,
         BookID=new_bookid
     )
+    try:
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't update listing. Please try again later.")
 
 def delete_new_listing(listingid: int, db):
     """
