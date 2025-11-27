@@ -31,7 +31,7 @@ CREATE TABLE Books(
     Title NVARCHAR(256) NOT NULL,
     [Language] NVARCHAR(64),
     ReleaseDate DATE,
-    ISBN NVARCHAR(32) UNIQUE,
+    ISBN NVARCHAR(32),
     AvgRating FLOAT,
     [Edition] INT
 );
