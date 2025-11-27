@@ -25,6 +25,10 @@ tags_metadata = [
         "name": "Listings",
         "description": "Operations concerned with listings",
     },
+{
+        "name": "Favorites",
+        "description": "Operations concerned with favorite listings",
+    },
 ]
 app = FastAPI(openapi_tags=tags_metadata)
 
@@ -431,7 +435,8 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
         )
     )
 
-@app.get("/api/get_users_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
+@app.get("/api/get_users_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing],
+         tags=["Listings"])
 async def get_users_listings(user_id: int, access_token=Header(None), db=Depends(get_db)):
     """
     Retrieve a list of listings created by a specified user. This endpoint collects
@@ -455,6 +460,7 @@ async def get_users_listings(user_id: int, access_token=Header(None), db=Depends
     for listing in listings:
         book = get_book_by_id(listing.BookID, db)
         location = get_location_by_id(listing.LocationID, db)
+        is_favorite = check_if_listing_is_favorite(listing.ListingID, youruserid, db)
         result.append(GetListing(
             ListingID=listing.ListingID,
             ListingType=listing.ListingType,
@@ -463,6 +469,7 @@ async def get_users_listings(user_id: int, access_token=Header(None), db=Depends
             BookCondition=listing.Condition,
             Status=listing.ListingState,
             CreationDate=listing.CreationDate,
+            IsFavorite=is_favorite,
             Location=Location(
                 Longitude=location.Longitude,
                 Latitude=location.Latitude,
@@ -569,7 +576,8 @@ async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get
             AboutMe=user.AboutMe,
             UserRole=user.UserRole,
             UserID=user.UserID
-        )
+        ),
+        IsFavorite=check_if_listing_is_favorite(listing.ListingID, userid, db)
     )
 
 
@@ -633,3 +641,132 @@ async def delete_listing(listing_id: int, access_token = Header(None), db= Depen
         raise HTTPException(status_code=401, detail="Unauthorized to delete this listing")
     return delete_new_listing(listing_id, db)
 
+
+# ===================================================================================================================
+# FAVORITES ENDPOINTS
+# ===================================================================================================================
+
+@app.get("/api/get_my_favorites", response_model=list[GetListing], status_code=status.HTTP_200_OK, tags=["Favorites"])
+async def get_my_favorites(access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Retrieves all favorite listings for the authenticated user.
+
+    This endpoint fetches all listings that the authenticated user has marked as favorites.
+    It uses the access token to identify the user and returns detailed information about
+    each favorited listing.
+
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: List of listings marked as favorites by the user
+    :rtype: list[GetListing]
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    favorite_listings = get_favorite_listings_by_userid(userid, db)
+    result = []
+    for listing in favorite_listings:
+        listing_data = get_listing_by_listingid(listing.ListingID, db)
+        user = get_user_by_id(listing_data.UserID, db)
+        book = get_book_by_id(listing_data.BookID, db)
+        location = get_location_by_id(listing_data.LocationID, db)
+        result.append(GetListing(
+            ListingID=listing_data.ListingID,
+            ListingType=listing_data.ListingType,
+            Description=listing_data.Description,
+            Price=listing_data.Price,
+            BookCondition=listing_data.Condition,
+            Status=listing_data.ListingState,
+            CreationDate=listing_data.CreationDate,
+            IsFavorite=True,
+            Location=Location(
+                Longitude=location.Longitude,
+                Latitude=location.Latitude,
+                Address=location.Address,
+                Description=location.Description
+            ),
+            Book=GetBook(
+                Title=book.Title,
+                Language=book.Language,
+                ReleaseDate=book.ReleaseDate,
+                ISBN=book.ISBN,
+                AvgRating=book.AvgRating,
+                Edition=book.Edition,
+                Author=get_author_by_bookid(book.BookID, db),
+                Genre=get_genre_by_bookid(book.BookID, db)
+            ),
+            User=GetUser(
+                Name=user.Name,
+                ProfileImagePath=user.ProfileImagePath,
+                AboutMe=user.AboutMe,
+                UserRole=user.UserRole,
+                UserID=user.UserID
+            )
+        ))
+    return result
+
+@app.get("/api/is_this_listing_favorite", status_code=status.HTTP_200_OK, response_model=bool, tags=["Favorites"])
+async def is_this_listing_favorite(listingid: int, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Determine if a given listing is marked as favorite by the user.
+
+    This endpoint checks if a specific listing is marked as favorite in the
+    context of the authenticated user. The check requires an access token
+    to identify the user and verify their permissions. The database dependency
+    is used for querying relevant data.
+
+    :param listingid: The unique identifier of the listing to be checked.
+    :type listingid: int
+    :param access_token: The access token of the authenticated user used for
+        authorization purposes.
+    :type access_token: str
+    :param db: Dependency for database interaction.
+    :type db: SQLAlchemy session or equivalent
+    :return: A boolean value indicating whether the specified listing is
+        marked as favorite by the user.
+    :rtype: bool
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    return check_if_listing_is_favorite(listingid, userid, db)
+
+@app.post("/api/post_favorite", status_code=status.HTTP_200_OK, tags=["Favorites"])
+async def post_favorite(listing_id: int, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Adds a listing to the user's favorites.
+
+    This endpoint allows an authenticated user to mark a listing as favorite.
+    It verifies the user's identity through the access token and adds the
+    specified listing to their favorites list.
+
+    :param listing_id: ID of the listing to be added to favorites
+    :type listing_id: int
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: Success status of the operation
+    :rtype: dict
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    return post_new_favorite(userid, listing_id, db)
+
+
+@app.delete("/api/delete_favorite", status_code=status.HTTP_204_NO_CONTENT, tags=["Favorites"])
+async def delete_favorite(listing_id: int, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Removes a listing from the user's favorites.
+
+    This endpoint allows an authenticated user to remove a listing from their favorites list.
+    It verifies the user's identity through the access token and removes the specified
+    listing from their favorites.
+
+    :param listing_id: ID of the listing to be removed from favorites
+    :type listing_id: int
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: None
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    return delete_favorite_by_userid(userid, listing_id, db)

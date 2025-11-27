@@ -105,6 +105,7 @@ class GetListing(BaseModel):
     BookCondition: str | None
     CreationDate: datetime
     Location: Location
+    IsFavorite: bool
 
 class UpdateListing(BaseModel):
     ListingID: int
