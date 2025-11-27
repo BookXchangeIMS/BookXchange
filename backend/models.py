@@ -139,10 +139,3 @@ class ReportPost(BaseModel):
 
 class Reports(ReportPost):
     ReportID: int
-
-
-
-
-
-
-

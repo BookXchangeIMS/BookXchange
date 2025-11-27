@@ -1,14 +1,27 @@
 from http import HTTPStatus
+from datetime import datetime
+from typing import Annotated, List, Optional
 
-
-from fastapi import FastAPI, Depends, Form, Header
-from typing import Annotated, List
+from fastapi import FastAPI, Depends, Form, Header, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from backend.scripts.auth import *
 from backend.scripts.profile_crud import *
 from backend.config.db import get_db
 from backend.scripts.location_scripts import *
-
+# IMPORT YOUR SQLALCHEMY MODELS HERE – adjust module path to your project
+from backend.models import (
+    Locations,
+    Users,
+    Books,
+    Authors,
+    AuthorBook,
+    Listings,
+    ListingPhoto,
+    Favorites,
+)
 
 tags_metadata = [
     {
@@ -30,24 +43,157 @@ tags_metadata = [
 ]
 app = FastAPI(openapi_tags=tags_metadata)
 
-
-# Configure CORS to allow frontend requests
-from fastapi.middleware.cors import CORSMiddleware
-
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=["*"],  # tighten in prod
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ==================================================================================
+# Pydantic models used by API
+# (existing ones you showed, plus HomeListing at bottom)
+# ==================================================================================
 
-# ============================================
-# BOOK MODELS (NEW)
-# ============================================
-class Book(BaseModel):
+class Tokens(BaseModel):
+    access_token: str
+    refresh_token: str
+
+
+class PostLocation(BaseModel):
+    Address: str
+    Description: str
+
+
+class Location(PostLocation):
+    Longitude: float
+    Latitude: float
+
+
+class SignIn(BaseModel):
+    Email: str
+    PasswordHash: str
+
+
+class SignUp(SignIn):
+    Name: str
+    DateOfBirth: datetime
+    LocationAddress: str
+
+
+class UpdateUser(BaseModel):
+    Name: str
+    ProfileImagePath: str
+    AboutMe: str
+    LocationAddress: str
+
+
+class GetUser(BaseModel):
+    Name: str
+    ProfileImagePath: str
+    AboutMe: str
+    UserID: int
+    UserRole: str
+
+
+class GetMyUser(GetUser):
+    Email: str
+    CreationDate: datetime
+    Location: Location
+
+
+class Error_Log(BaseModel):
+    LogID: int
+    UserID: int
+    Description: str
+    Type: int
+    LogDate: datetime
+
+
+class Genre(BaseModel):
+    GenreID: int
+    GenreName: str
+
+
+class AuthorsModel(BaseModel):
+    AuthorID: int
+    AuthorName: int
+
+
+class BookModel(BaseModel):
+    ISBN: int
+    AuthorID: int
+    Title: str
+    Year: int
+
+
+class Book_Genre(BaseModel):
+    GenreID: int
+    ISBN: int
+
+
+class PreferencesModel(BaseModel):
+    GenreID: int
+    UserID: int
+
+
+class Notifications(BaseModel):
+    NotificationID: int
+    UserID: int
+    NotificationContent: str
+    Status: int
+
+
+class Image(BaseModel):
+    ImageID: int
+    Image_path: str
+    UploadedBy: int
+    UploadedAt: datetime
+
+
+class ListingPost(BaseModel):
+    Location_ID: int
+    Item: BookModel
+    UserID: int
+    Image_Path: str
+    Type: str
+    Price: float
+
+
+class ListingsModel(ListingPost):
+    ListingID: int
+    ListingState: int
+    DatePosted: datetime
+
+
+class MessagePost(BaseModel):
+    SenderID: int
+    ReceiverID: int
+    Content: str
+    DateSent: datetime
+
+
+class MessagesModel(MessagePost):
+    MessageID: int
+
+
+class ReportPost(BaseModel):
+    Description: str
+    Category: str
+    ListingID: int
+    UserID: int
+    ReportedUserID: int
+    CreatedAt: datetime
+
+
+class ReportsModel(ReportPost):
+    ReportID: int
+
+
+# Response model for home page listings
+class HomeListing(BaseModel):
     id: int
     title: str
     author: str
@@ -58,35 +204,12 @@ class Book(BaseModel):
     imagePath: str
 
 
-# ============================================
+#==============================================================================================================
 # TOKENIZED AUTHENTICATION
-# ============================================
-"""
-Endpoints for user authentication and management:
-- POST /api/sign_up: Handles user sign-up
-- POST /api/sign_in: Authenticates a user and generates access and refresh tokens
-- POST /api/refresh_access_token: Refreshes the access token using a valid refresh token
-- POST /api/logout: Invalidates the refresh token associated with a user's access token
-"""
-@app.post("/api/sign_up", status_code=status.HTTP_201_CREATED, response_model= Tokens, tags=["Authentication"])
-async def sign_up(sign_up_form: Annotated[SignUp, Form()], db= Depends(get_db)):
-    """
-    Handles user sign-up by creating a new user account, storing their information, and
-    generating access and refresh tokens. This endpoint also validates if the email already
-    exists in the database, ensures the user's location is added to the database, and securely
-    saves refresh tokens for future use.
+#==============================================================================================================
 
-
-    :param sign_up_form: The form containing user sign-up information such as name, email,
-        password hash, and location address.
-    :type sign_up_form: Annotated[SignUp, Form()]
-    :param db: The database session dependency used to perform various database operations.
-    :type db: Dependency (Session)
-
-
-    :return: A token object containing access and refresh tokens for the signed-up user.
-    :rtype: Tokens
-    """
+@app.post("/api/sign_up", status_code=status.HTTP_201_CREATED, response_model=Tokens, tags=["Authentication"])
+async def sign_up(sign_up_form: Annotated[SignUp, Form()], db=Depends(get_db)):
     if check_if_email_exists(sign_up_form.Email, db):
         raise HTTPException(status_code=409, detail="This email already exists")
     else:
@@ -112,25 +235,7 @@ async def sign_up(sign_up_form: Annotated[SignUp, Form()], db= Depends(get_db)):
 
 
 @app.post("/api/sign_in", response_model=Tokens, status_code=status.HTTP_200_OK, tags=["Authentication"])
-async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
-    """
-    Authenticates a user by validating provided credentials. If the credentials
-    match an existing user, generates and returns access and refresh tokens.
-    The refresh token is stored in the database for future validation. In case
-    no match is found for the provided credentials, an HTTP error with status
-    401 is raised.
-
-
-    :param login_data: Object containing user login data such as username and
-                       password.
-    :type login_data: Annotated[SignIn, Form()]
-    :param db: Dependency object to interface with the database.
-    :type db: Depends
-    :return: A Tokens object containing the generated access and refresh tokens
-             when authentication is successful, or a message indicating an issue
-             with storing the refresh token.
-    :rtype: Tokens or str
-    """
+async def sign_in(login_data: Annotated[SignIn, Form()], db=Depends(get_db)):
     userid = get_userid_by_credentials(login_data, db)
     if userid:
         access_token = create_access_token(login_data.dict())
@@ -145,23 +250,8 @@ async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
         )
 
 
-
 @app.get("/api/refresh_access_token", response_model=Tokens, status_code=status.HTTP_200_OK, tags=["Authentication"])
-async def refresh_access_token(token: str = Header(None), db= Depends(get_db)):
-    """
-    Refresh the access token using a valid refresh token. This endpoint verifies the provided refresh token,
-    fetches the user associated with it, and generates a new access token if the token is valid. If the token
-    is invalid, the request returns an HTTP 401 Unauthorized error.
-
-
-    :param token: The refresh token provided by the client. It is used to verify if the user session is valid.
-    :type token: str
-    :param db: A database session dependency injected by FastAPI.
-    :type db: Session
-    :return: A Tokens object containing the newly generated access token and the same refresh token.
-    :rtype: Tokens
-    :raises HTTPException: Raised with a 401 status code if the refresh token is invalid.
-    """
+async def refresh_access_token(token: str = Header(None), db=Depends(get_db)):
     if verify_refresh_token(token, db):
         user_id = get_userid_by_refresh_token(token, db)
         user = get_user_by_id(user_id, db)
@@ -171,27 +261,8 @@ async def refresh_access_token(token: str = Header(None), db= Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
 
-
 @app.delete("/api/logout", status_code=status.HTTP_204_NO_CONTENT, tags=["Authentication"])
-async def logout(tokens: Tokens = Header(None), db= Depends(get_db)):
-    """
-    Logs out a user by invalidating their refresh token.
-
-
-    This operation verifies the provided access token against a database. Upon a
-    valid access token check, the associated refresh token is invalidated, logging
-    out the user. If the access token is invalid, an HTTP 401 Unauthorized exception
-    is raised.
-
-
-    :param tokens: The authentication tokens used to validate and log out the user.
-    :type tokens: Tokens
-    :param db: A database connection dependency to validate tokens and perform logout operations.
-    :type db: Callable or instance injected by FastAPI Dependency Injection
-    :return: An operation to destroy the refresh token upon successful validation or
-             raise an exception for an invalid token.
-    :rtype: Operation or None
-    """
+async def logout(tokens: Tokens = Header(None), db=Depends(get_db)):
     if verify_refresh_token(tokens.access_token, db):
         return destroy_refresh_token(tokens, db)
     else:
@@ -199,18 +270,7 @@ async def logout(tokens: Tokens = Header(None), db= Depends(get_db)):
 
 
 @app.get("/api/does_user_exist", status_code=status.HTTP_200_OK, tags=["Authentication"])
-async def does_user_exist(email: str, db= Depends(get_db)):
-    """
-    For the 1-st step of the registration process on the page, this endpoint checks if the provided email address already exists in the system.
-
-
-    :param email: The email address to verify.
-    :type email: str
-    :param db: Database session used for querying and operations.
-    :type db: Any
-    :return: A result indicating whether the email exists in the system.
-    :rtype: Any
-    """
+async def does_user_exist(email: str, db=Depends(get_db)):
     return check_if_email_exists(email=email, db=db)
 
 
@@ -218,73 +278,20 @@ async def does_user_exist(email: str, db= Depends(get_db)):
 # PREFERENCES ENDPOINTS
 # ===================================================================================================================
 
-
-"""
-Endpoints for user preferences:
-- POST /api/post_preferences: Stores user preferences based on access token and genre names.
-- GET /api/get_preferences: Retrieves user preferences based on access token.
-- DELETE /api/delete_preferences: Deletes a user's preference for a given genre.
-"""
 @app.post("/api/post_preferences", status_code=status.HTTP_201_CREATED, tags=["Preferences"])
-async def post_preferences(preferences: list[str], access_token: str = Header(None), db= Depends(get_db)):
-    """
-    Post user preferences based on access token and save them to the database.
-
-
-    This function takes an access token, retrieves the associated user ID, and uses it
-    to store the given user preferences to the database. The function returns the result
-    of the operation performed on the database.
-
-
-    :param access_token: A string representing the user's access token for authentication.
-    :param preferences: A list of strings representing the user's preferences to be saved.
-    :param db: Database dependency for managing database connection and operations.
-    :return: Result of storing user preferences in the database.
-    """
+async def post_preferences(preferences: list[str], access_token: str = Header(None), db=Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     return post_preferences_by_userid(userid, preferences, db)
 
 
 @app.get("/api/get_preferences", status_code=status.HTTP_200_OK, response_model=list[str], tags=["Preferences"])
-async def get_preferences(access_token: str = Header(None), db= Depends(get_db)):
-    """
-    Post user preferences based on access token and save them to the database.
-
-
-    This function takes an access token, retrieves the associated user ID, and uses it
-    to store the given user preferences to the database. The function returns the result
-    of the operation performed on the database.
-
-
-    :param access_token: A string representing the user's access token for authentication.
-    :param preferences: A list of strings representing the user's preferences to be saved.
-    :param db: Database dependency for managing database connection and operations.
-    :return: Result of storing user preferences in the database.
-    """
+async def get_preferences(access_token: str = Header(None), db=Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     return get_preferences_by_userid(userid, db)
 
 
 @app.delete("/api/delete_preferences", status_code=status.HTTP_204_NO_CONTENT, tags=["Preferences"])
-async def delete_preference(genre_name: str, access_token: str = Header(None), db= Depends(get_db)):
-    """
-    Deletes a user's preference for a given genre.
-
-
-    This endpoint removes a genre preference for a user based on the provided `access_token` and `genre_name`.
-    The operation interacts with the database to find the user by their associated access token
-    and delete their specified preference.
-
-
-    :param access_token: The access token of the user used for authentication.
-    :type access_token: str
-    :param genre_name: The name of the genre to delete from the user's preferences.
-    :type genre_name: str
-    :param db: A database session dependency used for interacting with the database.
-    :type db: Depends
-    :return: None
-    :rtype: None
-    """
+async def delete_preference(genre_name: str, access_token: str = Header(None), db=Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     return delete_preference_by_userid(userid, genre_name, db)
 
@@ -292,35 +299,9 @@ async def delete_preference(genre_name: str, access_token: str = Header(None), d
 # ===================================================================================================================
 # PROFILE ENDPOINTS
 # ===================================================================================================================
-"""
-Endpoints for user profile management:
-- GET /api/get_your_profile: Retrieves the authenticated user's profile information.
-- GET /api/get_profile: Retrieves the profile information for a given user ID.
-- PUT /api/update_profile: Updates a user's profile information based on the provided details.
-- DELETE /api/delete_profile: Deletes a user's profile based on their access token.
-"""
+
 @app.get("/api/get_your_profile", response_model=GetMyUser, status_code=status.HTTP_200_OK, tags=["Profile"])
-async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)):
-    """
-    Fetches the authenticated user's profile information.
-
-
-    This function retrieves user profile details for an authenticated user
-    by verifying their access token. It queries the database to get the
-    user details, their location information, and compiles it into a
-    response model.
-
-
-    :param access_token: The token provided for authentication to verify the user's identity.
-    :type access_token: str
-    :param db: A database session dependency used to interact with the application database.
-    :type db: sqlalchemy.orm.Session
-
-
-    :return: The user's profile information including UserID, Email, Name,
-        Profile ImagePath, Role, AboutMe, Account Creation Date, and Location details.
-    :rtype: GetMyUser
-    """
+async def get_your_profile(access_token: str = Header(None), db=Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     user_data = get_user_by_id(userid, db)
     location = get_location_by_id(user_data.LocationID, db)
@@ -332,34 +313,17 @@ async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)
         UserRole=user_data.UserRole,
         AboutMe=user_data.AboutMe,
         CreationDate=user_data.CreationDate,
-        Location= Location(Longitude=location.Longitude,
-                           Latitude=location.Latitude,
-                           Address=location.Address,
-                           Description=location.Description)
+        Location=Location(
+            Longitude=location.Longitude,
+            Latitude=location.Latitude,
+            Address=location.Address,
+            Description=location.Description,
+        ),
     )
 
 
 @app.get("/api/get_profile", response_model=GetUser, status_code=status.HTTP_200_OK, tags=["Profile"])
-async def get_profile(userid: int, access_token: str = Header(None), db= Depends(get_db)):
-    """
-    Fetches the user's profile associated with the given user ID. The API checks for
-    authentication using the provided access token. If the access token is valid
-    and the user exists in the database, the user's profile details are retrieved
-    and returned.
-
-
-    :param userid: The ID of the user whose profile is being retrieved.
-    :type userid: int
-    :param access_token: JWT access token provided for authentication.
-    :type access_token: str
-    :param db: Database session dependency for the operation.
-    :type db: Session
-    :return: A dictionary containing the user's profile details if the access
-        token is valid and the user exists.
-    :rtype: GetUser
-    :raises HTTPException: Raised with a 401 status code if the access token is
-        invalid.
-    """
+async def get_profile(userid: int, access_token: str = Header(None), db=Depends(get_db)):
     if verify_access_token(access_token):
         user_data = get_user_by_id(userid, db)
         return GetUser(
@@ -374,20 +338,7 @@ async def get_profile(userid: int, access_token: str = Header(None), db= Depends
 
 
 @app.put("/api/update_profile", response_model=UpdateUser, status_code=status.HTTP_200_OK, tags=["Profile"])
-async def update_profile(new_info: UpdateUser, access_token: str = Header(None), db= Depends(get_db)):
-    """
-    Updates a user's profile information based on the provided details such as location and address.
-    It ensures the user is authorized via the `access_token` and utilizes the database dependency to
-    update the user's data. The new location is converted to geographic coordinates before updating.
-
-
-    :param new_info: An instance of `UpdateUser` containing the updated user information.
-    :param access_token: A string representing the user's access token for authorization.
-    :param db: Database dependency injected for database operations.
-    :return: Updated user profile information as an instance of `UpdateUser`.
-
-
-    """
+async def update_profile(new_info: UpdateUser, access_token: str = Header(None), db=Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     latitude, longitude = address_to_coordinates(new_info.LocationAddress)
     new_locationid = post_location(Location(
@@ -399,101 +350,86 @@ async def update_profile(new_info: UpdateUser, access_token: str = Header(None),
 
 
 @app.delete("/api/delete_profile", status_code=status.HTTP_204_NO_CONTENT, tags=["Profile"])
-async def delete_profile(tokens: Tokens = Header(None), db= Depends(get_db)):
-    """
-    Deletes a user profile based on the provided access token.
-
-
-    This function is an API endpoint that deletes a user profile by resolving
-    the user's ID from the provided access token. The database session is used
-    to perform the deletion operation. If the user profile is successfully
-    deleted, the endpoint will return a 204 No Content HTTP status code.
-
-
-    :param tokens: The ``Tokens`` object containing the access token
-                   provided in the request header.
-    :param db: The database session dependency provided by the ``get_db``
-               function.
-    :return: None
-    """
+async def delete_profile(tokens: Tokens = Header(None), db=Depends(get_db)):
     userid = get_userid_by_access_token(tokens.access_token, db)
     return delete_profile_by_userid(userid, db)
 
 
 # ===================================================================================================================
-# BOOK ENDPOINTS (NEW)
+# BOOK / LISTINGS ENDPOINTS FOR HOME PAGE
 # ===================================================================================================================
-@app.get("/api/get_books", response_model=List[Book], status_code=status.HTTP_200_OK, tags=["Book"])
-async def get_books(access_token: str = Header(None), db= Depends(get_db)):
+
+@app.get("/api/get_books", response_model=List[HomeListing], status_code=status.HTTP_200_OK, tags=["Book"])
+async def get_books(access_token: Optional[str] = Header(None), db: Session = Depends(get_db)):
     """
-    Retrieves all book listings. If access token is provided and valid,
-    personalize results based on user preferences.
-    
-    :param access_token: Optional access token for personalization
-    :param db: Database session dependency
-    :return: List of book objects
+    Returns latest visible listings with book, author, seller location, image, price,
+    relative date and favorite flag for current user.
     """
-    # TODO: Replace with actual database query
-    # For now, return sample data as proof-of-concept
-    return [
-        {
-            "id": 101,
-            "title": "Harry Potter and the Sorcerer's Stone",
-            "author": "J.K. Rowling",
-            "price": "$18.25",
-            "location": "Lisbon, Portugal",
-            "date": "Posted 1 day ago",
-            "isFavorite": False,
-            "imagePath": "../static/resources/harrypotter.png"
-        },
-        {
-            "id": 102,
-            "title": "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-            "author": "J.R.R. Tolkien",
-            "price": "$45.00",
-            "location": "Lisbon, Portugal",
-            "date": "Posted 3 days ago",
-            "isFavorite": True,
-            "imagePath": "../static/resources/lotr.png"
-        },
-        {
-            "id": 103,
-            "title": "Sapiens: A Brief History of Humankind",
-            "author": "Yuval Noah Harari",
-            "price": "$15.00",
-            "location": "Lisbon, Portugal",
-            "date": "Posted 1 week ago",
-            "isFavorite": False,
-            "imagePath": "../static/resources/sapiens.png"
-        },
-        {
-            "id": 1,
-            "title": "The Great Gatsby",
-            "author": "F. Scott Fitzgerald",
-            "price": "$12.99",
-            "location": "New York, NY",
-            "date": "Posted 2 days ago",
-            "isFavorite": False,
-            "imagePath": "../static/resources/gatsby.jpg"
-        },
-        {
-            "id": 2,
-            "title": "To Kill a Mockingbird",
-            "author": "Harper Lee",
-            "price": "$14.50",
-            "location": "Chicago, IL",
-            "date": "Posted 1 week ago",
-            "isFavorite": True,
-            "imagePath": "../static/resources/mockingbird.png"
-        },
-        {
-            "id": 3,
-            "title": "1984",
-            "author": "George Orwell",
-            "price": "$10.99",
-            "location": "Boston, MA",
-            "date": "Posted 3 days ago",
-            "isFavorite": False,
-            "imagePath": "../static/resources/1984.png"
-        }
-    ]
+
+    current_user_id: Optional[int] = None
+    if access_token:
+        try:
+            payload = verify_access_token(access_token)
+            current_user_id = payload.get("UserID") or payload.get("user_id")
+        except Exception:
+            current_user_id = None
+
+    q = (
+        db.query(
+            Listings.ListingID.label("listing_id"),
+            Listings.Price,
+            Listings.CreationDate,
+            Books.Title,
+            Locations.Address,
+            Authors.AuthorName,
+            ListingPhoto.ImagePath,
+        )
+        .join(Books, Listings.BookID == Books.BookID)
+        .join(Users, Listings.UserID == Users.UserID)
+        .join(Locations, Users.LocationID == Locations.LocationID)
+        .outerjoin(AuthorBook, AuthorBook.BookID == Books.BookID)
+        .outerjoin(Authors, Authors.AuthorID == AuthorBook.AuthorID)
+        .outerjoin(ListingPhoto, ListingPhoto.ListingID == Listings.ListingID)
+        .filter(Listings.ListingState == "Visible")  # adjust if you use numeric state
+        .order_by(Listings.CreationDate.desc())
+    )
+
+    rows = q.all()
+
+    favorite_ids: set[int] = set()
+    if current_user_id:
+        fav_rows = (
+            db.query(Favorites.ListingID)
+            .filter(Favorites.UserID == current_user_id)
+            .all()
+        )
+        favorite_ids = {r.ListingID for r in fav_rows}
+
+    result: list[HomeListing] = []
+    now = datetime.utcnow()
+
+    for r in rows:
+        price_str = f"${r.Price:.2f}" if r.Price is not None else "N/A"
+
+        days_ago = (now - r.CreationDate).days
+        if days_ago == 0:
+            date_str = "Posted today"
+        elif days_ago == 1:
+            date_str = "Posted 1 day ago"
+        else:
+            date_str = f"Posted {days_ago} days ago"
+
+        result.append(
+            HomeListing(
+                id=r.listing_id,
+                title=r.Title,
+                author=r.AuthorName or "Unknown author",
+                price=price_str,
+                location=r.Address,
+                date=date_str,
+                isFavorite=(r.listing_id in favorite_ids),
+                imagePath=r.ImagePath or "../static/resources/placeholder.png",
+            )
+        )
+
+    return result

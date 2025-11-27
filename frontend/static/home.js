@@ -1,21 +1,18 @@
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async function () {
-    // Check if api.js is properly loaded
     if (typeof isLoggedIn === 'undefined') {
         console.error('api.js not loaded properly. Token management functions are missing.');
         showError('Authentication system not available. Please refresh the page.');
         return;
     }
 
-    // Require login - redirect to Login if not authenticated
     if (!isLoggedIn()) {
         window.location.href = 'Login.html';
         return;
     }
 
-    // If logged in, proceed to load books from backend
     try {
-        const books = await getBooks(); // Fetch from backend API
+        const books = await getBooks();
         loadBooks(books);
         hideSkeletonAndShowBooks();
     } catch (error) {
@@ -24,17 +21,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 
-
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function () {
-    // Pass bookData and loadBooks callback to SearchManager
     if (window.SearchManager && typeof SearchManager.init === 'function') {
-        // SearchManager will be initialized with empty array first,
-        // then updated when books are loaded
         SearchManager.init([], loadBooks);
     }
 });
-
 
 // Hide skeleton and show books with animation
 function hideSkeletonAndShowBooks() {
@@ -48,7 +40,6 @@ function hideSkeletonAndShowBooks() {
     if (booksGrid) {
         booksGrid.style.display = 'grid';
 
-        // Add stagger animation to cards
         const cards = booksGrid.querySelectorAll('.book-card');
         cards.forEach((card, index) => {
             card.style.opacity = '0';
@@ -56,7 +47,6 @@ function hideSkeletonAndShowBooks() {
             setTimeout(() => {
                 card.style.opacity = '1';
                 card.style.transform = 'translateY(0)';
-                // Remove inline transition after animation completes
                 setTimeout(() => {
                     card.style.opacity = '';
                     card.style.transform = '';
@@ -66,7 +56,6 @@ function hideSkeletonAndShowBooks() {
     }
 }
 
-
 // Load books into the grid
 function loadBooks(books) {
     const booksGrid = document.getElementById('booksGrid');
@@ -74,7 +63,7 @@ function loadBooks(books) {
 
     booksGrid.innerHTML = '';
 
-    if (books.length === 0) {
+    if (!books || books.length === 0) {
         booksGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No books found.</p>';
         return;
     }
@@ -84,7 +73,6 @@ function loadBooks(books) {
         booksGrid.appendChild(bookCard);
     });
 }
-
 
 // Create a book card element
 function createBookCard(book) {
@@ -115,27 +103,20 @@ function createBookCard(book) {
     return card;
 }
 
-
-// Toggle favorite status
+// Toggle favorite status (wire to backend later)
 function toggleFavorite(bookId) {
-    // TODO: Update to make API call to backend to persist favorite status
     console.log('Toggle favorite for book ID:', bookId);
-    // For now, just log the action since we're fetching from backend
 }
-
 
 // View book details
 function viewBookDetails(bookId) {
-    console.log('Viewing details for book ID:', bookId);
     window.location.href = `listing.html?id=${bookId}`;
 }
-
 
 // Contact seller
 function contactSeller(bookId) {
     window.location.href = `messages.html?bookId=${bookId}`;
 }
-
 
 // Show error message
 function showError(message) {
@@ -144,6 +125,3 @@ function showError(message) {
         booksGrid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #c84c3d;">${message}</p>`;
     }
 }
-
-
-// Navigation functions are now handled in include.js
