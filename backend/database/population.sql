@@ -114,4 +114,13 @@ VALUES
 (2, 3), 
 (3, 4), 
 (4, 5), 
-(5, 5); 
+(5, 5);
+
+INSERT INTO Messages (SenderID, ListingID, ReceiverID, Content, SentDate)
+VALUES
+(2, 1, 1, "Is it still for sale?", '2025-01-10 09:00:00'),
+(1, 1, 2, "Yeah, sure!", '2025-01-10 09:01:00'),
+(1, 1, 2, "Want to meet? I can show you",'2025-01-10 09:02:00'),
+(3, 2, 2, "Hello, can I get this one cheaper?", '2025-01-10 09:00:00'),
+(2, 2, 3, "Nope.", '2025-01-10 09:05:00');
+

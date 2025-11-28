@@ -118,7 +118,39 @@ class UpdateListing(BaseModel):
     BookCondition: str | None
     LocationAddress: str
 
+# Chat Models
 
+class Message(BaseModel):
+    MessageID: int
+    SenderID: int
+    ListingID: int
+    ReceiverID: int
+    Content: str
+    SentDate: datetime = datetime.now()
+
+class PostMessage(BaseModel):
+    SenderID: int
+    ListingID: int
+    ReceiverID: int
+    Content: str
+    SentDate: datetime = datetime.now()
+
+# Chat Models
+class GetMessage(BaseModel):
+    MessageID: int
+    SenderID: int
+    ListingID: int
+    ReceiverID: int
+    Content: str
+    SentDate: datetime
+
+class GetDialogue(BaseModel):
+    Messages: list[GetMessage]
+
+class GetDialogues(BaseModel):
+    UserID: int
+    ListingID: int
+    LastMessage: GetMessage
 
 
 
