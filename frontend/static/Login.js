@@ -4,13 +4,9 @@ async function handleLogin(event) {
     const email = event.target[0].value;
     const password = event.target[1].value;
 
-    // Get the submit button from the form
-    const submitButton = event.target.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
 
-    // Disable button during login
-    submitButton.disabled = true;
-    submitButton.textContent = 'Logging in...';
+
+
 
     try {
         // Call backend API
@@ -33,6 +29,7 @@ async function handleLogin(event) {
 
 function handleRegister() {
     window.location.href = 'registration.html';
+
 }
 
 // Add subtle animation on page load
