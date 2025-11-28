@@ -12,6 +12,8 @@ from backend.scripts.profile_crud import *
 from backend.config.db import get_db
 from backend.scripts.location_scripts import *
 from backend.scripts.listings_crud import *
+from backend.scripts.ai_service import analyze_book_image
+from fastapi import UploadFile, File
 
 tags_metadata = [
     {
@@ -918,3 +920,35 @@ async def delete_listings_pictures(listingid: int, access_token: str = Header(No
         raise HTTPException(status_code=401, detail="User does not own this listing")
 
     return delete_listing_image_paths(listingid, db)
+
+
+
+
+
+
+
+
+# ===================================================================================================================
+# AI Services
+# ===================================================================================================================
+
+@app.post("/api/scan_book", status_code=status.HTTP_200_OK, tags=["Listings"])
+async def scan_book(file: UploadFile = File(...), access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Scans a book cover image using AI to extract book details.
+    """
+    # Verify authentication
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    # Read image file
+    contents = await file.read()
+    
+    # Analyze image
+    result = analyze_book_image(contents)
+    
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+        
+    return result

@@ -4,22 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookXchange - Edit Listing</title>
+    <title>BookXchange - Add Listing</title>
     <link rel="stylesheet" href="../static/editlisting.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <!-- Back Button -->
-    <button class="back-btn" onclick="if(confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) { window.location.href='announcements.html'; }">
+    <button class="back-btn"
+        onclick="if(confirm('Are you sure you want to go back? All entered data will be lost.')) { window.location.href='announcements.html'; }">
         <i class="fas fa-arrow-left"></i>
     </button>
 
     <!-- Main Content -->
     <main>
-        <h1 class="page-title">Edit Listing</h1>
+        <h1 class="page-title">Add New Listing</h1>
 
-        <form id="editListingForm">
+        <form id="addListingForm">
             <!-- Multiple Image Upload Section -->
             <div class="form-section">
                 <label class="form-label">Book Photos (Max 10)</label>
@@ -37,6 +38,15 @@
                         onclick="document.getElementById('imageInput').click()">
                         <i class="fas fa-camera"></i> Add Images
                     </button>
+
+                    <button type="button" class="change-image-btn scan-btn"
+                        style="background-color: #8e44ad; margin-left: 10px;"
+                        onclick="document.getElementById('scanInput').click()">
+                        <i class="fas fa-magic"></i> Scan Book (AI)
+                    </button>
+                    <input type="file" id="scanInput" accept="image/*" style="display: none;"
+                        onchange="handleScanBook(event)">
+
 
                     <!-- Image Preview Grid -->
                     <div class="image-preview-grid" id="imagePreviewGrid">
@@ -106,24 +116,19 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button type="button" class="btn-secondary" onclick="if(confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) { window.location.href='announcements.html'; }">
+                <button type="button" class="btn-secondary"
+                    onclick="if(confirm('Are you sure you want to cancel? All entered data will be lost.')) { window.location.href='announcements.html'; }">
                     Cancel
                 </button>
-                <button type="button" class="btn-delete" onclick="confirmDelete()">
-                    <i class="fas fa-trash"></i> Delete Listing
-                </button>
                 <button type="submit" class="btn-primary">
-                    <i class="fas fa-save"></i> Save Changes
+                    <i class="fas fa-plus-circle"></i> Submit
                 </button>
             </div>
         </form>
     </main>
 
-    <!-- Load mock data first, then the main script -->
     <!-- Load the main script -->
-<script src="../static/editlisting.js"></script>
-<script>src ="../static/api.js"</script>
-
+    <script src="../static/addlisting.js"></script>
 </body>
 
 </html>
