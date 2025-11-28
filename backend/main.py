@@ -401,48 +401,65 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
              details.
     :rtype: GetListing
     """
-    userid = get_userid_by_access_token(access_token, db)
-    latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
-    new_location = Location(
-        Latitude=latitude,
-        Longitude=longitude,
-        Address=listing_form.LocationAddress,
-        Description="")
-    new_locationid = post_location(new_location, db)
-    new_bookid = get_bookid_by_isbn(listing_form.Book.ISBN, db)
-    if not new_bookid:
-        new_bookid = post_book(listing_form.Book, db)
-    post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
-    listingid = get_listingid_by_userid_and_bookit(userid, new_bookid, db)
-    new_listing = get_listing_by_listingid(listingid, db)
-    user = get_user_by_id(userid, db)
-    return GetListing(
-        ListingID=listingid,
-        ListingType=new_listing.ListingType,
-        Description=new_listing.Description,
-        Price=new_listing.Price,
-        BookCondition=new_listing.Condition,
-        Status=new_listing.ListingState,
-        CreationDate=new_listing.CreationDate,
-        Location=new_location,
-        Book=GetBook(
-            Title=listing_form.Book.Title,
-            Language=listing_form.Book.Language,
-            ReleaseDate=listing_form.Book.ReleaseDate,
-            ISBN=listing_form.Book.ISBN,
-            AvgRating=listing_form.Book.AvgRating,
-            Edition=listing_form.Book.Edition,
-            Author= listing_form.Book.Author,
-            Genre= listing_form.Book.Genre
-        ),
-        User=GetUser(
-            Name=user.Name,
-            AboutMe=user.AboutMe,
-            UserRole=user.UserRole,
-            UserID=user.UserID
-        ),
-        IsFavorite=False
-    )
+    try:
+        print(f"DEBUG: Starting post_listing for {listing_form.Book.Title}")
+        userid = get_userid_by_access_token(access_token, db)
+        print(f"DEBUG: Got userid: {userid}")
+        
+        latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+        new_location = Location(
+            Latitude=latitude,
+            Longitude=longitude,
+            Address=listing_form.LocationAddress,
+            Description="")
+        new_locationid = post_location(new_location, db)
+        print(f"DEBUG: Created location: {new_locationid}")
+        
+        new_bookid = get_bookid_by_isbn(listing_form.Book.ISBN, db)
+        if not new_bookid:
+            print(f"DEBUG: Book not found, creating new book...")
+            print(f"DEBUG: Book data - Title: {listing_form.Book.Title}, Authors: {listing_form.Book.Author}, Genres: {listing_form.Book.Genre}")
+            new_bookid = post_book(listing_form.Book, db)
+            print(f"DEBUG: Created book with ID: {new_bookid}")
+        else:
+            print(f"DEBUG: Book already exists with ID: {new_bookid}")
+            
+        post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
+        listingid = get_listingid_by_userid_and_bookit(userid, new_bookid, db)
+        new_listing = get_listing_by_listingid(listingid, db)
+        user = get_user_by_id(userid, db)
+        return GetListing(
+            ListingID=listingid,
+            ListingType=new_listing.ListingType,
+            Description=new_listing.Description,
+            Price=new_listing.Price,
+            BookCondition=new_listing.Condition,
+            Status=new_listing.ListingState,
+            CreationDate=new_listing.CreationDate,
+            Location=new_location,
+            Book=GetBook(
+                Title=listing_form.Book.Title,
+                Language=listing_form.Book.Language,
+                ReleaseDate=listing_form.Book.ReleaseDate,
+                ISBN=listing_form.Book.ISBN,
+                AvgRating=listing_form.Book.AvgRating,
+                Edition=listing_form.Book.Edition,
+                Author= listing_form.Book.Author,
+                Genre= listing_form.Book.Genre
+            ),
+            User=GetUser(
+                Name=user.Name,
+                AboutMe=user.AboutMe,
+                UserRole=user.UserRole,
+                UserID=user.UserID
+            ),
+            IsFavorite=False
+        )
+    except Exception as e:
+        print(f"ERROR in post_listing: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 @app.get("/api/get_users_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing],
          tags=["Listings"])
@@ -863,6 +880,35 @@ async def get_listings_pictures(listingid: int, access_token: str = Header(None)
     listing_photo_paths = [row.ImagePath for row in get_listing_image_paths(listingid, db)]
     zipfile_path = make_a_zipfile_of_pictures(listing_photo_paths)
     return FileResponse(path=zipfile_path, media_type="application/zip", filename="listingphotos.zip")
+
+@app.get("/api/get_listing_primary_image", status_code=status.HTTP_200_OK, tags=["Images"])
+async def get_listing_primary_image(listingid: int, access_token: str, db=Depends(get_db)):
+    """
+    Retrieve the primary (first) picture of a listing.
+
+    This endpoint returns a single image file that can be used directly in <img> tags.
+    If no image exists for the listing, returns a 404 error.
+
+    :param listingid: The unique identifier of the listing
+    :type listingid: int
+    :param access_token: Access token for authentication (query parameter)
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: FileResponse with the image file
+    :raises HTTPException: If no images found or authentication fails
+    """
+    if not verify_access_token(access_token):
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    image_paths = get_listing_image_paths(listingid, db)
+    if not image_paths or len(image_paths) == 0:
+        raise HTTPException(status_code=404, detail="No images found for this listing")
+    
+    # Return the first image
+    first_image_path = image_paths[0].ImagePath
+    return FileResponse(path=first_image_path, media_type="image/jpeg")
+
 
 @app.post("/api/post_listings_picture", status_code=status.HTTP_200_OK, tags=["Images"])
 async def post_listings_picture(listingid: int, file: UploadFile = File(...), access_token: str = Header(None), db=Depends(get_db)):

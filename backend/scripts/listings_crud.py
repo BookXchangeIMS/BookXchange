@@ -264,18 +264,28 @@ def post_book(book: PostBook, db):
         db.execute(stmt)
         db.commit()
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
+        print(f"ERROR in post_book: {str(e)}")
+        print(f"Book data: Title={book.Title}, ISBN={book.ISBN}, Authors={book.Author}")
+        raise HTTPException(status_code=500, detail=f"Couldn't create new book: {str(e)}")
     bookid = get_bookid_by_book(book, db)
     for cur_authorid in authorid:
-        stmt = metadata.tables["AuthorBook"].insert().values(
-            BookID=bookid,
-            AuthorID=cur_authorid
+        # Check if the relationship already exists
+        check_stmt = select(metadata.tables["AuthorBook"]).where(
+            metadata.tables["AuthorBook"].c.BookID == bookid,
+            metadata.tables["AuthorBook"].c.AuthorID == cur_authorid
         )
-        try:
-            db.execute(stmt)
-            db.commit()
-        except Exception as e:
-            raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
+        existing = db.execute(check_stmt).fetchone()
+        
+        if not existing:
+            stmt = metadata.tables["AuthorBook"].insert().values(
+                BookID=bookid,
+                AuthorID=cur_authorid
+            )
+            try:
+                db.execute(stmt)
+                db.commit()
+            except Exception as e:
+                raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
     return bookid
 
 def update_book(bookid: int, book: PostBook, db):

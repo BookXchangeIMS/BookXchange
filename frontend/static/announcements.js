@@ -111,19 +111,19 @@ async function fetchListingsFromBackend() {
         }
 
         const listings = await response.json();
-        
+
         console.log('✅ Fetched listings from backend:', listings);
-        
+
         // Transform backend data to match frontend format
         return listings.map(listing => {
             // Format authors and genres
             const authors = formatArray(listing.Book.Author);
             const genres = formatArray(listing.Book.Genre);
-            
+
             return {
                 ListingID: listing.ListingID,
                 Name: listing.Book.Title,
-                Image_Path: "../static/resources/harrypotter.png",
+                Image_Path: `${API_BASE_URL}/api/get_listing_primary_image?listingid=${listing.ListingID}&access_token=${accessToken}`,
                 PublicationDate: listing.Book.ReleaseDate,
                 Location: listing.Location.Address,
                 author: authors,
@@ -162,16 +162,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 // Initialize search after components are loaded
-document.addEventListener('componentsLoaded', async function() {
+document.addEventListener('componentsLoaded', async function () {
     const books = USE_MOCK_DATA ? getBooksFromStorage() : await fetchListingsFromBackend();
-    
+
     // Convert to format SearchManager expects (with title and author)
     const searchableData = books.map(book => ({
         ...book,
         title: book.Name,
         author: book.author || ''
     }));
-    
+
     if (window.SearchManager) {
         SearchManager.init(searchableData, displayUserBooks);
     }
@@ -183,7 +183,7 @@ document.addEventListener('componentsLoaded', async function() {
 async function loadUserBooks() {
     try {
         let books;
-        
+
         if (USE_MOCK_DATA) {
             // Use localStorage
             books = getBooksFromStorage();
@@ -192,7 +192,7 @@ async function loadUserBooks() {
             showToast('Loading your listings...', 'success');
             books = await fetchListingsFromBackend();
         }
-        
+
         displayUserBooks(books);
     } catch (error) {
         console.error('Error loading books:', error);
@@ -210,10 +210,10 @@ function displayUserBooks(books) {
 
     // Get the add-book-card element (first child)
     const addBookCard = userBooksGrid.querySelector('.add-book-card');
-    
+
     // Clear grid but keep add-book-card
     userBooksGrid.innerHTML = '';
-    
+
     // Re-add the add-book-card as first item
     if (addBookCard) {
         userBooksGrid.appendChild(addBookCard);
