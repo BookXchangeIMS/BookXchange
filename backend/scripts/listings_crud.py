@@ -398,9 +398,128 @@ def delete_new_listing(listingid: int, db):
         raise HTTPException(status_code=500, detail="Couldn't delete listing. Please try again later.")
 
 def get_listings_by_userid(user_id: int, db):
+    """
+    Retrieves a list of listings from the database for a specific user, identified by
+    their user ID. This function queries the database by selecting all records from the
+    "Listings" table that match the given user ID. If an error occurs during the
+    execution of the database query, an HTTPException will be raised.
+
+    :param user_id: The ID of the user whose listings are being retrieved
+    :type user_id: int
+    :param db: The database connection object used to execute the SQL statement
+    :return: A list of records corresponding to the listings for the specified user ID
+    :rtype: list
+    :raises HTTPException: If the database query fails for any reason
+    """
     stmt = select(metadata.tables["Listings"]).where(metadata.tables["Listings"].c.UserID == user_id)
     try:
         rows = db.execute(stmt).fetchall()
         return rows
     except Exception as e:
         raise HTTPException(status_code=500, detail="Couldn't get listings. Please try again later.")
+    
+def get_favorite_listings_by_userid(userid: int, db):
+    """
+    Retrieves all favorite listings for a specific user from the database.
+
+    This function queries the Favorites table to get all listings that a user
+    has marked as favorite. If the database query fails, it raises an
+    HTTPException with a 500 status code.
+
+    :param userid: The ID of the user whose favorite listings are being retrieved
+    :type userid: int
+    :param db: The database connection object used to execute the SQL statement
+    :return: A list of records corresponding to the favorite listings for the specified user ID
+    :rtype: list
+    :raises HTTPException: If the database query fails for any reason
+    """
+    stmt = select(metadata.tables["Listings"]).join(
+        metadata.tables["Favorites"],
+        metadata.tables["Listings"].c.ListingID == metadata.tables["Favorites"].c.ListingID
+    ).where(metadata.tables["Favorites"].c.UserID == userid)
+    try:
+        rows = db.execute(stmt).fetchall()
+        return rows
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't get favorite listings. Please try again later.")
+
+def check_if_listing_is_favorite(listingid: int, youruserid: int, db):
+    """
+    Checks if a specific listing is marked as favorite by a user.
+
+    This function queries the Favorites table to determine if there exists a record
+    matching both the provided listing ID and user ID. If such a record exists,
+    the listing is considered a favorite for that user.
+
+    :param listingid: The ID of the listing to check
+    :type listingid: int
+    :param youruserid: The ID of the user to check favorites for
+    :type youruserid: int
+    :param db: The database connection object used to execute the query
+    :return: True if the listing is marked as favorite, False otherwise
+    :rtype: bool
+    :raises HTTPException: If there is an error executing the database query
+    """
+    stmt = select(metadata.tables["Favorites"]).where(
+        metadata.tables["Favorites"].c.UserID == youruserid,
+        metadata.tables["Favorites"].c.ListingID == listingid
+    )
+    try:
+        row = db.execute(stmt).fetchone()
+        return row is not None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't check favorite status. Please try again later.")
+
+
+def post_new_favorite(userid: int, listing_id: int, db):
+    """
+    Adds a new favorite to the 'Favorites' table in the database for the given user
+    and listing id. Executes the database insertion statement and commits the
+    transaction.
+
+    :param userid: The ID of the user adding a favorite.
+    :type userid: int
+    :param listing_id: The ID of the listing to be marked as favorite.
+    :type listing_id: int
+    :param db: The database connection/session object used to execute the statement.
+    :return: None
+    :rtype: None
+
+    :raises HTTPException: If the database operation fails during the insertion or
+        commit, an HTTPException is raised with status code 500 and an appropriate
+        detail message.
+    """
+    stmt = metadata.tables["Favorites"].insert().values(UserID=userid, ListingID=listing_id)
+    try:
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't create new favorite. Please try again later.")
+
+
+def delete_favorite_by_userid(userid: int, listing_id: int, db):
+    """
+    Deletes a favorite record associated with the specified user ID and listing ID from the database.
+
+    This function constructs a delete SQL statement targeting the Favorites table where the user ID
+    and listing ID match the provided values. It then executes the statement and commits the
+    transaction, ensuring the record is removed from the Favorites table. If an error occurs during
+    execution or commitment, an HTTPException with status code 500 is raised, indicating a failure
+    to delete the favorite record.
+
+    :param userid: The ID of the user whose favorite record is to be deleted.
+    :type userid: int
+    :param listing_id: The ID of the listing to be removed from the user's favorites.
+    :type listing_id: int
+    :param db: The database session used to execute the delete operation.
+    :type db: Any
+    :return: None
+    :rtype: None
+    :raises HTTPException: If there is an issue connecting to the database or committing the transaction.
+    """
+    stmt = metadata.tables["Favorites"].delete().where(metadata.tables["Favorites"].c.UserID == userid, metadata.tables["Favorites"].c.ListingID == listing_id)
+    try:
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't delete favorite. Please try again later.")

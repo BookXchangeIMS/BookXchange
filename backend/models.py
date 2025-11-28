@@ -1,5 +1,8 @@
 from datetime import datetime
 from pydantic import BaseModel
+from fastapi import File
+from starlette.responses import FileResponse
+
 
 #==================================================================================
 # JWT MODELS
@@ -38,13 +41,11 @@ class SignUp(SignIn):
 
 class UpdateUser(BaseModel):
     Name: str
-    ProfileImagePath: str
     AboutMe: str
     LocationAddress: str
 
 class GetUser(BaseModel):
     Name: str
-    ProfileImagePath: str
     AboutMe: str
     UserID: int
     UserRole: str
@@ -105,6 +106,7 @@ class GetListing(BaseModel):
     BookCondition: str | None
     CreationDate: datetime
     Location: Location
+    IsFavorite: bool
 
 class UpdateListing(BaseModel):
     ListingID: int
