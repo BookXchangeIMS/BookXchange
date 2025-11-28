@@ -1,27 +1,33 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';  // Changed from localhost to 127.0.0.1
+
 const USE_MOCK_DATA = false; // Set to true for testing without backend
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 
 // Token Management
 function getAccessToken() {
     return localStorage.getItem('access_token');
 }
 
+
 function getRefreshToken() {
     return localStorage.getItem('refresh_token');
 }
+
 
 function setTokens(accessToken, refreshToken) {
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
 }
 
+
 function clearTokens() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
 }
+
 
 // API Helper Functions
 const api = {
@@ -70,9 +76,7 @@ const api = {
             console.error('POST request failed:', error);
             throw error;
         }
-    }
-
-    ,
+    },
 
     // Post FormData (for file uploads) with retry logic
     async postFormData(endpoint, formData) {
@@ -112,7 +116,7 @@ const api = {
         }
     },
 
-    // Upload multiple images to Azure Blob Storage
+    // Upload multiple images
     async uploadImages(listingId, files) {
         if (USE_MOCK_DATA && window.mockAPI) {
             const uploadedUrls = [];
@@ -124,32 +128,29 @@ const api = {
         }
 
         try {
-            const formData = new FormData();
-
-            // Append all files
-            for (let i = 0; i < files.length; i++) {
-                formData.append('images', files[i]);
-            }
-
-            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/upload-images`, {
-                method: 'POST',
-                headers: {
-                    'access-token': getAccessToken() || ''
-                },
-                body: formData
+            // Upload images one by one using the existing endpoint
+            const uploadPromises = files.map(file => {
+                const formData = new FormData();
+                formData.append('file', file);
+                return fetch(`${API_BASE_URL}/api/post_listings_picture?listingid=${listingId}`, {
+                    method: 'POST',
+                    headers: {
+                        'access-token': getAccessToken() || ''
+                    },
+                    body: formData
+                });
             });
 
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return await this.uploadImages(listingId, files);
+            const responses = await Promise.all(uploadPromises);
+            
+            // Check if all uploads succeeded
+            for (const response of responses) {
+                if (!response.ok) {
+                    throw new Error('One or more image uploads failed');
+                }
             }
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Image upload failed');
-            }
-
-            return await response.json();
+            return { success: true };
         } catch (error) {
             console.error('Image upload failed:', error);
             throw error;
@@ -189,8 +190,10 @@ const api = {
     }
 };
 
+
 // State management
 let newImages = []; // [{file, preview, tempId}]
+
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function () {
@@ -206,6 +209,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     setupEventListeners();
 });
 
+
 function showMockModeIndicator() {
     const indicator = document.createElement('div');
     indicator.textContent = '🧪 MOCK MODE';
@@ -218,6 +222,7 @@ function showMockModeIndicator() {
     `;
     document.body.appendChild(indicator);
 }
+
 
 // Setup event listeners
 function setupEventListeners() {
@@ -239,15 +244,18 @@ function setupEventListeners() {
     document.getElementById('addListingForm').addEventListener('submit', handleFormSubmit);
 }
 
+
 // Drag and drop handlers
 function handleDragOver(e) {
     e.preventDefault();
     e.currentTarget.classList.add('drag-over');
 }
 
+
 function handleDragLeave(e) {
     e.currentTarget.classList.remove('drag-over');
 }
+
 
 function handleDrop(e) {
     e.preventDefault();
@@ -259,12 +267,14 @@ function handleDrop(e) {
     }
 }
 
+
 // Handle file selection
 function handleFileSelect(e) {
     const files = Array.from(e.target.files);
     processFiles(files);
     e.target.value = ''; // Reset input
 }
+
 
 // Process and validate files
 function processFiles(files) {
@@ -309,6 +319,7 @@ function processFiles(files) {
     }
 }
 
+
 // Render image preview grid
 function renderImagePreviews() {
     const grid = document.getElementById('imagePreviewGrid');
@@ -324,6 +335,7 @@ function renderImagePreviews() {
     // Update counter
     updateImageCounter(totalImages);
 }
+
 
 // Create image preview element
 function createImagePreviewElement(img, index) {
@@ -361,6 +373,7 @@ function createImagePreviewElement(img, index) {
     return div;
 }
 
+
 // Set primary image
 function handleSetPrimary(index) {
     const [selectedImage] = newImages.splice(index, 1);
@@ -368,6 +381,7 @@ function handleSetPrimary(index) {
     renderImagePreviews();
     showToast('Primary image updated', 'success');
 }
+
 
 // Delete image
 function handleDeleteImage(index) {
@@ -377,6 +391,7 @@ function handleDeleteImage(index) {
     renderImagePreviews();
     showToast('Image removed', 'success');
 }
+
 
 // Update image counter
 function updateImageCounter(count) {
@@ -392,6 +407,7 @@ function updateImageCounter(count) {
     counter.textContent = `${count} / ${MAX_IMAGES} images`;
     counter.classList.toggle('limit', count >= MAX_IMAGES);
 }
+
 
 // Character count for description
 function updateCharacterCount() {
@@ -411,6 +427,7 @@ function updateCharacterCount() {
     }
 }
 
+
 // Format price
 function formatPrice(event) {
     let value = event.target.value.trim().replace(/[\$\s]/g, '');
@@ -422,6 +439,7 @@ function formatPrice(event) {
         event.target.value = '$0.00';
     }
 }
+
 
 // Validate form
 function validateForm() {
@@ -455,9 +473,14 @@ function validateForm() {
     return true;
 }
 
-// Handle form submission - FIXED TO MATCH BACKEND API
+
+// Handle form submission - FIXED TO MATCH BACKEND
+// Handle form submission - FIXED TO MATCH BACKEND
 async function handleFormSubmit(event) {
     event.preventDefault();
+    event.stopPropagation();
+
+    console.log('🚀 Form submission started'); // Debug log
 
     if (!validateForm()) return;
 
@@ -482,23 +505,22 @@ async function handleFormSubmit(event) {
 
         const newListingData = {
             ListingType: "Sale",
-            Status: "Active",  // ✅ ADD THIS LINE
+            Status: "Active",
             Description: document.getElementById('bookDescription').value.trim() || "No description provided",
             Price: parseFloat(document.getElementById('bookPrice').value.replace('$', '')),
-            BookCondition: document.getElementById('bookCondition').value,  // ✅ CHANGED to BookCondition
+            BookCondition: document.getElementById('bookCondition').value,
             LocationAddress: document.getElementById('bookLocation').value.trim(),
             Book: {
                 Title: document.getElementById('bookTitle').value.trim(),
                 Language: "English",
-                ReleaseDate: year ? `${year}-01-01` : "2024-01-01",  // ✅ Full date format,
-                ISBN: "",
-                AvgRating: 0,
+                ReleaseDate: year ? `${year}-01-01` : "2024-01-01",
+                ISBN: `TEMP-${Date.now()}`,
+                AvgRating: 0.0,
                 Edition: 1,
                 Author: authorsArray,
                 Genre: genresArray
             }
         };
-
 
         console.log('=== SENDING TO BACKEND ===');
         console.log(JSON.stringify(newListingData, null, 2));
@@ -509,33 +531,38 @@ async function handleFormSubmit(event) {
         const createResponse = await api.post('/api/post_listing', newListingData);
         const listingId = createResponse.ListingID;
 
-        console.log('Listing created with ID:', listingId);
+        console.log('✅ Listing created with ID:', listingId);
 
-        // 2. Upload images to Azure Blob Storage (if endpoint exists)
+        // 2. Upload images (but don't let failures stop the redirect)
         if (newImages.length > 0 && listingId) {
             try {
                 showToast(`Uploading ${newImages.length} image(s)...`, 'success');
                 const files = newImages.map(img => img.file);
                 await api.uploadImages(listingId, files);
+                console.log('✅ Images uploaded successfully');
             } catch (uploadError) {
-                console.warn('Image upload failed, but listing was created:', uploadError);
-                // Don't fail the whole process if image upload fails
+                console.warn('⚠️ Image upload failed:', uploadError);
+                // Don't throw - just log it and continue
             }
         }
 
         showToast('Listing created successfully!', 'success');
 
+        // Always redirect after a short delay
+        console.log('🔄 Redirecting to announcements page...');
         setTimeout(() => {
             window.location.href = 'announcements.html';
-        }, 1500);
+        }, 1000);
 
     } catch (error) {
-        console.error('Failed to create listing:', error);
+        console.error('❌ FULL ERROR:', error);
+        console.error('Error stack:', error.stack);
         showToast(error.message || 'Failed to create listing', 'error');
         submitButton.disabled = false;
         submitButton.innerHTML = originalButtonText;
     }
 }
+
 
 // Handle AI Book Scan
 async function handleScanBook(event) {
@@ -573,7 +600,6 @@ async function handleScanBook(event) {
         // Populate fields
         if (data.Title) document.getElementById('bookTitle').value = data.Title;
         if (data.Author) document.getElementById('bookAuthor').value = data.Author;
-        // if (data.ISBN) document.getElementById('bookISBN').value = data.ISBN; // No ISBN field in form?
         if (data.Condition) {
             const conditionSelect = document.getElementById('bookCondition');
             // Try to match condition
@@ -613,6 +639,7 @@ function confirmCancel() {
     }
 }
 
+
 // Go back
 function goBack() {
     if (confirm('Are you sure you want to go back? All entered data will be lost.')) {
@@ -620,13 +647,14 @@ function goBack() {
     }
 }
 
+
 // Toast notification
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.textContent = message;
     toast.style.cssText = `
         position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-        background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
+        background: ${type === 'success' ? '#27ae60' : type === 'warning' ? '#f39c12' : '#e74c3c'};
         color: white; padding: 15px 25px; border-radius: 25px;
         font-weight: 600; z-index: 10000; animation: slideUp 0.3s ease;
         font-family: 'Segoe UI', sans-serif; max-width: 90%;
@@ -640,6 +668,7 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
 
 // Animations
 const style = document.createElement('style');

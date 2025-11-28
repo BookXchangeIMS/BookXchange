@@ -2,10 +2,12 @@
 const API_BASE_URL = 'http://localhost:8000';
 const USE_MOCK_DATA = false; // Set to false to use backend
 
+
 // Token Management
 function getAccessToken() {
     return localStorage.getItem('access_token');
 }
+
 
 // Helper function to extract year from date string
 function extractYear(dateString) {
@@ -19,6 +21,17 @@ function extractYear(dateString) {
     }
     return dateString; // Already just a year
 }
+
+
+// Helper function to format arrays as comma-separated strings
+function formatArray(arr) {
+    if (!arr) return '';
+    if (Array.isArray(arr)) {
+        return arr.join(', ');
+    }
+    return arr;
+}
+
 
 // Initialize books in localStorage on first load (for mock mode only)
 function initializeBooksStorage() {
@@ -65,6 +78,7 @@ function initializeBooksStorage() {
     }
 }
 
+
 // Get books from localStorage (mock mode only)
 function getBooksFromStorage() {
     const stored = localStorage.getItem('MOCK_USER_BOOKS');
@@ -74,6 +88,37 @@ function getBooksFromStorage() {
     }
     return [];
 }
+
+
+// Fetch listing images from backend (returns blob URL for first image)
+async function fetchListingImage(listingId) {
+    try {
+        const accessToken = getAccessToken();
+        if (!accessToken) return null;
+
+        const response = await fetch(`${API_BASE_URL}/api/get_listings_pictures?listingid=${listingId}`, {
+            method: 'GET',
+            headers: {
+                'access-token': accessToken
+            }
+        });
+
+        if (!response.ok) {
+            console.warn(`No images found for listing ${listingId}`);
+            return null;
+        }
+
+        // Backend returns a ZIP file, we'll just use a placeholder for now
+        // In a real implementation, you'd want to unzip and get the first image
+        // For now, return null and use fallback image
+        return null;
+        
+    } catch (error) {
+        console.error(`Failed to fetch image for listing ${listingId}:`, error);
+        return null;
+    }
+}
+
 
 // Fetch listings from backend
 async function fetchListingsFromBackend() {
@@ -103,25 +148,33 @@ async function fetchListingsFromBackend() {
 
         const listings = await response.json();
         
+        console.log('✅ Fetched listings from backend:', listings);
+        
         // Transform backend data to match frontend format
-        return listings.map(listing => ({
-            ListingID: listing.ListingID,
-            Name: listing.Book.Title,
-            // FIXED: Use existing image as fallback instead of non-existent placeholder
-            Image_Path: listing.Book.Image_Path || "../static/resources/harrypotter.png",
-            PublicationDate: listing.Book.ReleaseDate,
-            Location: listing.Location.Address,
-            author: listing.Book.Author,
-            price: `$${listing.Price}`,
-            condition: listing.BookCondition,
-            genres: listing.Book.Genre,
-            description: listing.Description
-        }));
+        return listings.map(listing => {
+            // Format authors and genres
+            const authors = formatArray(listing.Book.Author);
+            const genres = formatArray(listing.Book.Genre);
+            
+            return {
+                ListingID: listing.ListingID,
+                Name: listing.Book.Title,
+                Image_Path: "../static/resources/book-placeholder.png", // Use placeholder
+                PublicationDate: listing.Book.ReleaseDate,
+                Location: listing.Location.Address,
+                author: authors,
+                price: `$${parseFloat(listing.Price).toFixed(2)}`,
+                condition: listing.BookCondition,
+                genres: genres,
+                description: listing.Description
+            };
+        });
     } catch (error) {
         console.error('Failed to fetch listings from backend:', error);
         throw error;
     }
 }
+
 
 // Simple HTML escaping function
 function escapeHtml(unsafe) {
@@ -134,16 +187,20 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
+
 // Initialize storage (only used in mock mode)
 initializeBooksStorage();
 
+
 // DOM elements
 const userBooksGrid = document.getElementById('userBooksGrid');
+
 
 // Initial load
 document.addEventListener('DOMContentLoaded', async function () {
     await loadUserBooks();
 });
+
 
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', async function() {
@@ -156,8 +213,11 @@ document.addEventListener('componentsLoaded', async function() {
         author: book.author || ''
     }));
     
-    SearchManager.init(searchableData, displayUserBooks);
+    if (window.SearchManager) {
+        SearchManager.init(searchableData, displayUserBooks);
+    }
 });
+
 
 /**
  * Load user books from backend or localStorage
@@ -183,6 +243,7 @@ async function loadUserBooks() {
         displayUserBooks([]);
     }
 }
+
 
 /**
  * Display books in grid
@@ -233,6 +294,7 @@ function displayUserBooks(books) {
     });
 }
 
+
 /**
  * Create a book card element
  */
@@ -240,7 +302,8 @@ function createBookCard(book) {
     const card = document.createElement('div');
     card.className = 'book-card';
 
-    const location = book.Location ? escapeHtml(book.Location) : "Benfica - Lisboa";
+    const location = book.Location ? escapeHtml(book.Location) : "Unknown Location";
+    const year = extractYear(book.PublicationDate);
 
     card.innerHTML = `
         <img src="${escapeHtml(book.Image_Path)}" 
@@ -250,7 +313,7 @@ function createBookCard(book) {
         <div class="book-info">
             <div class="book-title">${escapeHtml(book.Name)}</div>
             <div class="book-location">${location}</div>
-            <div class="book-date">${extractYear(book.PublicationDate)}</div>
+            <div class="book-date">${year}</div>
             <button class="edit-btn" onclick="editListing(${book.ListingID})">
                 Edit Listing
             </button>
@@ -260,6 +323,7 @@ function createBookCard(book) {
     return card;
 }
 
+
 /**
  * Edit listing
  */
@@ -267,6 +331,7 @@ function editListing(listingId) {
     console.log('Editing listing:', listingId);
     window.location.href = `editlisting.html?id=${listingId}`;
 }
+
 
 // Toast notification
 function showToast(message, type = 'success') {
@@ -288,26 +353,32 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
+
 // Navigation functions
 function goToHome() {
     window.location.href = 'home.html';
 }
 
+
 function goToAnnouncements() {
     window.location.href = 'announcements.html';
 }
+
 
 function goToFavorites() {
     window.location.href = 'favourites.html';
 }
 
+
 function goToMessages() {
     window.location.href = 'messages.html';
 }
 
+
 function goToProfile() {
     window.location.href = 'profile.html';
 }
+
 
 function goToAddListing() {
     console.log('Navigate to add listing page');
