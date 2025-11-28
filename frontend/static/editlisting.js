@@ -270,8 +270,7 @@ const api = {
 };
 
 // Get listing ID from URL
-const urlParams = new URLSearchParams(window.location.search);
-const listingId = parseInt(urlParams.get('id'));
+let listingId = null;
 
 // State management
 let book = null;
@@ -283,22 +282,30 @@ let deletedImageIds = [];
 document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
-        showToast('Please login to edit listings', 'error');
+        showToast('Please login to edit listing', 'error');
         setTimeout(() => window.location.href = '/login.html', 2000);
+        return;
+    }
+
+    // Get listing ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    listingId = urlParams.get('id');
+
+    if (!listingId) {
+        showToast('No listing ID provided', 'error');
+        setTimeout(() => window.location.href = '/announcements.html', 2000);
         return;
     }
 
     if (USE_MOCK_DATA) showMockModeIndicator();
 
-    if (!listingId || isNaN(listingId)) {
-        showToast('Invalid listing ID', 'error');
-        setTimeout(() => window.location.href = 'announcements.html', 2000);
-        return;
-    }
+    setupEventListeners();
+
+    // Load genres first, then listing details
+    await loadGenres();
 
     try {
         await fetchListingDetails(listingId);
-        setupEventListeners();
     } catch (error) {
         console.error('Error loading listing:', error);
         showToast('Failed to load listing details', 'error');
@@ -317,6 +324,73 @@ function showMockModeIndicator() {
         z-index: 10000; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     `;
     document.body.appendChild(indicator);
+}
+
+// Load available genres from backend
+async function loadGenres() {
+    const container = document.getElementById('availableGenres');
+
+    try {
+        let genres = [];
+
+        if (USE_MOCK_DATA) {
+            // Mock genres
+            genres = [
+                { GenreID: 1, GenreName: "Fantasy" },
+                { GenreID: 2, GenreName: "Science Fiction" },
+                { GenreID: 3, GenreName: "Mystery" },
+                { GenreID: 4, GenreName: "Thriller" },
+                { GenreID: 5, GenreName: "Romance" },
+                { GenreID: 6, GenreName: "Non-Fiction" },
+                { GenreID: 7, GenreName: "History" },
+                { GenreID: 8, GenreName: "Biography" },
+                { GenreID: 9, GenreName: "Horror" },
+                { GenreID: 10, GenreName: "Adventure" }
+            ];
+        } else {
+            // Fetch from backend
+            const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
+            if (response.ok) {
+                genres = await response.json();
+            } else {
+                console.error('Failed to fetch genres');
+                container.innerHTML = '<div class="error-message">Failed to load genres</div>';
+                return;
+            }
+        }
+
+        // Clear loading message
+        container.innerHTML = '';
+
+        if (genres.length === 0) {
+            container.innerHTML = '<div class="no-genres">No genres available</div>';
+            return;
+        }
+
+        // Create checkboxes
+        genres.forEach(genre => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'genre-checkbox-wrapper';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `genre-${genre.GenreID}`;
+            checkbox.value = genre.GenreName;
+            checkbox.name = 'genres';
+
+            const label = document.createElement('label');
+            label.htmlFor = `genre-${genre.GenreID}`;
+            label.textContent = genre.GenreName;
+
+            wrapper.appendChild(checkbox);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+        });
+
+    } catch (error) {
+        console.error('Error loading genres:', error);
+        container.innerHTML = '<div class="error-message">Error loading genres</div>';
+    }
 }
 
 // Fetch listing details including images
@@ -393,11 +467,23 @@ function loadListingDetailsIntoForm(book) {
     document.getElementById('bookLocation').value = book.Location || book.location || '';
 
     // Handle genres (could be array or string)
-    let genresValue = book.genres || '';
-    if (Array.isArray(genresValue)) {
-        genresValue = genresValue.join(', ');
+    let genresValue = book.genres || [];
+    if (typeof genresValue === 'string') {
+        genresValue = genresValue.split(',').map(g => g.trim());
     }
-    document.getElementById('bookGenres').value = genresValue;
+
+    // Check corresponding checkboxes
+    if (Array.isArray(genresValue)) {
+        genresValue.forEach(genreName => {
+            // Find checkbox with this value (case-insensitive)
+            const checkbox = Array.from(document.querySelectorAll('input[name="genres"]'))
+                .find(cb => cb.value.toLowerCase() === genreName.toLowerCase());
+
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    }
 
     document.getElementById('bookDescription').value = book.description || '';
     updateCharacterCount();
@@ -679,8 +765,10 @@ async function handleFormSubmit(event) {
         };
 
         // Get NEW values from form (not old book data!)
-        const genres = document.getElementById('bookGenres').value.trim();
-        const genresArray = toArray(genres);
+        // Collect selected genres
+        const selectedGenres = Array.from(document.querySelectorAll('input[name="genres"]:checked'))
+            .map(checkbox => checkbox.value);
+
         const author = document.getElementById('bookAuthor').value.trim();
         const authorsArray = toArray(author);
         const year = document.getElementById('bookYear').value.trim();
@@ -704,7 +792,7 @@ async function handleFormSubmit(event) {
                 AvgRating: 0,
                 Edition: 1,
                 Author: authorsArray,  // ✅ NEW value from form
-                Genre: genresArray      // ✅ NEW value from form
+                Genre: selectedGenres      // ✅ NEW value from form
             }
         };
 

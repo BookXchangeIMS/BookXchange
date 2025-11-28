@@ -142,7 +142,7 @@ const api = {
             });
 
             const responses = await Promise.all(uploadPromises);
-            
+
             // Check if all uploads succeeded
             for (const response of responses) {
                 if (!response.ok) {
@@ -199,7 +199,7 @@ let newImages = []; // [{file, preview, tempId}]
 document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
-        showToast('Please login to add listings', 'error');
+        showToast('Please login to add a listing', 'error');
         setTimeout(() => window.location.href = '/login.html', 2000);
         return;
     }
@@ -207,7 +207,75 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (USE_MOCK_DATA) showMockModeIndicator();
 
     setupEventListeners();
+    loadGenres(); // Load available genres
 });
+
+// Load available genres from backend
+async function loadGenres() {
+    const container = document.getElementById('availableGenres');
+
+    try {
+        let genres = [];
+
+        if (USE_MOCK_DATA) {
+            // Mock genres
+            genres = [
+                { GenreID: 1, GenreName: "Fantasy" },
+                { GenreID: 2, GenreName: "Science Fiction" },
+                { GenreID: 3, GenreName: "Mystery" },
+                { GenreID: 4, GenreName: "Thriller" },
+                { GenreID: 5, GenreName: "Romance" },
+                { GenreID: 6, GenreName: "Non-Fiction" },
+                { GenreID: 7, GenreName: "History" },
+                { GenreID: 8, GenreName: "Biography" },
+                { GenreID: 9, GenreName: "Horror" },
+                { GenreID: 10, GenreName: "Adventure" }
+            ];
+        } else {
+            // Fetch from backend
+            const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
+            if (response.ok) {
+                genres = await response.json();
+            } else {
+                console.error('Failed to fetch genres');
+                container.innerHTML = '<div class="error-message">Failed to load genres</div>';
+                return;
+            }
+        }
+
+        // Clear loading message
+        container.innerHTML = '';
+
+        if (genres.length === 0) {
+            container.innerHTML = '<div class="no-genres">No genres available</div>';
+            return;
+        }
+
+        // Create checkboxes
+        genres.forEach(genre => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'genre-checkbox-wrapper';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `genre-${genre.GenreID}`;
+            checkbox.value = genre.GenreName;
+            checkbox.name = 'genres';
+
+            const label = document.createElement('label');
+            label.htmlFor = `genre-${genre.GenreID}`;
+            label.textContent = genre.GenreName;
+
+            wrapper.appendChild(checkbox);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+        });
+
+    } catch (error) {
+        console.error('Error loading genres:', error);
+        container.innerHTML = '<div class="error-message">Error loading genres</div>';
+    }
+}
 
 
 function showMockModeIndicator() {
@@ -497,12 +565,14 @@ async function handleFormSubmit(event) {
         };
 
         // Prepare data matching PostListing model
-        const genres = document.getElementById('bookGenres').value.trim();
-        const genresArray = toArray(genres);
+        // Collect selected genres
+        const selectedGenres = Array.from(document.querySelectorAll('input[name="genres"]:checked'))
+            .map(checkbox => checkbox.value);
         const author = document.getElementById('bookAuthor').value.trim();
         const authorsArray = toArray(author);
         const year = document.getElementById('bookYear').value.trim();
 
+        // Prepare data matching PostListing model
         const newListingData = {
             ListingType: "Sale",
             Status: "Active",
@@ -518,7 +588,7 @@ async function handleFormSubmit(event) {
                 AvgRating: 0.0,
                 Edition: 1,
                 Author: authorsArray,
-                Genre: genresArray
+                Genre: selectedGenres // Use the collected array of selected genres
             }
         };
 
@@ -610,7 +680,18 @@ async function handleScanBook(event) {
                 }
             }
         }
-        if (data.Genre) document.getElementById('bookGenres').value = data.Genre;
+        if (data.Genre) {
+            // Uncheck all first
+            document.querySelectorAll('input[name="genres"]').forEach(cb => cb.checked = false);
+
+            // Check matching genres
+            const genres = Array.isArray(data.Genre) ? data.Genre : data.Genre.split(',').map(g => g.trim());
+            genres.forEach(genreName => {
+                const checkbox = Array.from(document.querySelectorAll('input[name="genres"]'))
+                    .find(cb => cb.value.toLowerCase() === genreName.toLowerCase());
+                if (checkbox) checkbox.checked = true;
+            });
+        }
         if (data.Year) document.getElementById('bookYear').value = data.Year;
         if (data.Description) document.getElementById('bookDescription').value = data.Description;
 

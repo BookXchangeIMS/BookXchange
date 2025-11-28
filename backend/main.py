@@ -1070,6 +1070,26 @@ async def delete_listing_image(photo_id: int, access_token: str = Header(None), 
     
     return Response(status_code=204)
 
+@app.get("/api/get_all_genres", status_code=status.HTTP_200_OK, tags=["Genres"])
+async def get_all_genres(db=Depends(get_db)):
+    """
+    Get all available genres from the database.
+    
+    Returns a list of all genre names that can be used when creating or editing listings.
+    This is useful for providing a predefined list of genres to users.
+    
+    :param db: Database session dependency
+    :return: List of genre objects with GenreID and GenreName
+    """
+    try:
+        genre_table = metadata.tables["Genres"]
+        stmt = genre_table.select().order_by(genre_table.c.GenreName)
+        result = db.execute(stmt)
+        genres = [{"GenreID": row.GenreID, "GenreName": row.GenreName} for row in result.fetchall()]
+        return genres
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch genres: {str(e)}")
+
 
 
 

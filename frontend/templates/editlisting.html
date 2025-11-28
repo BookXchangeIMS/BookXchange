@@ -11,7 +11,8 @@
 
 <body>
     <!-- Back Button -->
-    <button class="back-btn" onclick="if(confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) { window.location.href='announcements.html'; }">
+    <button class="back-btn"
+        onclick="if(confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) { window.location.href='announcements.html'; }">
         <i class="fas fa-arrow-left"></i>
     </button>
 
@@ -91,8 +92,13 @@
 
             <!-- Genres -->
             <div class="form-section">
-                <label for="bookGenres" class="form-label">Genres</label>
-                <input type="text" id="bookGenres" class="form-input" placeholder="e.g., Fantasy, Adventure">
+                <label class="form-label">Genres</label>
+                <div class="genre-selection-container">
+                    <div id="availableGenres" class="genre-checkboxes">
+                        <!-- Genres will be populated here via JavaScript -->
+                        <div class="loading-genres">Loading genres...</div>
+                    </div>
+                </div>
                 <p class="form-hint">Separate multiple genres with commas</p>
             </div>
 
@@ -106,7 +112,8 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button type="button" class="btn-secondary" onclick="if(confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) { window.location.href='announcements.html'; }">
+                <button type="button" class="btn-secondary"
+                    onclick="if(confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) { window.location.href='announcements.html'; }">
                     Cancel
                 </button>
                 <button type="button" class="btn-delete" onclick="confirmDelete()">
@@ -121,8 +128,8 @@
 
     <!-- Load mock data first, then the main script -->
     <!-- Load the main script -->
-<script src="../static/editlisting.js"></script>
-<script>src ="../static/api.js"</script>
+    <script src="../static/editlisting.js"></script>
+    <script>src = "../static/api.js"</script>
 
 </body>
 

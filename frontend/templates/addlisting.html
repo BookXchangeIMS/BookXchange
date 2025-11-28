@@ -101,8 +101,13 @@
 
             <!-- Genres -->
             <div class="form-section">
-                <label for="bookGenres" class="form-label">Genres</label>
-                <input type="text" id="bookGenres" class="form-input" placeholder="e.g., Fantasy, Adventure">
+                <label class="form-label">Genres</label>
+                <div class="genre-selection-container">
+                    <div id="availableGenres" class="genre-checkboxes">
+                        <!-- Genres will be populated here via JavaScript -->
+                        <div class="loading-genres">Loading genres...</div>
+                    </div>
+                </div>
                 <p class="form-hint">Separate multiple genres with commas</p>
             </div>
 
