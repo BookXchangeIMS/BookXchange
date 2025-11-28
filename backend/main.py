@@ -398,20 +398,9 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
         Address=listing_form.LocationAddress,
         Description="")
     new_locationid = post_location(new_location, db)
-    # Sanitize ISBN: Convert empty string to None
-    if listing_form.Book.ISBN is not None and len(listing_form.Book.ISBN.strip()) == 0:
-        listing_form.Book.ISBN = None
-
-    new_bookid = None
-    if listing_form.Book.ISBN:
-        new_bookid = get_bookid_by_isbn(listing_form.Book.ISBN, db)
-    
+    new_bookid = get_bookid_by_isbn(listing_form.Book.ISBN, db)
     if not new_bookid:
-        try:
-            new_bookid = get_bookid_by_book(listing_form.Book, db)
-        except HTTPException:
-            new_bookid = post_book(listing_form.Book, db)
-            
+        new_bookid = post_book(listing_form.Book, db)
     post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
     listingid = get_listingid_by_userid_and_bookit(userid, new_bookid, db)
     new_listing = get_listing_by_listingid(listingid, db)
@@ -679,44 +668,3 @@ async def scan_book(file: UploadFile = File(...), access_token: str = Header(Non
         raise HTTPException(status_code=500, detail=result["error"])
         
     return result
-
-
-@app.post("/api/listings/{listing_id}/upload-images", status_code=status.HTTP_201_CREATED, tags=["Listings"])
-async def upload_listing_images(listing_id: int, images: list[UploadFile] = File(...), access_token: str = Header(None), db=Depends(get_db)):
-    """
-    Uploads multiple images for a specific listing.
-    """
-    # Verify authentication and ownership
-    userid = get_userid_by_access_token(access_token, db)
-    if not userid:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    
-    listing = get_listing_by_listingid(listing_id, db)
-    if listing.User.UserID != userid:
-        raise HTTPException(status_code=403, detail="Not authorized to modify this listing")
-
-    uploaded_urls = []
-    
-    # Ensure upload directory exists
-    upload_dir = "backend/static/uploads"
-    os.makedirs(upload_dir, exist_ok=True)
-
-    for image in images:
-        # Generate unique filename
-        file_extension = os.path.splitext(image.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_path = os.path.join(upload_dir, unique_filename)
-        
-        # Save file
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-            
-        # Create relative URL (assuming backend is serving static files at /static)
-        # Note: In production, this should be a full URL or handled by a proxy
-        relative_path = f"static/uploads/{unique_filename}"
-        uploaded_urls.append(relative_path)
-        
-    # Save to database
-    post_listing_photos(listing_id, uploaded_urls, db)
-    
-    return {"imageUrls": uploaded_urls}

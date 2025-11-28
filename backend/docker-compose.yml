@@ -24,8 +24,7 @@ services:
       dockerfile: Dockerfile
     container_name: python_backend
     environment:
-      - DATABASE_URL=f"mssql+pyodbc://vertex:{Settings.SA_PASSWORD}@sqlserver2022.database.windows.net:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=no&Connection+Timeout=30"
-      
+      - DATABASE_URL=mssql+pyodbc://sa:${SA_PASSWORD:?errSA}@sqlserver2022:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no
     ports:
       - "8000:8000"
     volumes:
