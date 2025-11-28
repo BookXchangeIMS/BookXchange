@@ -2,12 +2,10 @@
 const API_BASE_URL = 'http://localhost:8000';
 const USE_MOCK_DATA = false; // Set to false to use backend
 
-
 // Token Management
 function getAccessToken() {
     return localStorage.getItem('access_token');
 }
-
 
 // Helper function to extract year from date string
 function extractYear(dateString) {
@@ -22,7 +20,6 @@ function extractYear(dateString) {
     return dateString; // Already just a year
 }
 
-
 // Helper function to format arrays as comma-separated strings
 function formatArray(arr) {
     if (!arr) return '';
@@ -31,7 +28,6 @@ function formatArray(arr) {
     }
     return arr;
 }
-
 
 // Initialize books in localStorage on first load (for mock mode only)
 function initializeBooksStorage() {
@@ -78,7 +74,6 @@ function initializeBooksStorage() {
     }
 }
 
-
 // Get books from localStorage (mock mode only)
 function getBooksFromStorage() {
     const stored = localStorage.getItem('MOCK_USER_BOOKS');
@@ -88,37 +83,6 @@ function getBooksFromStorage() {
     }
     return [];
 }
-
-
-// Fetch listing images from backend (returns blob URL for first image)
-async function fetchListingImage(listingId) {
-    try {
-        const accessToken = getAccessToken();
-        if (!accessToken) return null;
-
-        const response = await fetch(`${API_BASE_URL}/api/get_listings_pictures?listingid=${listingId}`, {
-            method: 'GET',
-            headers: {
-                'access-token': accessToken
-            }
-        });
-
-        if (!response.ok) {
-            console.warn(`No images found for listing ${listingId}`);
-            return null;
-        }
-
-        // Backend returns a ZIP file, we'll just use a placeholder for now
-        // In a real implementation, you'd want to unzip and get the first image
-        // For now, return null and use fallback image
-        return null;
-        
-    } catch (error) {
-        console.error(`Failed to fetch image for listing ${listingId}:`, error);
-        return null;
-    }
-}
-
 
 // Fetch listings from backend
 async function fetchListingsFromBackend() {
@@ -159,7 +123,7 @@ async function fetchListingsFromBackend() {
             return {
                 ListingID: listing.ListingID,
                 Name: listing.Book.Title,
-                Image_Path: "../static/resources/book-placeholder.png", // Use placeholder
+                Image_Path: "../static/resources/harrypotter.png",
                 PublicationDate: listing.Book.ReleaseDate,
                 Location: listing.Location.Address,
                 author: authors,
@@ -175,7 +139,6 @@ async function fetchListingsFromBackend() {
     }
 }
 
-
 // Simple HTML escaping function
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
@@ -187,20 +150,16 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-
 // Initialize storage (only used in mock mode)
 initializeBooksStorage();
 
-
 // DOM elements
 const userBooksGrid = document.getElementById('userBooksGrid');
-
 
 // Initial load
 document.addEventListener('DOMContentLoaded', async function () {
     await loadUserBooks();
 });
-
 
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', async function() {
@@ -217,7 +176,6 @@ document.addEventListener('componentsLoaded', async function() {
         SearchManager.init(searchableData, displayUserBooks);
     }
 });
-
 
 /**
  * Load user books from backend or localStorage
@@ -243,7 +201,6 @@ async function loadUserBooks() {
         displayUserBooks([]);
     }
 }
-
 
 /**
  * Display books in grid
@@ -294,7 +251,6 @@ function displayUserBooks(books) {
     });
 }
 
-
 /**
  * Create a book card element
  */
@@ -323,7 +279,6 @@ function createBookCard(book) {
     return card;
 }
 
-
 /**
  * Edit listing
  */
@@ -331,7 +286,6 @@ function editListing(listingId) {
     console.log('Editing listing:', listingId);
     window.location.href = `editlisting.html?id=${listingId}`;
 }
-
 
 // Toast notification
 function showToast(message, type = 'success') {
@@ -353,32 +307,26 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-
 // Navigation functions
 function goToHome() {
     window.location.href = 'home.html';
 }
 
-
 function goToAnnouncements() {
     window.location.href = 'announcements.html';
 }
-
 
 function goToFavorites() {
     window.location.href = 'favourites.html';
 }
 
-
 function goToMessages() {
     window.location.href = 'messages.html';
 }
 
-
 function goToProfile() {
     window.location.href = 'profile.html';
 }
-
 
 function goToAddListing() {
     console.log('Navigate to add listing page');

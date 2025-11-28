@@ -551,7 +551,7 @@ async function handleFormSubmit(event) {
         // Always redirect after a short delay
         console.log('🔄 Redirecting to announcements page...');
         setTimeout(() => {
-            window.location.href = 'announcements.html';
+            window.location.href = 'Announcements.html';
         }, 1000);
 
     } catch (error) {
