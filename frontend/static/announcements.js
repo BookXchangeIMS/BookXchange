@@ -150,9 +150,6 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// Initialize storage (only used in mock mode)
-initializeBooksStorage();
-
 // DOM elements
 const userBooksGrid = document.getElementById('userBooksGrid');
 

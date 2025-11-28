@@ -4,7 +4,7 @@ import zipfile
 from fastapi import FastAPI, Depends, Form, Header, UploadFile, File
 from typing import Annotated
 
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, Response
 
 from backend.scripts.auth import *
 from backend.scripts.image_management import *
@@ -909,6 +909,67 @@ async def get_listing_primary_image(listingid: int, access_token: str, db=Depend
     first_image_path = image_paths[0].ImagePath
     return FileResponse(path=first_image_path, media_type="image/jpeg")
 
+@app.get("/api/get_listing_images_urls", status_code=status.HTTP_200_OK, tags=["Images"])
+async def get_listing_images_urls(listingid: int, access_token: str, db=Depends(get_db)):
+    """
+    Get all image URLs for a listing.
+    
+    Returns a JSON array of image information including PhotoID and URL to access each image.
+    This is useful for frontend to display all images in a gallery or carousel.
+    
+    :param listingid: The unique identifier of the listing
+    :type listingid: int
+    :param access_token: Access token for authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: JSON array of image objects with PhotoID and URL
+    """
+    if not verify_access_token(access_token):
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    image_paths = get_listing_image_paths(listingid, db)
+    
+    # Build array of image URLs
+    images = []
+    for idx, img_row in enumerate(image_paths):
+        # For now, all images point to the primary endpoint
+        # In the future, you could create get_listing_image_by_photoid endpoint
+        images.append({
+            "photoId": img_row.PhotoID,
+            "imagePath": img_row.ImagePath,  # Direct file path
+            "imageUrl": f"/api/get_listing_image/{img_row.PhotoID}?access_token={access_token}",
+            "isPrimary": idx == 0  # First image is primary
+        })
+    
+    return images
+
+@app.get("/api/get_listing_image/{photo_id}", status_code=status.HTTP_200_OK, tags=["Images"])
+async def get_listing_image_by_photo_id(photo_id: int, access_token: str, db=Depends(get_db)):
+    """
+    Get a specific listing image by PhotoID.
+    
+    :param photo_id: The PhotoID from ListingPhoto table
+    :type photo_id: int
+    :param access_token: Access token for authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :return: FileResponse with the image file
+    """
+    if not verify_access_token(access_token):
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    # Get the image path from database
+    listingphoto = metadata.tables["ListingPhoto"]
+    stmt = listingphoto.select().where(listingphoto.c.PhotoID == photo_id)
+    result = db.execute(stmt).fetchone()
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    image_path = result.ImagePath
+    return FileResponse(path=image_path, media_type="image/jpeg")
+
 
 @app.post("/api/post_listings_picture", status_code=status.HTTP_200_OK, tags=["Images"])
 async def post_listings_picture(listingid: int, file: UploadFile = File(...), access_token: str = Header(None), db=Depends(get_db)):
@@ -966,6 +1027,48 @@ async def delete_listings_pictures(listingid: int, access_token: str = Header(No
         raise HTTPException(status_code=401, detail="User does not own this listing")
 
     return delete_listing_image_paths(listingid, db)
+
+@app.delete("/api/delete_listing_image/{photo_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Images"])
+async def delete_listing_image(photo_id: int, access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Delete a specific image by PhotoID.
+    
+    This endpoint allows authenticated users to delete a single image from their listing.
+    It validates ownership before deletion.
+    
+    :param photo_id: The PhotoID from ListingPhoto table
+    :type photo_id: int
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :return: 204 No Content on success
+    :raises HTTPException: If authentication fails or user doesn't own the listing
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    
+    # Get the image and verify ownership through listing
+    listingphoto = metadata.tables["ListingPhoto"]
+    stmt = listingphoto.select().where(listingphoto.c.PhotoID == photo_id)
+    photo_result = db.execute(stmt).fetchone()
+    
+    if not photo_result:
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    listing = get_listing_by_listingid(photo_result.ListingID, db)
+    if listing.UserID != userid:
+        raise HTTPException(status_code=401, detail="User does not own this listing")
+    
+    # Delete the image record
+    delete_stmt = listingphoto.delete().where(listingphoto.c.PhotoID == photo_id)
+    db.execute(delete_stmt)
+    db.commit()
+    
+    # Optionally: delete the actual image file from disk
+    # import os
+    # if os.path.exists(photo_result.ImagePath):
+    #     os.remove(photo_result.ImagePath)
+    
+    return Response(status_code=204)
 
 
 

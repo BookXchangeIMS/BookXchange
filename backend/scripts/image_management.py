@@ -253,7 +253,7 @@ def get_listing_image_paths(listingid, db):
     :raises HTTPException: If the specified listing's image paths are not found or an error occurs in the query.
     """
     listingphoto = metadata.tables["ListingPhoto"]
-    stmt = listingphoto.select().where(listingphoto.c.ListingID ==listingid)
+    stmt = listingphoto.select().where(listingphoto.c.ListingID ==listingid).order_by(listingphoto.c.PhotoID)
     try:
         result = db.execute(stmt)
         return result.fetchall()

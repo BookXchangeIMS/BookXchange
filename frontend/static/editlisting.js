@@ -108,9 +108,9 @@ const api = {
             }
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            
+
             const data = await response.json();
-            
+
             // Helper function to extract year from date string
             const extractYear = (dateString) => {
                 if (!dateString) return '';
@@ -119,7 +119,7 @@ const api = {
                 }
                 return dateString.split('-')[0];
             };
-            
+
             // Transform backend response to match frontend format
             return {
                 data: {
@@ -280,7 +280,7 @@ let newImages = []; // [{file, preview, tempId}]
 let deletedImageIds = [];
 
 // Initialize
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to edit listings', 'error');
@@ -330,16 +330,31 @@ async function fetchListingDetails(id) {
         console.log(JSON.stringify(book, null, 2));
         console.log('===================================');
 
-        // Load existing images (from ListingPhoto table)
-        existingImages = book.images || book.photos || [];
+        // Fetch ALL images from backend
+        try {
+            const accessToken = getAccessToken();
+            const imagesResponse = await fetch(`${API_BASE_URL}/api/get_listing_images_urls?listingid=${id}&access_token=${accessToken}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-        // For mock data, convert single Image_Path to array
-        if (!existingImages.length && book.Image_Path) {
-            existingImages = [{
-                photoId: 1,
-                imagePath: book.Image_Path,
-                isPrimary: true
-            }];
+            if (imagesResponse.ok) {
+                const imagesData = await imagesResponse.json();
+                // Convert to format expected by frontend
+                existingImages = imagesData.map(img => ({
+                    photoId: img.photoId,
+                    imagePath: `${API_BASE_URL}${img.imageUrl}`,
+                    isPrimary: img.isPrimary
+                }));
+            } else {
+                console.warn('No images found for this listing');
+                existingImages = [];
+            }
+        } catch (imgError) {
+            console.warn('Failed to load images:', imgError);
+            existingImages = [];
         }
 
         console.log('Loaded listing:', book);
@@ -357,33 +372,33 @@ async function fetchListingDetails(id) {
 // Load form fields
 function loadListingDetailsIntoForm(book) {
     document.getElementById('bookTitle').value = book.Name || book.title || '';
-    
+
     // Handle author (could be array or string)
     let authorValue = book.author || '';
     if (Array.isArray(authorValue)) {
         authorValue = authorValue.join(', ');
     }
     document.getElementById('bookAuthor').value = authorValue;
-    
+
     document.getElementById('bookPrice').value = book.price || '';
-    
+
     // Handle publication date - extract year only
     let year = book.PublicationDate || book.year || book.publication_year || book.releaseDate || '';
     if (year.includes('T') || year.includes('-')) {
         year = year.split('T')[0].split('-')[0];
     }
     document.getElementById('bookYear').value = year;
-    
+
     document.getElementById('bookCondition').value = book.BookCondition || '';
     document.getElementById('bookLocation').value = book.Location || book.location || '';
-    
+
     // Handle genres (could be array or string)
     let genresValue = book.genres || '';
     if (Array.isArray(genresValue)) {
         genresValue = genresValue.join(', ');
     }
     document.getElementById('bookGenres').value = genresValue;
-    
+
     document.getElementById('bookDescription').value = book.description || '';
     updateCharacterCount();
 }
@@ -702,18 +717,40 @@ async function handleFormSubmit(event) {
         const response = await api.put(`/api/listings/${listingId}`, updatedListingData);
 
         console.log('✅ Update response:', response);
-        
+
+        // Handle deleted images first
+        if (deletedImageIds.length > 0) {
+            try {
+                showToast(`Deleting ${deletedImageIds.length} image(s)...`, 'success');
+                for (const photoId of deletedImageIds) {
+                    const deleteResponse = await fetch(`${API_BASE_URL}/api/delete_listing_image/${photoId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'access-token': getAccessToken() || ''
+                        }
+                    });
+
+                    if (!deleteResponse.ok) {
+                        console.warn(`Failed to delete image ${photoId}`);
+                    }
+                }
+                console.log('✅ Images deleted successfully');
+            } catch (deleteError) {
+                console.warn('⚠️ Image deletion failed:', deleteError);
+            }
+        }
+
         // Handle new images if any
         if (newImages.length > 0) {
             try {
                 showToast(`Uploading ${newImages.length} image(s)...`, 'success');
                 const files = newImages.map(img => img.file);
-                
+
                 // Upload images one by one
                 for (let i = 0; i < files.length; i++) {
                     const formData = new FormData();
                     formData.append('file', files[i]);
-                    
+
                     const uploadResponse = await fetch(`${API_BASE_URL}/api/post_listings_picture?listingid=${listingId}`, {
                         method: 'POST',
                         headers: {
@@ -721,7 +758,7 @@ async function handleFormSubmit(event) {
                         },
                         body: formData
                     });
-                    
+
                     if (!uploadResponse.ok) {
                         console.warn(`Failed to upload image ${i + 1}`);
                     }
@@ -749,7 +786,7 @@ async function handleFormSubmit(event) {
 // Confirm delete
 async function confirmDelete() {
     console.log('confirmDelete called for listing:', listingId);
-    
+
     const confirmation = confirm('Are you sure you want to delete this listing? This action cannot be undone.');
     if (!confirmation) {
         console.log('User cancelled first confirmation');
