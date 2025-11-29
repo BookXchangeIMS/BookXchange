@@ -1,5 +1,8 @@
 from datetime import datetime
 from pydantic import BaseModel
+from fastapi import File
+from starlette.responses import FileResponse
+
 
 #==================================================================================
 # JWT MODELS
@@ -38,13 +41,11 @@ class SignUp(SignIn):
 
 class UpdateUser(BaseModel):
     Name: str
-    ProfileImagePath: str
     AboutMe: str
     LocationAddress: str
 
 class GetUser(BaseModel):
     Name: str
-    ProfileImagePath: str
     AboutMe: str
     UserID: int
     UserRole: str
@@ -54,92 +55,102 @@ class GetMyUser(GetUser):
     CreationDate: datetime
     Location: Location
 
-
-# Error log model
-class Error_Log(BaseModel):
-    LogID: int
-    UserID: int
-    Description: str
-    Type: int
-    LogDate: datetime
-
-# Genre model
-class Genre(BaseModel):
-    GenreID: int
-    GenreName: str
-
-# Authors model
-class Authors(BaseModel):
-    AuthorID: int
-    AuthorName: int
-
 # Book model
 class Book(BaseModel):
-    ISBN: int
-    AuthorID: int
+    BookID: int
     Title: str
-    Year: int
+    Language: str | None
+    ReleaseDate: datetime | None
+    ISBN: str | None
+    AvgRating: float | None
+    Edition: int | None
 
-# Book-genre model
-class Book_Genre(BaseModel):
-    GenreID: int
-    ISBN: int
+class PostBook(BaseModel):
+    Title: str
+    Author: list[str] = ["Anonymous"]
+    Genre: list[str] | None
+    AvgRating: float | None
+    Language: str | None
+    ReleaseDate: datetime | None
+    ISBN: str | None
+    Edition: int | None
 
-# Preferences model
-class Preferences(BaseModel):
-    GenreID: int
-    UserID: int
-
-# Notifications model
-class Notifications(BaseModel):
-    NotificationID: int
-    UserID: int
-    NotificationContent: str
-    Status: int
-
-# Image model
-class Image(BaseModel):
-    ImageID: int
-    Image_path: str
-    UploadedBy: int
-    UploadedAt: datetime
+class GetBook(BaseModel):
+    Title: str
+    Author: list[str] = ["Anonymous"]
+    Genre: list[str] | None
+    Language: str | None
+    AvgRating: float | None
+    ReleaseDate: datetime | None
+    ISBN: str | None
+    Edition: int | None
 
 # Listings model
-class ListingPost(BaseModel):
-    Location_ID: int
-    Item: Book
-    UserID: int
-    Image_Path: str
-    Type: str
-    Price: float
+class PostListing(BaseModel):
+    Book: PostBook
+    Description: str
+    Status: str
+    Price: float | None
+    ListingType: str
+    BookCondition: str | None
+    LocationAddress: str
 
-class Listings(ListingPost):
+class GetListing(BaseModel):
     ListingID: int
-    ListingState: int
-    DatePosted: datetime
+    Book: GetBook
+    User: GetUser
+    Description: str
+    Status: str
+    Price: float | None
+    ListingType: str
+    BookCondition: str | None
+    CreationDate: datetime
+    Location: Location
+    IsFavorite: bool
 
-# Messages model
-class MessagePost(BaseModel):
+class UpdateListing(BaseModel):
+    ListingID: int
+    Book: PostBook
+    Description: str
+    Status: str
+    Price: float | None
+    ListingType: str
+    BookCondition: str | None
+    LocationAddress: str
+
+# Chat Models
+
+class Message(BaseModel):
+    MessageID: int
     SenderID: int
+    ListingID: int
     ReceiverID: int
     Content: str
-    DateSent: datetime
+    SentDate: datetime = datetime.now()
 
-class Messages(MessagePost):
-    MessageID: int
-
-# Reports model
-class ReportPost(BaseModel):
-    Description: str
-    Category: str
+class PostMessage(BaseModel):
+    SenderID: int
     ListingID: int
+    ReceiverID: int
+    Content: str
+    SentDate: datetime = datetime.now()
+
+# Chat Models
+class GetMessage(BaseModel):
+    MessageID: int
+    SenderID: int
+    ListingID: int
+    ReceiverID: int
+    Content: str
+    SentDate: datetime
+
+class GetDialogue(BaseModel):
+    Messages: list[GetMessage]
+
+class GetDialogues(BaseModel):
     UserID: int
-    ReportedUserID: int
-    CreatedAt: datetime
-
-class Reports(ReportPost):
-    ReportID: int
-
+    ListingID: int
+    LastMessage: GetMessage
 
 
 

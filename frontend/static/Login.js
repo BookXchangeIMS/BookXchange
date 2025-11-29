@@ -3,11 +3,10 @@ async function handleLogin(event) {
 
     const email = event.target[0].value;
     const password = event.target[1].value;
-    const submitButton = event.target.querySelector('button[type="submit"]');
 
-    // Disable button and show loading
-    submitButton.disabled = true;
-    submitButton.textContent = 'Logging in...';
+
+
+
 
     try {
         // Call backend API

@@ -1,6 +1,13 @@
 function handleRegistration2(event) {
     event.preventDefault();
-    
+
+    const dob = event.target[0].value;
+    const location = event.target[1].value.trim();
+
+    // Save to localStorage
+    localStorage.setItem('reg_dob', dob);
+    localStorage.setItem('reg_location', location);
+
     // Navigate to registration3.html
     window.location.href = 'registration3.html';
 }
@@ -14,12 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateInput = document.querySelector('.date-input');
     const today = new Date().toISOString().split('T')[0];
     dateInput.setAttribute('max', today);
-    
+
     // Add fade-in animation
     const container = document.querySelector('.container');
     container.style.opacity = '0';
     container.style.transform = 'translateY(20px)';
-    
+
     setTimeout(() => {
         container.style.transition = 'all 0.6s ease';
         container.style.opacity = '1';
