@@ -186,7 +186,6 @@ async function loadUserBooks() {
             books = getBooksFromStorage();
         } else {
             // Fetch from backend
-            showToast('Loading your listings...', 'success');
             books = await fetchListingsFromBackend();
         }
 

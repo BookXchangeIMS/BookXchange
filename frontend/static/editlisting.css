@@ -686,6 +686,139 @@ main {
 }
 
 /* ===========================
+   MODAL STYLES
+   =========================== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-container {
+    background: linear-gradient(135deg, #fff 0%, #fef9f3 100%);
+    border-radius: 25px;
+    padding: 40px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUpModal 0.3s ease;
+    border: 2px solid #c84c3d;
+}
+
+.modal-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    box-shadow: 0 8px 16px rgba(231, 76, 60, 0.3);
+}
+
+.modal-icon i {
+    font-size: 32px;
+    color: white;
+}
+
+.modal-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.modal-message {
+    font-size: 15px;
+    color: #666;
+    text-align: center;
+    line-height: 1.8;
+    margin-bottom: 32px;
+}
+
+.modal-message strong {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 14px 32px;
+    border-radius: 9999px;
+    border: none;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+}
+
+.cancel-modal-btn {
+    background: white;
+    color: #2c3e50;
+    border: 2px solid rgba(200, 76, 61, 0.3);
+}
+
+.cancel-modal-btn:hover {
+    border-color: #c84c3d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(200, 76, 61, 0.2);
+}
+
+.confirm-modal-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.confirm-modal-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUpModal {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ===========================
    RESPONSIVE DESIGN
    =========================== */
 

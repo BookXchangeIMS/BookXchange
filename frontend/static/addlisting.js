@@ -630,8 +630,6 @@ async function handleFormSubmit(event) {
         console.log(JSON.stringify(newListingData, null, 2));
         console.log('==========================');
 
-        showToast('Creating listing...', 'success');
-
         const createResponse = await api.post('/api/post_listing', newListingData);
         const listingId = createResponse.ListingID;
 
@@ -640,7 +638,6 @@ async function handleFormSubmit(event) {
         // 2. Upload images (but don't let failures stop the redirect)
         if (newImages.length > 0 && listingId) {
             try {
-                showToast(`Uploading ${newImages.length} image(s)...`, 'success');
                 const files = newImages.map(img => img.file);
                 await api.uploadImages(listingId, files);
                 console.log('✅ Images uploaded successfully');
@@ -687,7 +684,6 @@ async function handleScanBook(event) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
 
     try {
-        showToast('Analyzing book cover...', 'success');
 
         const formData = new FormData();
         formData.append('file', file);
@@ -747,19 +743,21 @@ async function handleScanBook(event) {
 }
 
 
-// Confirm cancel
-function confirmCancel() {
-    if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
-        window.location.href = 'announcements.html';
-    }
+// Show cancel confirmation modal
+function showCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    modal.classList.add('active');
 }
 
+// Close cancel modal
+function closeCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    modal.classList.remove('active');
+}
 
-// Go back
-function goBack() {
-    if (confirm('Are you sure you want to go back? All entered data will be lost.')) {
-        window.history.back();
-    }
+// Confirm cancel and redirect
+function confirmCancel() {
+    window.location.href = 'announcements.html';
 }
 
 

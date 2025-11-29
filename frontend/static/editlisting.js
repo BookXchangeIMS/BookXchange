@@ -396,7 +396,6 @@ async function loadGenres() {
 // Fetch listing details including images
 async function fetchListingDetails(id) {
     try {
-        showToast('Loading listing details...', 'success');
         const response = await api.get(`/api/listings/${id}`);
         book = response.data || response;
 
@@ -800,8 +799,6 @@ async function handleFormSubmit(event) {
         console.log(JSON.stringify(updatedListingData, null, 2));
         console.log('======================================');
 
-        showToast('Updating listing...', 'success');
-
         const response = await api.put(`/api/listings/${listingId}`, updatedListingData);
 
         console.log('✅ Update response:', response);
@@ -809,7 +806,6 @@ async function handleFormSubmit(event) {
         // Handle deleted images first
         if (deletedImageIds.length > 0) {
             try {
-                showToast(`Deleting ${deletedImageIds.length} image(s)...`, 'success');
                 for (const photoId of deletedImageIds) {
                     const deleteResponse = await fetch(`${API_BASE_URL}/api/delete_listing_image/${photoId}`, {
                         method: 'DELETE',
@@ -831,7 +827,6 @@ async function handleFormSubmit(event) {
         // Handle new images if any
         if (newImages.length > 0) {
             try {
-                showToast(`Uploading ${newImages.length} image(s)...`, 'success');
                 const files = newImages.map(img => img.file);
 
                 // Upload images one by one
@@ -942,3 +937,20 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Show cancel confirmation modal
+function showCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    modal.classList.add('active');
+}
+
+// Close cancel modal
+function closeCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    modal.classList.remove('active');
+}
+
+// Confirm cancel and redirect
+function confirmCancelEdit() {
+    window.location.href = 'announcements.html';
+}
