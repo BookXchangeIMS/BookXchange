@@ -1,5 +1,69 @@
+// Sample book data (in a real app, this would come from a database)
+const bookData = [
+    {
+        id: 101,
+        title: "Harry Potter and the Sorcerer's Stone",
+        author: "J.K. Rowling",
+        price: "$18.25",
+        location: "Lisbon, Portugal",
+        date: "Posted 1 day ago",
+        isFavorite: false,
+        imagePath: "../static/resources/harrypotter.png"
+    },
+    {
+        id: 102,
+        title: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
+        author: "J.R.R. Tolkien",
+        price: "$45.00",
+        location: "Lisbon, Portugal",
+        date: "Posted 3 days ago",
+        isFavorite: true,
+        imagePath: "../static/resources/lotr.png"
+    },
+    {
+        id: 103,
+        title: "Sapiens: A Brief History of Humankind",
+        author: "Yuval Noah Harari",
+        price: "$15.00",
+        location: "Lisbon, Portugal",
+        date: "Posted 1 week ago",
+        isFavorite: false,
+        imagePath: "../static/resources/sapiens.png"
+    },
+    {
+        id: 1,
+        title: "The Great Gatsby",
+        author: "F. Scott Fitzgerald",
+        price: "$12.99",
+        location: "New York, NY",
+        date: "Posted 2 days ago",
+        isFavorite: false,
+        imagePath: "../static/resources/gatsby.jpg"
+    },
+    {
+        id: 2,
+        title: "To Kill a Mockingbird",
+        author: "Harper Lee",
+        price: "$14.50",
+        location: "Chicago, IL",
+        date: "Posted 1 week ago",
+        isFavorite: true,
+        imagePath: "../static/resources/mockingbird.png"
+    },
+    {
+        id: 3,
+        title: "1984",
+        author: "George Orwell",
+        price: "$10.99",
+        location: "Boston, MA",
+        date: "Posted 3 days ago",
+        isFavorite: false,
+        imagePath: "../static/resources/1984.png"
+    }
+];
+
 // Initialize the page
-document.addEventListener('DOMContentLoaded', async function () {
+document.addEventListener('DOMContentLoaded', function () {
     // Check if api.js is properly loaded
     if (typeof isLoggedIn === 'undefined') {
         console.error('api.js not loaded properly. Token management functions are missing.');
@@ -13,28 +77,17 @@ document.addEventListener('DOMContentLoaded', async function () {
         return;
     }
 
-    // If logged in, proceed to load books from backend
-    try {
-        const books = await getBooks(); // Fetch from backend API
-        loadBooks(books);
-        hideSkeletonAndShowBooks();
-    } catch (error) {
-        console.error('Failed to load books:', error);
-        showError('Failed to load books from server.');
-    }
+    // If logged in, proceed to load books
+    hideSkeletonAndShowBooks();
 });
-
 
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function () {
     // Pass bookData and loadBooks callback to SearchManager
     if (window.SearchManager && typeof SearchManager.init === 'function') {
-        // SearchManager will be initialized with empty array first,
-        // then updated when books are loaded
-        SearchManager.init([], loadBooks);
+        SearchManager.init(bookData, loadBooks);
     }
 });
-
 
 // Hide skeleton and show books with animation
 function hideSkeletonAndShowBooks() {
@@ -47,6 +100,7 @@ function hideSkeletonAndShowBooks() {
 
     if (booksGrid) {
         booksGrid.style.display = 'grid';
+        loadBooks(bookData);
 
         // Add stagger animation to cards
         const cards = booksGrid.querySelectorAll('.book-card');
@@ -66,7 +120,6 @@ function hideSkeletonAndShowBooks() {
     }
 }
 
-
 // Load books into the grid
 function loadBooks(books) {
     const booksGrid = document.getElementById('booksGrid');
@@ -84,7 +137,6 @@ function loadBooks(books) {
         booksGrid.appendChild(bookCard);
     });
 }
-
 
 // Create a book card element
 function createBookCard(book) {
@@ -115,14 +167,14 @@ function createBookCard(book) {
     return card;
 }
 
-
 // Toggle favorite status
 function toggleFavorite(bookId) {
-    // TODO: Update to make API call to backend to persist favorite status
-    console.log('Toggle favorite for book ID:', bookId);
-    // For now, just log the action since we're fetching from backend
+    const book = bookData.find(b => b.id === bookId);
+    if (book) {
+        book.isFavorite = !book.isFavorite;
+        loadBooks(bookData);
+    }
 }
-
 
 // View book details
 function viewBookDetails(bookId) {
@@ -130,12 +182,10 @@ function viewBookDetails(bookId) {
     window.location.href = `listing.html?id=${bookId}`;
 }
 
-
 // Contact seller
 function contactSeller(bookId) {
     window.location.href = `messages.html?bookId=${bookId}`;
 }
-
 
 // Show error message
 function showError(message) {
@@ -144,6 +194,5 @@ function showError(message) {
         booksGrid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #c84c3d;">${message}</p>`;
     }
 }
-
 
 // Navigation functions are now handled in include.js

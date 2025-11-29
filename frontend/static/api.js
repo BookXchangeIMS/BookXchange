@@ -1,7 +1,6 @@
 // API Client for Login/Logout - BookXchange
 const API_BASE_URL = 'http://localhost:8000';
 
-
 // ============================================
 // LOGIN
 // ============================================
@@ -11,18 +10,15 @@ async function signIn(email, password) {
         formData.append('Email', email);
         formData.append('PasswordHash', password);
 
-
         const response = await fetch(`${API_BASE_URL}/api/sign_in`, {
             method: 'POST',
             body: formData
         });
 
-
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.detail || `Login failed with status: ${response.status}`);
         }
-
 
         return await response.json();
     } catch (error) {
@@ -30,7 +26,6 @@ async function signIn(email, password) {
         throw error;
     }
 }
-
 
 // ============================================
 // LOGOUT
@@ -45,11 +40,9 @@ async function logout(accessToken, refreshToken) {
             }
         });
 
-
         if (!response.ok) {
             throw new Error(`Logout failed with status: ${response.status}`);
         }
-
 
         // Clear tokens regardless of server response success
         clearTokens();
@@ -61,7 +54,6 @@ async function logout(accessToken, refreshToken) {
         throw error;
     }
 }
-
 
 // ============================================
 // TOKEN MANAGEMENT
@@ -76,7 +68,6 @@ function saveTokens(accessToken, refreshToken) {
     }
 }
 
-
 function getAccessToken() {
     try {
         return localStorage.getItem('access_token');
@@ -85,7 +76,6 @@ function getAccessToken() {
         return null;
     }
 }
-
 
 function getRefreshToken() {
     try {
@@ -96,7 +86,6 @@ function getRefreshToken() {
     }
 }
 
-
 function clearTokens() {
     try {
         localStorage.removeItem('access_token');
@@ -106,12 +95,10 @@ function clearTokens() {
     }
 }
 
-
 function isLoggedIn() {
     const token = getAccessToken();
     return !!token && token.length > 0;
 }
-
 
 // Optional: Add token refresh functionality
 async function refreshToken() {
@@ -121,7 +108,6 @@ async function refreshToken() {
             throw new Error('No refresh token available');
         }
 
-
         const response = await fetch(`${API_BASE_URL}/api/refresh`, {
             method: 'POST',
             headers: {
@@ -129,11 +115,9 @@ async function refreshToken() {
             }
         });
 
-
         if (!response.ok) {
             throw new Error('Token refresh failed');
         }
-
 
         const data = await response.json();
         saveTokens(data.access_token, refreshToken);
@@ -143,31 +127,5 @@ async function refreshToken() {
         clearTokens();
         window.location.href = 'Login.html';
         throw error;
-    }
-}
-
-
-// ============================================
-// GET BOOKS (NEW)
-// ============================================
-async function getBooks() {
-    try {
-        const accessToken = getAccessToken();
-        const response = await fetch(`${API_BASE_URL}/api/get_books`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(accessToken && { 'access_token': accessToken })
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch books');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching books:', error);
-        return [];
     }
 }
