@@ -208,7 +208,41 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     setupEventListeners();
     loadGenres(); // Load available genres
+    loadUserLocation(); // Pre-fill user's location
 });
+
+// Load user's location from profile
+async function loadUserLocation() {
+    try {
+        if (USE_MOCK_DATA) {
+            // Mock location
+            document.getElementById('bookLocation').value = 'Lisbon, Portugal';
+            return;
+        }
+
+        const accessToken = getAccessToken();
+        if (!accessToken) return;
+
+        // Fetch user profile using get_your_profile endpoint
+        const response = await fetch(`${API_BASE_URL}/api/get_your_profile`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'access-token': accessToken
+            }
+        });
+
+        if (response.ok) {
+            const userData = await response.json();
+            if (userData.Location && userData.Location.Address) {
+                document.getElementById('bookLocation').value = userData.Location.Address;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user location:', error);
+        // Silently fail - user can still enter location manually
+    }
+}
 
 // Load available genres from backend
 async function loadGenres() {
