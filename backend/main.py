@@ -1,12 +1,15 @@
+import asyncio
 from http import HTTPStatus
 import zipfile
 
-from fastapi import FastAPI, Depends, Form, Header, UploadFile, File
-from typing import Annotated
+from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status
+from collections import defaultdict
+from typing import Annotated, Dict, Set
 
 from starlette.responses import FileResponse
 
 from backend.scripts.auth import *
+from backend.scripts.chat_crud import *
 from backend.scripts.image_management import *
 from backend.scripts.profile_crud import *
 from backend.config.db import get_db
@@ -39,6 +42,10 @@ tags_metadata = [
     {
         "name": "Images",
         "description": "Operations concerned with Image files",
+    },
+    {
+        "name": "Messages",
+        "description": "Operations concerned with sending and seeing messages",
     },
 ]
 app = FastAPI(openapi_tags=tags_metadata)
@@ -922,12 +929,6 @@ async def delete_listings_pictures(listingid: int, access_token: str = Header(No
     return delete_listing_image_paths(listingid, db)
 
 
-
-
-
-
-
-
 # ===================================================================================================================
 # AI Services
 # ===================================================================================================================
@@ -944,11 +945,387 @@ async def scan_book(file: UploadFile = File(...), access_token: str = Header(Non
 
     # Read image file
     contents = await file.read()
-    
+
     # Analyze image
     result = analyze_book_image(contents)
-    
+
     if "error" in result:
         raise HTTPException(status_code=500, detail=result["error"])
-        
+
     return result
+
+# ===================================================================================================================
+# MESSAGES ENDPOINTS
+# ===================================================================================================================
+@app.get("/api/get_message", response_model=GetMessage, status_code=status.HTTP_200_OK, tags=["Messages"])
+async def get_message(messageid: int, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Retrieve a specific message by its ID.
+
+    This endpoint allows authenticated users to retrieve a message by its unique identifier.
+    The function verifies the user's access token and checks if they are either the sender
+    or receiver of the message before returning the message details.
+
+    :param messageid: The unique identifier of the message to retrieve
+    :type messageid: int
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: Message details including sender and receiver information
+    :rtype: GetMessage
+    :raises HTTPException: If authentication fails or message doesn't exist
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    message = get_message_by_id(messageid, db)
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    if message.SenderID != userid and message.ReceiverID != userid:
+        raise HTTPException(status_code=403, detail="Unauthorized to view this message")
+
+    sender = get_user_by_id(message.SenderID, db)
+    receiver = get_user_by_id(message.ReceiverID, db)
+    listing = get_listing_by_listingid(message.ListingID, db)
+
+    return GetMessage(
+        MessageID=message.MessageID,
+        Content=message.Content,
+        SentDate=message.SentDate,
+        SenderID=sender.UserID,
+        ReceiverID=receiver.UserID,
+        ListingID=listing.ListingID
+    )
+
+@app.get("/api/get_dialogue", response_model=GetDialogue, status_code=status.HTTP_200_OK, tags=["Messages"])
+async def get_dialogue(userid: int, listingid: int, access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Retrieve a dialogue (conversation) between two users about a specific listing.
+
+    This endpoint allows authenticated users to retrieve the conversation history between
+    themselves and another user regarding a specific listing. The function verifies the
+    user's access token and ensures they are part of the conversation before returning
+    the message history.
+
+    :param userid: The ID of the other user in the conversation
+    :type userid: int
+    :param listingid: The ID of the listing the conversation is about
+    :type listingid: int
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: Dialogue details including participants and message history
+    :rtype: GetDialogue
+    :raises HTTPException: If authentication fails or dialogue doesn't exist
+    """
+    current_userid = get_userid_by_access_token(access_token, db)
+    if not current_userid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    messages = get_messages_between_users(current_userid, userid, listingid, db)
+    if not messages:
+        raise HTTPException(status_code=404, detail="No messages found")
+
+    message_list = []
+    for msg in messages:
+        message_list.append(GetMessage(
+            MessageID=msg.MessageID,
+            Content=msg.Content,
+            SentDate=msg.SentDate,
+            SenderID=msg.SenderID,
+            ReceiverID=msg.ReceiverID,
+            ListingID=msg.ListingID
+        ))
+
+    return GetDialogue(
+        Messages=message_list
+    )
+
+@app.get("/api/get_dialogues", response_model=list[GetDialogues], status_code=status.HTTP_200_OK, tags=["Messages"])
+async def get_dialogues(access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Handles the endpoint for retrieving user dialogues. 
+
+    This endpoint fetches the list of dialogues for the user identified with the 
+    given access token. Each dialogue includes the user involved, the associated 
+    listing, and the details of the last message exchanged. An HTTP exception is 
+    raised if the access token is invalid or if no dialogues exist for the user.
+
+    :param access_token: The access token identifying the user.
+    :param db: The database connection dependency.
+    :return: A list of dialogues including the associated user, listing, and 
+        last message.
+    """
+    current_userid = get_userid_by_access_token(access_token, db)
+    if not current_userid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    dialogues = get_all_user_dialogues(current_userid, db)
+    if not dialogues:
+        raise HTTPException(status_code=404, detail="No dialogues found")
+
+    dialogue_list = []
+    for dialogue in dialogues:
+        if dialogue.SenderID == current_userid:
+            dialogue_list.append(
+                GetDialogues(
+                    UserID=dialogue.ReceiverID,
+                    ListingID=dialogue.ListingID,
+                    LastMessage=GetMessage(
+                        MessageID=dialogue.MessageID,
+                        Content=dialogue.Content,
+                        SentDate=dialogue.SentDate,
+                        SenderID=dialogue.SenderID,
+                        ListingID=dialogue.ListingID,
+                        ReceiverID=dialogue.ReceiverID,
+                    )
+                )
+            )
+        else:
+            dialogue_list.append(
+                GetDialogues(
+                    UserID=dialogue.SenderID,
+                    ListingID=dialogue.ListingID,
+                    LastMessage=GetMessage(
+                        MessageID=dialogue.MessageID,
+                        Content=dialogue.Content,
+                        SentDate=dialogue.SentDate,
+                        SenderID=dialogue.SenderID,
+                        ListingID=dialogue.ListingID,
+                        ReceiverID=dialogue.ReceiverID,
+                    )
+                )
+            )
+    return dialogue_list
+
+@app.post("/api/post_message", status_code=status.HTTP_200_OK, tags=["Messages"])
+async def post_message(receiverid: int, listingid: int, content: str, access_token: str = Header(None),
+                       db=Depends(get_db)):
+    """
+    Create and send a new message to another user regarding a specific listing.
+
+    This endpoint allows authenticated users to send messages to other users about
+    specific listings. The function verifies the validity of the receiver ID and
+    listing ID before creating the message.
+
+    :param receiverid: The ID of the user who will receive the message
+    :type receiverid: int
+    :param listingid: The ID of the listing the message is about
+    :type listingid: int
+    :param content: The content of the message
+    :type content: str
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: Success status of message creation
+    :rtype: dict
+    :raises HTTPException: If authentication fails or parameters are invalid
+    """
+    senderid = get_userid_by_access_token(access_token, db)
+    if not senderid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    if not get_user_by_id(receiverid, db):
+        raise HTTPException(status_code=404, detail="Receiver not found")
+
+    if not get_listing_by_listingid(listingid, db):
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if senderid == receiverid:
+        raise HTTPException(status_code=400, detail="Cannot send message to yourself")
+
+    if not content or len(content.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Message content cannot be empty")
+
+    return post_new_message(senderid, receiverid, listingid, content, db)
+
+
+@app.delete("/api/delete_message", status_code=status.HTTP_204_NO_CONTENT, tags=["Messages"])
+async def delete_message(messageid: int, access_token: str = Header(None), db= Depends(get_db)):
+    """
+    Delete a specific message by its ID.
+
+    This endpoint allows authenticated users to delete a message. The function verifies
+    that the user is either the sender or receiver of the message before deletion.
+
+    :param messageid: The unique identifier of the message to delete
+    :type messageid: int
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :raises HTTPException: If authentication fails or message doesn't exist
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    message = get_message_by_id(messageid, db)
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    if message.SenderID != userid:
+        raise HTTPException(status_code=403, detail="Unauthorized to delete this message")
+
+    return delete_message_by_id(messageid, db)
+
+# Connection manager to track websockets per user
+class ConnectionManager:
+    def __init__(self):
+        # user_id -> set of websockets
+        self.active_connections: Dict[int, Set[WebSocket]] = defaultdict(set)
+        self.lock = asyncio.Lock()
+
+    async def connect(self, user_id: int, websocket: WebSocket):
+        await websocket.accept()
+        async with self.lock:
+            self.active_connections[user_id].add(websocket)
+
+    async def disconnect(self, user_id: int, websocket: WebSocket):
+        async with self.lock:
+            sockets = self.active_connections.get(user_id)
+            if not sockets:
+                return
+            sockets.discard(websocket)
+            if len(sockets) == 0:
+                del self.active_connections[user_id]
+
+    async def send_personal_message(self, websocket: WebSocket, message: dict):
+        # sends to one websocket
+        await websocket.send_json(message)
+
+    async def send_to_user(self, user_id: int, message: dict):
+        # send to all open sockets of the user
+        async with self.lock:
+            sockets = list(self.active_connections.get(user_id, []))
+        for ws in sockets:
+            try:
+                await ws.send_json(message)
+            except Exception:
+                # ignore client errors; client-side cleanup will happen on disconnect
+                pass
+
+manager = ConnectionManager()
+
+# WebSocket endpoint
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket, token: str = "", db=Depends(get_db)):
+    """
+    WebSocket connection:
+      - Authenticate: token can be provided as a query param `?token=...`
+        or client can set header `Authorization: Bearer <token>` (WebSocket libs
+        vary on header support; query param is most-compatible).
+      - After connect, client sends JSON messages in the shape:
+          { "receiverid": 123, "listingid": 55, "content": "Hello!" }
+      - Server validates, persists (using post_new_message), and forwards to receiver if online.
+    """
+    # --- Authenticate the user ---
+    # Try token param first, otherwise check Authorization header
+    if not token:
+        token = websocket.query_params.get("token") or websocket.headers.get("authorization") or ""
+        # if header like "Bearer <token>"
+        if token.lower().startswith("bearer "):
+            token = token.split(" ", 1)[1]
+
+    # verify token / get userid; reuse your function
+    try:
+        current_userid = get_userid_by_access_token(token, db)
+    except Exception:
+        current_userid = None
+
+    if not current_userid:
+        # reject connection with HTTP 401-like close code
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    # register connection
+    await manager.connect(current_userid, websocket)
+
+    try:
+        while True:
+            # Expect JSON text frames
+            data = await websocket.receive_json()
+
+            # Basic JSON validation / rate limits should be done by client & server
+            # required fields: receiverid, listingid, content
+            receiverid = data.get("receiverid")
+            listingid = data.get("listingid")
+            content = data.get("content")
+
+            # validate basic inputs
+            if not receiverid or not listingid or not content or not content.strip():
+                # send error back to sender
+                await manager.send_personal_message(websocket, {
+                    "type": "error",
+                    "error": "Missing required fields or empty content"
+                })
+                continue
+
+            # disallow self-messaging
+            if receiverid == current_userid:
+                await manager.send_personal_message(websocket, {
+                    "type": "error",
+                    "error": "Cannot send message to yourself"
+                })
+                continue
+
+            # verify receiver exists and listing exists (use your existing helpers)
+            if not get_user_by_id(receiverid, db):
+                await manager.send_personal_message(websocket, {
+                    "type": "error",
+                    "error": "Receiver not found"
+                })
+                continue
+
+            if not get_listing_by_listingid(listingid, db):
+                await manager.send_personal_message(websocket, {
+                    "type": "error",
+                    "error": "Listing not found"
+                })
+                continue
+
+            # Persist message to DB using your post_new_message (same logic as REST)
+            try:
+                # post_new_message returns the created row or id in your setup (used by REST)
+                # keep behavior the same as your POST endpoint
+                saved = post_new_message(current_userid, receiverid, listingid, content, db)
+            except Exception as e:
+                await manager.send_personal_message(websocket, {
+                    "type": "error",
+                    "error": "Failed to save message",
+                    "detail": str(e)
+                })
+                continue
+
+            # Build outgoing message payload. Include DB-generated fields if available.
+            # Try to be consistent with your GetMessage schema (MessageID, Content, SentDate, SenderID, ReceiverID, ListingID)
+            outgoing = {
+                "type": "message",
+                "message": {
+                    "MessageID": getattr(saved, "MessageID", None) or saved.get("MessageID", None) if isinstance(saved, dict) else None,
+                    "Content": content,
+                    "SentDate": getattr(saved, "SentDate", None) or saved.get("SentDate", None) if isinstance(saved, dict) else None,
+                    "SenderID": current_userid,
+                    "ReceiverID": receiverid,
+                    "ListingID": listingid
+                }
+            }
+
+            # send to receiver if online
+            await manager.send_to_user(receiverid, outgoing)
+
+            # send ack back to sender (so their UI can render the message as 'sent' + id/timestamp)
+            await manager.send_personal_message(websocket, {"type": "ack", "message": outgoing["message"]})
+
+    except WebSocketDisconnect:
+        # client disconnected
+        await manager.disconnect(current_userid, websocket)
+    except Exception:
+        # ensure remove on any error
+        await manager.disconnect(current_userid, websocket)
+        raise
