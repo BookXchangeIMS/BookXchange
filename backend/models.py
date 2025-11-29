@@ -152,6 +152,27 @@ class GetDialogues(BaseModel):
     ListingID: int
     LastMessage: GetMessage
 
+# Transaction models
+class Transaction(BaseModel):
+    TransactionID: int
+    ListingID: int
+    BuyerID: int
+    TransactionDate: datetime = datetime.now()
+    TransactionStatus: int = 0
+
+class PostTransaction(BaseModel):
+    ListingID: int
+    BuyerID: int
+
+class SubmitHandshake(BaseModel):
+    ListingID: int
+
+class GetTransaction(BaseModel):
+    TransactionID: int
+    Listing: GetListing
+    Buyer: GetUser
+    TransactionDate: datetime
+    TransactionStatus: int
 
 
 

@@ -17,6 +17,7 @@ from backend.scripts.location_scripts import *
 from backend.scripts.listings_crud import *
 from backend.scripts.ai_service import analyze_book_image
 from fastapi import UploadFile, File
+from backend.scripts.transactions_crud import *
 
 tags_metadata = [
     {
@@ -46,6 +47,14 @@ tags_metadata = [
     {
         "name": "Messages",
         "description": "Operations concerned with sending and seeing messages",
+    },
+    {
+        "name": "Handshakes",
+        "description": "Operations concerned with confirmation of transactions",
+    },
+    {
+        "name": "Transactions",
+        "description": "Operations concerned with seeing transactions history",
     },
 ]
 app = FastAPI(openapi_tags=tags_metadata)
@@ -1329,3 +1338,118 @@ async def websocket_endpoint(websocket: WebSocket, token: str = "", db=Depends(g
         # ensure remove on any error
         await manager.disconnect(current_userid, websocket)
         raise
+
+# ===================================================================================================================
+# HANDSHAKE ENDPOINTS
+# ===================================================================================================================
+
+@app.get("/api/get_transaction_status/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
+async def get_transaction_status(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
+    """
+    Get the transaction status for a listing.
+    
+    This endpoint allows users to check the status of a transaction for a specific listing.
+    It verifies the user's access token and checks if the listing exists before returning
+    the transaction status.
+    
+    returns:
+    -1 - None of parties declared the transaction
+    0 - Only one party declared the transaction
+    1 - Both parties declared the transaction
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    listing = get_listing_by_listingid(listingid, db)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    transaction = get_transaction_by_listingid_and_userid(listingid, buyerid, db)
+    if transaction and transaction.BuyerID != userid and listing.UserID != userid:
+        raise HTTPException(status_code=403, detail="Unauthorized to view this transaction")
+    if not(transaction) and listing.UserID != userid:
+        raise HTTPException(status_code=403, detail="Unauthorized to view this transaction")
+    if not transaction:
+        return -1
+    else:
+        return transaction.TransactionStatus
+
+@app.post("/api/confirm_transaction/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
+async def confirm_transaction(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    transaction_status = await get_transaction_status(listingid, buyerid, access_token, db)
+    listing = get_listing_by_listingid(listingid, db)
+    if listing.UserID == buyerid:
+        raise HTTPException(status_code=400, detail="Cannot confirm transaction for your own listing")
+    if listing.UserID != userid and buyerid != userid:
+        raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction")
+    if transaction_status == -1:
+        return post_new_transaction(listingid, buyerid, db)
+    elif transaction_status == 0:
+        return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, db)
+    elif transaction_status == 1:
+        raise HTTPException(status_code=400, detail="Transaction already confirmed")
+
+@app.delete("/api/unconfirm_transaction/", status_code=status.HTTP_204_NO_CONTENT, tags=["Handshakes"])
+async def unconfirm_transaction(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    transaction_status = await get_transaction_status(listingid, buyerid, access_token, db)
+    listing = get_listing_by_listingid(listingid, db)
+    if listing.UserID == buyerid:
+        raise HTTPException(status_code=400, detail="Cannot unconfirm transaction for your own listing")
+    if listing.UserID != userid and buyerid != userid:
+        raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction")
+    if transaction_status == -1:
+        raise HTTPException(status_code=400, detail="Transaction doesn't exist")
+    elif transaction_status == 0:
+        return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, db)
+    elif transaction_status == 1:
+        return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, db)
+    return False
+
+
+@app.get("/api/get_transaction_history/", status_code=status.HTTP_200_OK, response_model=list[GetTransaction],
+         tags=["Transactions"])
+async def get_transaction_history(access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Retrieve transaction history for the authenticated user.
+    
+    This endpoint returns a list of all transactions where the authenticated user
+    is either the buyer or the seller (listing owner). It requires a valid access
+    token for authentication.
+
+    :param access_token: The access token for authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: List of transactions
+    :rtype: list[GetTransaction]
+    :raises HTTPException: If authentication fails
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    transactions = get_transactions_by_userid(userid, db)
+    if not transactions or transactions == []:
+        raise HTTPException(status_code=404, detail="No transactions found")
+    result = []
+    for transaction in transactions:
+        listing = await get_listing(transaction.ListingID, access_token, db)
+        result.append(
+        GetTransaction(
+            TransactionID=transaction.TransactionID,
+            Listing=listing,
+            TransactionStatus=transaction.TransactionStatus,
+            Buyer= await get_profile(transaction.BuyerID, access_token, db),
+            TransactionDate=transaction.TransactionDate
+        )
+        )
+    return result
+
+
