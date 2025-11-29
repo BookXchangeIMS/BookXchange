@@ -18,12 +18,15 @@
 
     <!-- Main Content -->
     <main>
-        <h1 class="page-title">Edit Listing</h1>
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <img src="../static/resources/edit_listing.png" class="logo-img" alt="Edit Listing">
+            <img src="../static/resources/edit_listing_phone.png" class="logo-img-mobile" alt="Edit Listing">
+        </div>
 
         <form id="editListingForm">
             <!-- Multiple Image Upload Section -->
             <div class="form-section">
-                <label class="form-label">Book Photos (Max 10)</label>
                 <div class="image-upload-container">
                     <!-- Upload Zone -->
                     <div class="upload-zone" id="uploadZone">
@@ -32,12 +35,6 @@
                         <span class="upload-hint">Max 10 images, 10MB each</span>
                     </div>
                     <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
-
-                    <!-- Add Upload Button -->
-                    <button type="button" class="change-image-btn"
-                        onclick="document.getElementById('imageInput').click()">
-                        <i class="fas fa-camera"></i> Add Images
-                    </button>
 
                     <!-- Image Preview Grid -->
                     <div class="image-preview-grid" id="imagePreviewGrid">

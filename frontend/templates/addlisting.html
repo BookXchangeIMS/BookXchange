@@ -18,12 +18,33 @@
 
     <!-- Main Content -->
     <main>
-        <h1 class="page-title">Add New Listing</h1>
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <img src="../static/resources/add_listing.png" class="logo-img" alt="Add Listing">
+            <img src="../static/resources/add_listing_phone.png" class="logo-img-mobile" alt="Add Listing">
+        </div>
 
         <form id="addListingForm">
+            <!-- AI Scan Section -->
+            <div class="ai-scan-section">
+                <button type="button" class="scan-btn-prominent" onclick="document.getElementById('scanInput').click()">
+                    <i class="fas fa-magic"></i>
+                    <div class="scan-btn-text">
+                        <span class="scan-btn-title">Scan Book with AI</span>
+                        <span class="scan-btn-subtitle">Auto-fill details from book cover</span>
+                    </div>
+                </button>
+                <input type="file" id="scanInput" accept="image/*" style="display: none;"
+                    onchange="handleScanBook(event)">
+            </div>
+
+            <!-- Or Divider -->
+            <div class="or-divider">
+                <span>Or</span>
+            </div>
+
             <!-- Multiple Image Upload Section -->
             <div class="form-section">
-                <label class="form-label">Book Photos (Max 10)</label>
                 <div class="image-upload-container">
                     <!-- Upload Zone -->
                     <div class="upload-zone" id="uploadZone">
@@ -32,20 +53,6 @@
                         <span class="upload-hint">Max 10 images, 10MB each</span>
                     </div>
                     <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
-
-                    <!-- Add Upload Button -->
-                    <button type="button" class="change-image-btn"
-                        onclick="document.getElementById('imageInput').click()">
-                        <i class="fas fa-camera"></i> Add Images
-                    </button>
-
-                    <button type="button" class="change-image-btn scan-btn"
-                        style="background-color: #8e44ad; margin-left: 10px;"
-                        onclick="document.getElementById('scanInput').click()">
-                        <i class="fas fa-magic"></i> Scan Book (AI)
-                    </button>
-                    <input type="file" id="scanInput" accept="image/*" style="display: none;"
-                        onchange="handleScanBook(event)">
 
 
                     <!-- Image Preview Grid -->
@@ -108,7 +115,6 @@
                         <div class="loading-genres">Loading genres...</div>
                     </div>
                 </div>
-                <p class="form-hint">Separate multiple genres with commas</p>
             </div>
 
             <!-- Description -->

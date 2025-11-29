@@ -647,7 +647,7 @@ async function handleScanBook(event) {
         return;
     }
 
-    const btn = document.querySelector('.scan-btn');
+    const btn = document.querySelector('.scan-btn-prominent');
     const originalContent = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';

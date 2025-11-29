@@ -256,7 +256,7 @@ function createBookCard(book) {
     card.className = 'book-card';
 
     const location = book.Location ? escapeHtml(book.Location) : "Unknown Location";
-    const year = extractYear(book.PublicationDate);
+    const price = book.price || "Price not set";
 
     card.innerHTML = `
         <img src="${escapeHtml(book.Image_Path)}" 
@@ -266,7 +266,7 @@ function createBookCard(book) {
         <div class="book-info">
             <div class="book-title">${escapeHtml(book.Name)}</div>
             <div class="book-location">${location}</div>
-            <div class="book-date">${year}</div>
+            <div class="book-date">${price}</div>
             <button class="edit-btn" onclick="editListing(${book.ListingID})">
                 Edit Listing
             </button>
