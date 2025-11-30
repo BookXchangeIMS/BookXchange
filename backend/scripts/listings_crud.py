@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from backend.models import *
 from backend.config.db import metadata
@@ -665,3 +665,34 @@ def get_all_listings(db):
         return rows
     except Exception as e:
         raise HTTPException(status_code=500, detail="Couldn't get listings. Please try again later.")
+
+def search_listings(query: str, db):
+    """
+    Searches for listings based on a query string.
+    Matches against Book Title, ISBN, or Author Name.
+    """
+    listings_t = metadata.tables["Listings"]
+    books_t = metadata.tables["Books"]
+    author_book_t = metadata.tables["AuthorBook"]
+    authors_t = metadata.tables["Authors"]
+    
+    stmt = select(listings_t).join(
+        books_t, listings_t.c.BookID == books_t.c.BookID
+    ).outerjoin(
+        author_book_t, books_t.c.BookID == author_book_t.c.BookID
+    ).outerjoin(
+        authors_t, author_book_t.c.AuthorID == authors_t.c.AuthorID
+    ).where(
+        or_(
+            books_t.c.Title.ilike(f"%{query}%"),
+            books_t.c.ISBN.ilike(f"%{query}%"),
+            authors_t.c.AuthorName.ilike(f"%{query}%")
+        )
+    ).distinct()
+    
+    try:
+        rows = db.execute(stmt).fetchall()
+        return rows
+    except Exception as e:
+        print(f"Search Error: {e}")
+        raise HTTPException(status_code=500, detail="Couldn't search listings.")

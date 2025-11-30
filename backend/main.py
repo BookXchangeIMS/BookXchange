@@ -636,6 +636,62 @@ async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db
         ))
     return result
 
+@app.get("/api/search_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
+async def search_listings_endpoint(q: str, access_token=Header(None), db=Depends(get_db)):
+    """
+    Search for listings by book title, ISBN, or author name.
+    """
+    if access_token:
+        try:
+            userid = get_userid_by_access_token(access_token, db)
+        except:
+            userid = None
+    else:
+        userid = None
+        
+    listings = search_listings(q, db)
+    result = []
+    
+    for listing in listings:
+        user = get_user_by_id(listing.UserID, db)
+        book = get_book_by_id(listing.BookID, db)
+        location = get_location_by_id(listing.LocationID, db)
+        is_favorite = check_if_listing_is_favorite(listing.ListingID, userid, db) if userid else False
+        
+        result.append(GetListing(
+            ListingID=listing.ListingID,
+            ListingType=listing.ListingType,
+            Description=listing.Description,
+            Price=listing.Price,
+            BookCondition=listing.Condition,
+            Status=listing.ListingState,
+            CreationDate=listing.CreationDate,
+            IsFavorite=is_favorite,
+            Location=Location(
+                Longitude=location.Longitude,
+                Latitude=location.Latitude,
+                Address=location.Address,
+                Description=location.Description
+            ),
+            Book=GetBook(
+                Title=book.Title,
+                Language=book.Language,
+                ReleaseDate=book.ReleaseDate,
+                ISBN=book.ISBN,
+                AvgRating=book.AvgRating,
+                Edition=book.Edition,
+                Author=get_author_by_bookid(book.BookID, db),
+                Genre=get_genre_by_bookid(book.BookID, db)
+            ),
+            User=GetUser(
+                Name=user.Name,
+                AboutMe=user.AboutMe,
+                UserRole=user.UserRole,
+                UserID=user.UserID
+            )
+        ))
+    return result
+
 @app.get("/api/get_listing_by_ListingID", status_code=status.HTTP_200_OK, response_model=GetListing, tags=["Listings"])
 async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get_db)):
     """

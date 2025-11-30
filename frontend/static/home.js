@@ -17,11 +17,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function () {
-    // Pass all listings to SearchManager
-    if (window.SearchManager && typeof SearchManager.init === 'function') {
-        SearchManager.init(allListings, loadBooks);
-    }
+    setupSearch();
 });
+
+let searchTimeout;
+
+function setupSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        // Remove any existing listeners (clone node trick)
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+
+        newSearchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => handleSearch(e.target.value), 500);
+        });
+
+        // Also handle "Enter" key
+        newSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                handleSearch(e.target.value);
+            }
+        });
+    }
+}
+
+async function handleSearch(query) {
+    const accessToken = getAccessToken();
+    try {
+        if (!query.trim()) {
+            loadAllListings(); // Reload all if empty
+            return;
+        }
+
+        // Show skeleton while searching
+        if (skeletonGrid) skeletonGrid.style.display = 'grid';
+        if (booksGrid) booksGrid.style.display = 'none';
+
+        const results = await searchListings(query, accessToken);
+        allListings = results.map(transformListingData);
+        hideSkeletonAndShowBooks();
+
+    } catch (error) {
+        console.error('Search error:', error);
+        showError('Failed to search listings.');
+    }
+}
 
 // Load all listings from API
 async function loadAllListings() {
@@ -43,10 +86,6 @@ async function loadAllListings() {
         // Hide skeleton and show books
         hideSkeletonAndShowBooks();
 
-        // Update SearchManager with new data
-        if (window.SearchManager && typeof SearchManager.updateData === 'function') {
-            SearchManager.updateData(allListings);
-        }
     } catch (error) {
         console.error('Error loading listings:', error);
         showError('Failed to load listings. Please try again later.');
