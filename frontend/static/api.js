@@ -251,6 +251,25 @@ async function getAllListings(accessToken) {
 }
 
 /**
+ * Get a specific listing by ID
+ */
+async function getListingById(listingId, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_listing_by_ListingID?listing_id=${listingId}`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Get listing API error:', response.status, errorText);
+        throw new Error(`Failed to fetch listing: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
  * Add a listing to favorites
  */
 async function addFavorite(listingId, accessToken) {
