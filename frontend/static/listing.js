@@ -73,17 +73,22 @@ function initializeMap(lat, lng) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
 
-    // Create map instance
-    const map = L.map('map').setView([lat, lng], 13);
+    // Create map instance - slightly zoomed out for area view
+    const map = L.map('map').setView([lat, lng], 14);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Add marker
-    L.marker([lat, lng]).addTo(map)
-        .bindPopup('Book Location')
+    // Add approximate location circle (500m radius)
+    L.circle([lat, lng], {
+        color: '#c84c3d',
+        fillColor: '#c84c3d',
+        fillOpacity: 0.2,
+        radius: 500
+    }).addTo(map)
+       
         .openPopup();
 
     // Fix for map rendering issues when inside hidden/dynamic containers
