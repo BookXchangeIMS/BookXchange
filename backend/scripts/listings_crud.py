@@ -645,3 +645,23 @@ def delete_favorite_by_userid(userid: int, listing_id: int, db):
         db.commit()
     except Exception as e:
         raise HTTPException(status_code=500, detail="Couldn't delete favorite. Please try again later.")
+
+def get_all_listings(db):
+    """
+    Retrieves all listings from the database.
+    
+    This function queries the database to fetch all available listings regardless of the user.
+    This is useful for displaying all books/listings on the home page or marketplace view.
+    
+
+    :param db: The database connection object used to execute the SQL statement
+    :return: A list of all listing records from the database
+    :rtype: list
+    :raises HTTPException: If the database query fails for any reason
+    """
+    stmt = select(metadata.tables["Listings"])
+    try:
+        rows = db.execute(stmt).fetchall()
+        return rows
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't get listings. Please try again later.")

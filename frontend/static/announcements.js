@@ -4,7 +4,7 @@ const USE_MOCK_DATA = false; // Set to false to use backend
 
 // Token Management
 function getAccessToken() {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('access-token');
 }
 
 // Helper function to extract year from date string
