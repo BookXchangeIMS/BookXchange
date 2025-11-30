@@ -290,3 +290,62 @@ async function removeFavorite(listingId, accessToken) {
     // DELETE returns 204 No Content, so no JSON to parse
     return { success: true };
 }
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Transform API listing data to UI-friendly format
+ * This function is used across multiple pages (home, favourites, announcements)
+ */
+function transformListingData(listing) {
+    // Format price
+    const price = listing.Price ? `€${listing.Price.toFixed(2)}` : 'Free';
+
+    // Format date
+    const creationDate = new Date(listing.CreationDate);
+    const now = new Date();
+    const diffTime = Math.abs(now - creationDate);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    let dateText;
+    if (diffDays === 0) {
+        dateText = 'Posted today';
+    } else if (diffDays === 1) {
+        dateText = 'Posted 1 day ago';
+    } else if (diffDays < 7) {
+        dateText = `Posted ${diffDays} days ago`;
+    } else if (diffDays < 30) {
+        const weeks = Math.floor(diffDays / 7);
+        dateText = weeks === 1 ? 'Posted 1 week ago' : `Posted ${weeks} weeks ago`;
+    } else {
+        const months = Math.floor(diffDays / 30);
+        dateText = months === 1 ? 'Posted 1 month ago' : `Posted ${months} months ago`;
+    }
+
+    // Get first author if multiple
+    const author = Array.isArray(listing.Book.Author) && listing.Book.Author.length > 0
+        ? listing.Book.Author[0]
+        : listing.Book.Author || 'Unknown Author';
+
+    // Image path - use listing image endpoint with access token
+    const accessToken = getAccessToken();
+    const imagePath = `${API_BASE_URL}/api/get_listing_primary_image?listingid=${listing.ListingID}&access_token=${accessToken}`;
+
+    return {
+        id: listing.ListingID,
+        title: listing.Book.Title || 'Untitled',
+        author: author,
+        price: price,
+        location: listing.Location.Address || 'Location not specified',
+        date: dateText,
+        isFavorite: listing.IsFavorite || false,
+        imagePath: imagePath,
+        description: listing.Description,
+        condition: listing.BookCondition,
+        status: listing.Status,
+        sellerId: listing.User.UserID,
+        sellerName: listing.User.Name
+    };
+}

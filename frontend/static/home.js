@@ -37,7 +37,7 @@ async function loadAllListings() {
         const accessToken = getAccessToken();
         const apiResponse = await getAllListings(accessToken);
 
-        // Transform API response to internal format
+        // Transform API response to internal format using centralized function
         allListings = apiResponse.map(transformListingData);
 
         // Hide skeleton and show books
@@ -51,58 +51,6 @@ async function loadAllListings() {
         console.error('Error loading listings:', error);
         showError('Failed to load listings. Please try again later.');
     }
-}
-
-// Transform API listing data to internal format
-function transformListingData(listing) {
-    // Format price
-    const price = listing.Price ? `€${listing.Price.toFixed(2)}` : 'Free';
-
-    // Format date
-    const creationDate = new Date(listing.CreationDate);
-    const now = new Date();
-    const diffTime = Math.abs(now - creationDate);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    let dateText;
-    if (diffDays === 0) {
-        dateText = 'Posted today';
-    } else if (diffDays === 1) {
-        dateText = 'Posted 1 day ago';
-    } else if (diffDays < 7) {
-        dateText = `Posted ${diffDays} days ago`;
-    } else if (diffDays < 30) {
-        const weeks = Math.floor(diffDays / 7);
-        dateText = weeks === 1 ? 'Posted 1 week ago' : `Posted ${weeks} weeks ago`;
-    } else {
-        const months = Math.floor(diffDays / 30);
-        dateText = months === 1 ? 'Posted 1 month ago' : `Posted ${months} months ago`;
-    }
-
-    // Get first author if multiple
-    const author = Array.isArray(listing.Book.Author) && listing.Book.Author.length > 0
-        ? listing.Book.Author[0]
-        : listing.Book.Author || 'Unknown Author';
-
-    // Image path - use listing image endpoint with access token
-    const accessToken = getAccessToken();
-    const imagePath = `http://localhost:8000/api/get_listing_primary_image?listingid=${listing.ListingID}&access_token=${accessToken}`;
-
-    return {
-        id: listing.ListingID,
-        title: listing.Book.Title || 'Untitled',
-        author: author,
-        price: price,
-        location: listing.Location.Address || 'Location not specified',
-        date: dateText,
-        isFavorite: listing.IsFavorite || false,
-        imagePath: imagePath,
-        description: listing.Description,
-        condition: listing.BookCondition,
-        status: listing.Status,
-        sellerId: listing.User.UserID,
-        sellerName: listing.User.Name
-    };
 }
 
 // Hide skeleton and show books with animation
