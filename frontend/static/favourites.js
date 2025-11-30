@@ -3,86 +3,46 @@ if (!isLoggedIn()) {
     window.location.href = 'Login.html';
 }
 
-// Sample book data (in a real app, this would come from a database)
-const ALL_LISTINGS_DATA = [
-    {
-        id: 101,
-        title: "Harry Potter and the Sorcerer's Stone",
-        author: "J.K. Rowling",
-        price: "$18.25",
-        location: "Lisbon, Portugal",
-        date: "Posted 1 day ago",
-        isFavorite: false,
-        imagePath: "../static/resources/harrypotter.png"
-    },
-    {
-        id: 102,
-        title: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-        author: "J.R.R. Tolkien",
-        price: "$45.00",
-        location: "Lisbon, Portugal",
-        date: "Posted 3 days ago",
-        isFavorite: true,
-        imagePath: "../static/resources/lotr.png"
-    },
-    {
-        id: 103,
-        title: "Sapiens: A Brief History of Humankind",
-        author: "Yuval Noah Harari",
-        price: "$15.00",
-        location: "Lisbon, Portugal",
-        date: "Posted 1 week ago",
-        isFavorite: false,
-        imagePath: "../static/resources/sapiens.png"
-    },
-    {
-        id: 1,
-        title: "The Great Gatsby",
-        author: "F. Scott Fitzgerald",
-        price: "$12.99",
-        location: "New York, NY",
-        date: "Posted 2 days ago",
-        isFavorite: false,
-        imagePath: "../static/resources/gatsby.jpg"
-    },
-    {
-        id: 2,
-        title: "To Kill a Mockingbird",
-        author: "Harper Lee",
-        price: "$14.50",
-        location: "Chicago, IL",
-        date: "Posted 1 week ago",
-        isFavorite: true,
-        imagePath: "../static/resources/mockingbird.png"
-    },
-    {
-        id: 3,
-        title: "1984",
-        author: "George Orwell",
-        price: "$10.99",
-        location: "Boston, MA",
-        date: "Posted 3 days ago",
-        isFavorite: false,
-        imagePath: "../static/resources/1984.png"
-    }
-];
-
-// Filter only favorites
-let filteredFavorites = ALL_LISTINGS_DATA.filter(book => book.isFavorite);
+// State
+let allFavorites = [];
 
 // DOM elements
 const booksGrid = document.getElementById('favoritesGrid');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
-    loadBooks(filteredFavorites);
+    loadFavorites();
 });
 
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function () {
-    // Pass only favorites to SearchManager
-    SearchManager.init(filteredFavorites, loadBooks);
+    // Pass favorites to SearchManager
+    if (window.SearchManager && typeof SearchManager.init === 'function') {
+        SearchManager.init(allFavorites, loadBooks);
+    }
 });
+
+// Load favorites from API
+async function loadFavorites() {
+    try {
+        const accessToken = getAccessToken();
+        const apiResponse = await getMyFavorites(accessToken);
+
+        // Transform API response to internal format using centralized function
+        allFavorites = apiResponse.map(transformListingData);
+
+        // Load books into grid
+        loadBooks(allFavorites);
+
+        // Update SearchManager with new data
+        if (window.SearchManager && typeof SearchManager.updateData === 'function') {
+            SearchManager.updateData(allFavorites);
+        }
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+        showError('Failed to load favorites. Please try again later.');
+    }
+}
 
 // Load books into the grid
 function loadBooks(books) {
@@ -92,10 +52,10 @@ function loadBooks(books) {
 
     if (books.length === 0) {
         booksGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-heart-broken"></i>
-                <p>You haven't added any favorites yet!</p>
-                <small>Browse books and click the heart icon to add favorites</small>
+            <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                <i class="fas fa-heart-broken" style="font-size: 48px; color: #c84c3d; margin-bottom: 20px;"></i>
+                <p style="color: #666; font-size: 18px;">You haven't added any favorites yet!</p>
+                <small style="color: #999;">Browse books and click the heart icon to add favorites</small>
                 <button onclick="goToHome()" style="margin-top: 20px; padding: 12px 30px; background: #c84c3d; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-family: 'Segoe UI', sans-serif;">
                     Browse Books
                 </button>
@@ -103,7 +63,6 @@ function loadBooks(books) {
         `;
         return;
     }
-
 
     books.forEach(book => {
         const bookCard = createBookCard(book);
@@ -127,7 +86,7 @@ function loadBooks(books) {
     });
 }
 
-// Create a book card element (EXACTLY MATCHING HOME PAGE HTML STRUCTURE)
+// Create a book card element
 function createBookCard(book) {
     const card = document.createElement('div');
     card.className = 'book-card';
@@ -139,14 +98,16 @@ function createBookCard(book) {
              onerror="this.src='../static/resources/placeholder.jpg'"
              loading="lazy">
         <div class="book-info">
-            <h3 class="book-title">${book.title}</h3>
-            <p class="book-author">by ${book.author}</p>
-            <p class="book-location">${book.location}</p>
-            <p class="book-date">${book.date}</p>
-            <p class="book-price">${book.price}</p>
+            <div class="book-title">${book.title}</div>
+            <div class="book-author">by ${book.author}</div>
+            <div class="book-location">${book.location}</div>
+            <div class="book-date">${book.date}</div>
+            <div class="book-price">${book.price}</div>
             
             <div class="book-actions">
-                <button class="contact-btn">Contact Seller</button>
+                <button class="contact-btn">
+                    Contact Seller
+                </button>
                 <button class="favorite-btn active">
                     <i class="fas fa-heart"></i>
                 </button>
@@ -167,7 +128,7 @@ function createBookCard(book) {
     // Favorite button click (Removal logic)
     favoriteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        removeFavorite(book.id);
+        handleRemoveFavorite(book.id);
     });
 
     // Make card clickable
@@ -182,30 +143,35 @@ function createBookCard(book) {
 
 // View listing details
 function viewListing(bookId) {
-    const book = ALL_LISTINGS_DATA.find(b => b.id === bookId);
-    if (book) {
-        console.log(`Navigating to listing page for: ${book.title}`);
-        window.location.href = `listing.html?id=${bookId}`;
-    }
+    console.log('Viewing details for book ID:', bookId);
+    window.location.href = `listing.html?id=${bookId}`;
 }
 
 // Remove from favorites
-function removeFavorite(bookId) {
+async function handleRemoveFavorite(listingId) {
     if (!confirm('Remove this book from your favorites?')) {
         return;
     }
 
-    const book = ALL_LISTINGS_DATA.find(b => b.id === bookId);
-    if (book) {
-        book.isFavorite = false;
+    try {
+        const accessToken = getAccessToken();
+        await removeFavorite(listingId, accessToken);
+
         showToast('Removed from favorites');
 
-        // Update filtered list and reload
-        filteredFavorites = ALL_LISTINGS_DATA.filter(b => b.isFavorite);
-        loadBooks(filteredFavorites);
+        // Remove from local array
+        allFavorites = allFavorites.filter(book => book.id !== listingId);
+
+        // Reload books
+        loadBooks(allFavorites);
 
         // Update SearchManager with new data
-        SearchManager.updateData(filteredFavorites);
+        if (window.SearchManager && typeof SearchManager.updateData === 'function') {
+            SearchManager.updateData(allFavorites);
+        }
+    } catch (error) {
+        console.error('Error removing favorite:', error);
+        showToast('Failed to remove from favorites. Please try again.', 'error');
     }
 }
 
@@ -214,20 +180,19 @@ function goToHome() {
     window.location.href = 'home.html';
 }
 
-function goToAnnouncements() {
-    window.location.href = 'announcements.html';
-}
+// Show error message
+function showError(message) {
+    if (!booksGrid) return;
 
-function goToFavorites() {
-    window.location.href = 'favourites.html';
-}
-
-function goToProfile() {
-    window.location.href = 'profile.html';
-}
-
-function goToMessages() {
-    window.location.href = 'messages.html';
+    booksGrid.innerHTML = `
+        <div class="error-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+            <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #c84c3d; margin-bottom: 20px;"></i>
+            <p style="color: #666; font-size: 18px;">${message}</p>
+            <button onclick="loadFavorites()" style="margin-top: 20px; padding: 12px 30px; background: #c84c3d; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-family: 'Segoe UI', sans-serif;">
+                Try Again
+            </button>
+        </div>
+    `;
 }
 
 // Toast notification

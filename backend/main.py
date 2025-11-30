@@ -370,7 +370,11 @@ async def update_profile(new_info: UpdateUser, access_token: str = Header(None),
 
     """
     userid = get_userid_by_access_token(access_token, db)
-    latitude, longitude = address_to_coordinates(new_info.LocationAddress)
+    coordinates = address_to_coordinates(new_info.LocationAddress)
+    if coordinates:
+        latitude, longitude = coordinates
+    else:
+        latitude, longitude = 0.0, 0.0
     new_locationid = post_location(Location(
         Latitude=latitude,
         Longitude=longitude,
@@ -422,7 +426,11 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
         userid = get_userid_by_access_token(access_token, db)
         print(f"DEBUG: Got userid: {userid}")
         
-        latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+        coordinates = address_to_coordinates(listing_form.LocationAddress)
+        if coordinates:
+            latitude, longitude = coordinates
+        else:
+            latitude, longitude = 0.0, 0.0
         new_location = Location(
             Latitude=latitude,
             Longitude=longitude,
@@ -559,6 +567,74 @@ async def get_your_listings(access_token=Header(None), db=Depends(get_db)):
     """
     userid = get_userid_by_access_token(access_token, db)
     return await get_users_listings(userid, access_token, db)
+
+@app.get("/api/get_all_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
+async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db)):
+    """
+    Retrieve all available listings from the database.
+    
+    This endpoint fetches all book listings regardless of who posted them, making it
+    ideal for displaying all available books on the home page or marketplace view.
+    The authenticated user's ID is used to determine which listings are marked as
+    favorites for that user.
+    
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: A list of all listings with complete book, user, and location information
+    :rtype: list[GetListing]
+    """
+    if access_token:
+        try:
+            userid = get_userid_by_access_token(access_token, db)
+        except:
+            userid = None
+    else:
+        userid = None
+        
+    listings = get_all_listings(db)
+    result = []
+    
+    for listing in listings:
+        user = get_user_by_id(listing.UserID, db)
+        book = get_book_by_id(listing.BookID, db)
+        location = get_location_by_id(listing.LocationID, db)
+        is_favorite = check_if_listing_is_favorite(listing.ListingID, userid, db)
+        
+        result.append(GetListing(
+            ListingID=listing.ListingID,
+            ListingType=listing.ListingType,
+            Description=listing.Description,
+            Price=listing.Price,
+            BookCondition=listing.Condition,
+            Status=listing.ListingState,
+            CreationDate=listing.CreationDate,
+            IsFavorite=is_favorite,
+            Location=Location(
+                Longitude=location.Longitude,
+                Latitude=location.Latitude,
+                Address=location.Address,
+                Description=location.Description
+            ),
+            Book=GetBook(
+                Title=book.Title,
+                Language=book.Language,
+                ReleaseDate=book.ReleaseDate,
+                ISBN=book.ISBN,
+                AvgRating=book.AvgRating,
+                Edition=book.Edition,
+                Author=get_author_by_bookid(book.BookID, db),
+                Genre=get_genre_by_bookid(book.BookID, db)
+            ),
+            User=GetUser(
+                Name=user.Name,
+                AboutMe=user.AboutMe,
+                UserRole=user.UserRole,
+                UserID=user.UserID
+            )
+        ))
+    return result
 
 @app.get("/api/get_listing_by_ListingID", status_code=status.HTTP_200_OK, response_model=GetListing, tags=["Listings"])
 async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get_db)):
@@ -914,6 +990,8 @@ async def get_listing_primary_image(listingid: int, access_token: str, db=Depend
     :return: FileResponse with the image file
     :raises HTTPException: If no images found or authentication fails
     """
+    import os
+    
     if not verify_access_token(access_token):
         raise HTTPException(status_code=401, detail="Invalid access token")
     
@@ -921,8 +999,13 @@ async def get_listing_primary_image(listingid: int, access_token: str, db=Depend
     if not image_paths or len(image_paths) == 0:
         raise HTTPException(status_code=404, detail="No images found for this listing")
     
-    # Return the first image
+    # Return the first image if file exists
     first_image_path = image_paths[0].ImagePath
+    
+    # Check if file actually exists
+    if not os.path.exists(first_image_path):
+        raise HTTPException(status_code=404, detail="Image file not found on server")
+    
     return FileResponse(path=first_image_path, media_type="image/jpeg")
 
 @app.get("/api/get_listing_images_urls", status_code=status.HTTP_200_OK, tags=["Images"])
@@ -984,6 +1067,12 @@ async def get_listing_image_by_photo_id(photo_id: int, access_token: str, db=Dep
         raise HTTPException(status_code=404, detail="Image not found")
     
     image_path = result.ImagePath
+    
+    # Check if file actually exists
+    import os
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="Image file not found on server")
+    
     return FileResponse(path=image_path, media_type="image/jpeg")
 
 

@@ -60,7 +60,7 @@ function saveBooksDatabase(books) {
 
 // Token Management
 function getAccessToken() {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('access-token');
 }
 
 function getRefreshToken() {
@@ -68,12 +68,12 @@ function getRefreshToken() {
 }
 
 function setTokens(accessToken, refreshToken) {
-    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('access-token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
 }
 
 function clearTokens() {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem('access-token');
     localStorage.removeItem('refresh_token');
 }
 
