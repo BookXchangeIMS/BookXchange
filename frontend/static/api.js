@@ -279,10 +279,41 @@ async function getAllListings(accessToken) {
         }
     });
 
+    return await response.json();
+}
+
+/**
+ * Search listings by query and filters
+ */
+async function searchListings(query, filters = {}, accessToken) {
+    let url = `${API_BASE_URL}/api/search_listings?q=${encodeURIComponent(query)}`;
+
+    // Append filters
+    if (filters.genres && filters.genres.length > 0) {
+        filters.genres.forEach(genre => url += `&genres=${encodeURIComponent(genre)}`);
+    }
+
+    if (filters.minPrice) url += `&min_price=${filters.minPrice}`;
+    if (filters.maxPrice) url += `&max_price=${filters.maxPrice}`;
+
+    if (filters.listingTypes && filters.listingTypes.length > 0) {
+        filters.listingTypes.forEach(type => url += `&listing_types=${encodeURIComponent(type)}`);
+    }
+
+    if (filters.lat !== null && filters.lon !== null && filters.radius) {
+        url += `&lat=${filters.lat}&lon=${filters.lon}&radius=${filters.radius}`;
+    }
+
+    const response = await fetch(url, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
     if (!response.ok) {
         const errorText = await response.text();
-        console.error('Get all listings API error:', response.status, errorText);
-        throw new Error(`Failed to fetch listings: ${response.status}`);
+        console.error('Search listings API error:', response.status, errorText);
+        throw new Error(`Failed to search listings: ${response.status}`);
     }
 
     return await response.json();

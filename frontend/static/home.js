@@ -17,11 +17,198 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function () {
-    // Pass all listings to SearchManager
-    if (window.SearchManager && typeof SearchManager.init === 'function') {
-        SearchManager.init(allListings, loadBooks);
-    }
+    setupSearch();
+    setupFilters();
 });
+
+let searchTimeout;
+
+function setupSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        // Remove any existing listeners (clone node trick)
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+
+        newSearchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => handleSearch(e.target.value), 500);
+        });
+
+        // Also handle "Enter" key
+        newSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                handleSearch(e.target.value);
+            }
+        });
+    }
+}
+
+let filterMap;
+let filterMarker;
+let selectedLat = null;
+let selectedLon = null;
+let selectedRadius = 10;
+
+function setupFilters() {
+    const filterBtn = document.getElementById('filterBtn');
+    const filterModal = document.getElementById('filterModal');
+    const closeFilterBtn = document.getElementById('closeFilterBtn');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const radiusSlider = document.getElementById('radiusSlider');
+    const radiusValue = document.getElementById('radiusValue');
+
+    if (filterBtn && filterModal) {
+        // Show filter button on home page
+        filterBtn.style.display = 'flex';
+
+        // Open Modal
+        filterBtn.addEventListener('click', () => {
+            filterModal.classList.add('active');
+            // Initialize map after modal is visible to ensure correct rendering
+            setTimeout(initFilterMap, 100);
+        });
+
+        // Close Modal
+        if (closeFilterBtn) {
+            closeFilterBtn.addEventListener('click', () => {
+                filterModal.classList.remove('active');
+            });
+        }
+
+        // Close on outside click
+        filterModal.addEventListener('click', (e) => {
+            if (e.target === filterModal) {
+                filterModal.classList.remove('active');
+            }
+        });
+
+        // Radius Slider
+        if (radiusSlider && radiusValue) {
+            radiusSlider.addEventListener('input', (e) => {
+                selectedRadius = e.target.value;
+                radiusValue.textContent = selectedRadius;
+                if (filterMarker) {
+                    // Update circle radius if we had one (optional visual improvement)
+                }
+            });
+        }
+
+        // Apply Filters
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', () => {
+                const searchInput = document.getElementById('searchInput');
+                const query = searchInput ? searchInput.value : '';
+
+                handleSearch(query);
+                filterModal.classList.remove('active');
+            });
+        }
+
+        // Reset Filters
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', () => {
+                // Clear all inputs
+                document.querySelectorAll('.genre-checkbox').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.type-checkbox').forEach(cb => cb.checked = false);
+                document.getElementById('minPrice').value = '';
+                document.getElementById('maxPrice').value = '';
+
+                // Reset Map
+                if (filterMarker) {
+                    filterMap.removeLayer(filterMarker);
+                    filterMarker = null;
+                }
+                selectedLat = null;
+                selectedLon = null;
+                selectedRadius = 10;
+                if (radiusSlider) radiusSlider.value = 10;
+                if (radiusValue) radiusValue.textContent = 10;
+
+                // Search without filters
+                const searchInput = document.getElementById('searchInput');
+                const query = searchInput ? searchInput.value : '';
+                handleSearch(query);
+            });
+        }
+    }
+}
+
+function initFilterMap() {
+    if (filterMap) {
+        filterMap.invalidateSize();
+        return;
+    }
+
+    // Default to Lisbon
+    filterMap = L.map('filterMap').setView([38.7223, -9.1393], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(filterMap);
+
+    filterMap.on('click', function (e) {
+        selectedLat = e.latlng.lat;
+        selectedLon = e.latlng.lng;
+
+        if (filterMarker) {
+            filterMap.removeLayer(filterMarker);
+        }
+
+        filterMarker = L.marker([selectedLat, selectedLon]).addTo(filterMap);
+    });
+}
+
+function getFilterValues() {
+    const filters = {
+        genres: [],
+        minPrice: document.getElementById('minPrice')?.value || null,
+        maxPrice: document.getElementById('maxPrice')?.value || null,
+        listingTypes: [],
+        lat: selectedLat,
+        lon: selectedLon,
+        radius: selectedRadius
+    };
+
+    // Collect Genres
+    document.querySelectorAll('.genre-checkbox:checked').forEach(cb => {
+        filters.genres.push(cb.value);
+    });
+
+    // Collect Types
+    document.querySelectorAll('.type-checkbox:checked').forEach(cb => {
+        filters.listingTypes.push(cb.value);
+    });
+
+    return filters;
+}
+
+async function handleSearch(query) {
+    const accessToken = getAccessToken();
+    try {
+        const filters = getFilterValues();
+
+        // If query is empty and no filters, load all
+        if (!query.trim() && !filters.genres.length && !filters.minPrice && !filters.maxPrice && !filters.listingTypes.length && filters.lat === null) {
+            loadAllListings();
+            return;
+        }
+
+        // Show skeleton while searching
+        if (skeletonGrid) skeletonGrid.style.display = 'grid';
+        if (booksGrid) booksGrid.style.display = 'none';
+
+        const results = await searchListings(query, filters, accessToken);
+        allListings = results.map(transformListingData);
+        hideSkeletonAndShowBooks();
+
+    } catch (error) {
+        console.error('Search error:', error);
+        showError('Failed to search listings.');
+    }
+}
 
 // Load all listings from API
 async function loadAllListings() {
@@ -43,10 +230,6 @@ async function loadAllListings() {
         // Hide skeleton and show books
         hideSkeletonAndShowBooks();
 
-        // Update SearchManager with new data
-        if (window.SearchManager && typeof SearchManager.updateData === 'function') {
-            SearchManager.updateData(allListings);
-        }
     } catch (error) {
         console.error('Error loading listings:', error);
         showError('Failed to load listings. Please try again later.');
