@@ -22,6 +22,22 @@ def get_authorids_by_names(author_names: str, db):
         authorids.append(row.AuthorID) if row else authorids.append(None)
     return authorids
 
+def get_genreids_by_names(genre_names: list, db):
+    """
+    Retrieves a list of genre IDs corresponding to the provided list of genre names.
+    
+    :param genre_names: A list containing the names of genres to look up.
+    :param db: The database connection object used to execute the queries.
+    :return: A list of genre IDs corresponding to the given genre names. If a genre
+             name is not found, the respective position in the returned list will contain None.
+    """
+    genreids = []
+    for genre_name in genre_names:
+        stmt = select(metadata.tables["Genres"]).where(metadata.tables["Genres"].c.GenreName == genre_name.strip())
+        row = db.execute(stmt).fetchone()
+        genreids.append(row.GenreID) if row else genreids.append(None)
+    return genreids
+
 def get_author_by_bookid(bookid: int, db):
     """
     Fetches a list of authors associated with a specific book.
@@ -231,6 +247,31 @@ def post_authors(author_names: str, db):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Couldn't create new author. Please try again later.")
 
+def post_genres(genre_names: list, db):
+    """
+    Adds a list of genre names to the "Genre" table in the database.
+    
+    This function iterates over the provided list of genre names and attempts to
+    insert each name as a new entry in the "Genre" table. If any operation within
+    the process fails, appropriate HTTP exceptions with status code 500 are raised.
+    
+    :param genre_names: A list containing genre names to be inserted into the "Genre" table.
+    :param db: Database connection or session object used for executing and committing database operations.
+    :return: None
+    """
+    try:
+        for genre_name in genre_names:
+            stmt = metadata.tables["Genres"].insert().values(
+                GenreName=genre_name.strip()
+            )
+            try:
+                db.execute(stmt)
+                db.commit()
+            except Exception as e:
+                raise HTTPException(status_code=500, detail="Couldn't create new genre. Please try again later.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't create new genre. Please try again later.")
+
 def post_book(book: PostBook, db):
     """
     Inserts a new book along with its associated authors into the database. If the authors provided
@@ -264,18 +305,56 @@ def post_book(book: PostBook, db):
         db.execute(stmt)
         db.commit()
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
+        print(f"ERROR in post_book: {str(e)}")
+        print(f"Book data: Title={book.Title}, ISBN={book.ISBN}, Authors={book.Author}")
+        raise HTTPException(status_code=500, detail=f"Couldn't create new book: {str(e)}")
     bookid = get_bookid_by_book(book, db)
     for cur_authorid in authorid:
-        stmt = metadata.tables["AuthorBook"].insert().values(
-            BookID=bookid,
-            AuthorID=cur_authorid
+        # Check if the relationship already exists
+        check_stmt = select(metadata.tables["AuthorBook"]).where(
+            metadata.tables["AuthorBook"].c.BookID == bookid,
+            metadata.tables["AuthorBook"].c.AuthorID == cur_authorid
         )
-        try:
-            db.execute(stmt)
-            db.commit()
-        except Exception as e:
-            raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
+        existing = db.execute(check_stmt).fetchone()
+        
+        if not existing:
+            stmt = metadata.tables["AuthorBook"].insert().values(
+                BookID=bookid,
+                AuthorID=cur_authorid
+            )
+            try:
+                db.execute(stmt)
+                db.commit()
+            except Exception as e:
+                raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
+    
+    # Process genres (similar to authors)
+    if book.Genre:
+        genreids = get_genreids_by_names(book.Genre, db)
+        for cur_genreid, cur_genre in zip(genreids, book.Genre):
+            if cur_genreid is None:
+                post_genres([cur_genre], db)
+        genreid = get_genreids_by_names(book.Genre, db)
+        
+        for cur_genreid in genreid:
+            # Check if the relationship already exists
+            check_stmt = select(metadata.tables["BookGenre"]).where(
+                metadata.tables["BookGenre"].c.BookID == bookid,
+                metadata.tables["BookGenre"].c.GenreID == cur_genreid
+            )
+            existing = db.execute(check_stmt).fetchone()
+            
+            if not existing:
+                stmt = metadata.tables["BookGenre"].insert().values(
+                    BookID=bookid,
+                    GenreID=cur_genreid
+                )
+                try:
+                    db.execute(stmt)
+                    db.commit()
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail="Couldn't create genre relationship. Please try again later.")
+    
     return bookid
 
 def update_book(bookid: int, book: PostBook, db):
@@ -315,6 +394,49 @@ def update_book(bookid: int, book: PostBook, db):
             db.commit()
         except Exception as e:
             raise HTTPException(status_code=500, detail="Couldn't create new book. Please try again later.")
+            
+    # Update Genres
+    # Delete existing genres
+    stmt = metadata.tables["BookGenre"].delete().where(metadata.tables["BookGenre"].c.BookID == bookid)
+    try:
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't delete genres of the book. Please try again later.")
+        
+    # Insert new genres
+    if book.Genre:
+        genreids = get_genreids_by_names(book.Genre, db)
+        for cur_genreid, cur_genre in zip(genreids, book.Genre):
+            if cur_genreid is None:
+                post_genres([cur_genre], db)
+        
+        genreid = get_genreids_by_names(book.Genre, db)
+        for cur_genreid in genreid:
+            # Check if relationship exists (shouldn't since we just deleted, but good for safety)
+            # Actually, since we deleted all for this bookid, we can just insert.
+            # But duplicate genres in the input list could cause issues if not handled.
+            # get_genreids_by_names returns unique IDs if input has duplicates? 
+            # Let's assume input might have duplicates, but get_genreids_by_names handles names.
+            # Ideally we should deduplicate the input list first or check before insert.
+            
+            # Simple check to avoid primary key violation if list has duplicates
+            check_stmt = select(metadata.tables["BookGenre"]).where(
+                metadata.tables["BookGenre"].c.BookID == bookid,
+                metadata.tables["BookGenre"].c.GenreID == cur_genreid
+            )
+            existing = db.execute(check_stmt).fetchone()
+            
+            if not existing:
+                stmt = metadata.tables["BookGenre"].insert().values(
+                    BookID=bookid,
+                    GenreID=cur_genreid
+                )
+                try:
+                    db.execute(stmt)
+                    db.commit()
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail="Couldn't create genre relationship. Please try again later.")
     stmt = metadata.tables["Books"].update().where(metadata.tables["Books"].c.BookID == bookid).values(
         Title=book.Title,
         ReleaseDate=book.ReleaseDate,

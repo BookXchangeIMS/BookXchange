@@ -52,7 +52,7 @@ def analyze_book_image(image_data: bytes):
                     "content": [
                         {
                             "type": "text",
-                            "text": "Identify the book in this image and return a JSON object with the following fields: 'Title', 'Author' (as a comma-separated string if multiple), 'ISBN' (if visible, else empty string), 'Condition' (estimate based on visual wear: 'Almost new', 'Good', 'Fair', 'Poor'), 'Genre' (comma-separated string, choose between Horror, Thriller, Romance, Fantasy, Science Fiction, Mystery, Historical Fiction, Literary Fiction, Young Adult, Non-Fiction, Biography, Self-Help, Poetry, Drama, Adventure), 'Year' (publication year if visible or known, else empty string), 'Description' (a short summary). If you cannot identify the book, return an empty JSON object."
+                            "text": "Identify the book in this image and return a JSON object with the following fields: 'Title', 'Author' (as a comma-separated string if multiple), 'ISBN' (if visible, else empty string), 'Condition' (estimate based on visual wear: 'Almost new', 'Good', 'Fair', 'Poor'), 'Genre' (comma-separated string, select ONLY from this list: [Fantasy, Science Fiction, Mystery, Thriller, Romance, Non-Fiction, History, Biography, Horror, Adventure]. Do NOT invent new genres. If the book does not fit exactly, choose the closest match from the list.), 'Year' (publication year if visible or known, else empty string), 'Description' (a short summary). If you cannot identify the book, return an empty JSON object."
                         },
                         {
                             "type": "image_url",

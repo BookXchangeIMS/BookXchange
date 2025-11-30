@@ -108,27 +108,27 @@ const api = {
             }
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            
+
             const data = await response.json();
-            
+
             // Helper function to extract year from date string
             const extractYear = (dateString) => {
                 if (!dateString) return '';
                 if (dateString.includes('T')) {
-                    // ISO format: "1902-01-01T00:00:00"
                     return dateString.split('T')[0].split('-')[0];
                 }
-                return dateString.split('-')[0]; // "1902-01-01" or just "1902"
+                return dateString.split('-')[0];
             };
-            
+
             // Transform backend response to match frontend format
             return {
                 data: {
                     ListingID: data.ListingID,
                     BookID: data.Book.BookID,
+                    ISBN: data.Book.ISBN || "",
                     Name: data.Book.Title,
                     author: Array.isArray(data.Book.Author) ? data.Book.Author.join(', ') : data.Book.Author,
-                    price: `$${data.Price}`,
+                    price: `$${parseFloat(data.Price).toFixed(2)}`,
                     PublicationDate: extractYear(data.Book.ReleaseDate),
                     BookCondition: data.BookCondition,
                     Location: data.Location.Address,
@@ -158,11 +158,8 @@ const api = {
         }
 
         try {
-            // Data is already formatted correctly from handleFormSubmit
-            const updateData = data;
-
             console.log('=== SENDING UPDATE DATA TO BACKEND ===');
-            console.log(JSON.stringify(updateData, null, 2));
+            console.log(JSON.stringify(data, null, 2));
             console.log('======================================');
 
             const response = await fetch(`${API_BASE_URL}/api/update_listing`, {
@@ -171,7 +168,7 @@ const api = {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
                 },
-                body: JSON.stringify(updateData)
+                body: JSON.stringify(data)
             });
 
             if (response.status === 401) {
@@ -184,7 +181,7 @@ const api = {
                 console.error('=== BACKEND ERROR RESPONSE ===');
                 console.error(errorData);
                 console.error('==============================');
-                throw new Error(JSON.stringify(errorData, null, 2) || `HTTP error! Status: ${response.status}`);
+                throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
             }
             return await response.json();
         } catch (error) {
@@ -239,110 +236,6 @@ const api = {
         }
     },
 
-    // Upload multiple images to Azure Blob Storage
-    async uploadImages(listingId, files) {
-        if (USE_MOCK_DATA) {
-            const uploadedUrls = [];
-            for (const file of files) {
-                uploadedUrls.push(`mock-url-${Date.now()}.jpg`);
-            }
-            return { success: true, imageUrls: uploadedUrls };
-        }
-
-        try {
-            const formData = new FormData();
-
-            // Append all files
-            for (let i = 0; i < files.length; i++) {
-                formData.append('images', files[i]);
-            }
-
-            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/upload-images`, {
-                method: 'POST',
-                headers: {
-                    'access-token': getAccessToken() || ''
-                },
-                body: formData
-            });
-
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return await this.uploadImages(listingId, files);
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Image upload failed');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Image upload failed:', error);
-            throw error;
-        }
-    },
-
-    // Delete specific image from listing
-    async deleteImage(listingId, photoId) {
-        if (USE_MOCK_DATA) {
-            return { success: true, message: 'Image deleted' };
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/images/${photoId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'access-token': getAccessToken() || ''
-                }
-            });
-
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return await this.deleteImage(listingId, photoId);
-            }
-
-            if (!response.ok) throw new Error('Failed to delete image');
-
-            if (response.status === 204) {
-                return { success: true, message: 'Image deleted' };
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Delete image failed:', error);
-            throw error;
-        }
-    },
-
-    // Set primary image for listing
-    async setPrimaryImage(listingId, photoId) {
-        if (USE_MOCK_DATA) {
-            return { success: true, message: 'Primary image set' };
-        }
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/listings/${listingId}/images/${photoId}/primary`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'access-token': getAccessToken() || ''
-                }
-            });
-
-            if (response.status === 401) {
-                await this.refreshAccessToken();
-                return await this.setPrimaryImage(listingId, photoId);
-            }
-
-            if (!response.ok) throw new Error('Failed to set primary image');
-            return await response.json();
-        } catch (error) {
-            console.error('Set primary image failed:', error);
-            throw error;
-        }
-    },
-
     // Refresh access token
     async refreshAccessToken() {
         try {
@@ -377,8 +270,7 @@ const api = {
 };
 
 // Get listing ID from URL
-const urlParams = new URLSearchParams(window.location.search);
-const listingId = parseInt(urlParams.get('id'));
+let listingId = null;
 
 // State management
 let book = null;
@@ -387,25 +279,33 @@ let newImages = []; // [{file, preview, tempId}]
 let deletedImageIds = [];
 
 // Initialize
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
-        showToast('Please login to edit listings', 'error');
+        showToast('Please login to edit listing', 'error');
         setTimeout(() => window.location.href = '/login.html', 2000);
+        return;
+    }
+
+    // Get listing ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    listingId = urlParams.get('id');
+
+    if (!listingId) {
+        showToast('No listing ID provided', 'error');
+        setTimeout(() => window.location.href = '/announcements.html', 2000);
         return;
     }
 
     if (USE_MOCK_DATA) showMockModeIndicator();
 
-    if (!listingId || isNaN(listingId)) {
-        showToast('Invalid listing ID', 'error');
-        setTimeout(() => window.location.href = 'announcements.html', 2000);
-        return;
-    }
+    setupEventListeners();
+
+    // Load genres first, then listing details
+    await loadGenres();
 
     try {
         await fetchListingDetails(listingId);
-        setupEventListeners();
     } catch (error) {
         console.error('Error loading listing:', error);
         showToast('Failed to load listing details', 'error');
@@ -426,29 +326,108 @@ function showMockModeIndicator() {
     document.body.appendChild(indicator);
 }
 
-// Fetch listing details including images
+// Load available genres from backend
+async function loadGenres() {
+    const container = document.getElementById('availableGenres');
+
+    try {
+        let genres = [];
+
+        if (USE_MOCK_DATA) {
+            // Mock genres
+            genres = [
+                { GenreID: 1, GenreName: "Fantasy" },
+                { GenreID: 2, GenreName: "Science Fiction" },
+                { GenreID: 3, GenreName: "Mystery" },
+                { GenreID: 4, GenreName: "Thriller" },
+                { GenreID: 5, GenreName: "Romance" },
+                { GenreID: 6, GenreName: "Non-Fiction" },
+                { GenreID: 7, GenreName: "History" },
+                { GenreID: 8, GenreName: "Biography" },
+                { GenreID: 9, GenreName: "Horror" },
+                { GenreID: 10, GenreName: "Adventure" }
+            ];
+        } else {
+            // Fetch from backend
+            const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
+            if (response.ok) {
+                genres = await response.json();
+            } else {
+                console.error('Failed to fetch genres');
+                container.innerHTML = '<div class="error-message">Failed to load genres</div>';
+                return;
+            }
+        }
+
+        // Clear loading message
+        container.innerHTML = '';
+
+        if (genres.length === 0) {
+            container.innerHTML = '<div class="no-genres">No genres available</div>';
+            return;
+        }
+
+        // Create checkboxes
+        genres.forEach(genre => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'genre-checkbox-wrapper';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `genre-${genre.GenreID}`;
+            checkbox.value = genre.GenreName;
+            checkbox.name = 'genres';
+
+            const label = document.createElement('label');
+            label.htmlFor = `genre-${genre.GenreID}`;
+            label.textContent = genre.GenreName;
+
+            wrapper.appendChild(checkbox);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+        });
+
+    } catch (error) {
+        console.error('Error loading genres:', error);
+        container.innerHTML = '<div class="error-message">Error loading genres</div>';
+    }
+}
+
 // Fetch listing details including images
 async function fetchListingDetails(id) {
     try {
-        showToast('Loading listing details...', 'success');
         const response = await api.get(`/api/listings/${id}`);
         book = response.data || response;
 
-        // ADD THIS DEBUG LOG
         console.log('=== DATA RETURNED FROM BACKEND ===');
         console.log(JSON.stringify(book, null, 2));
         console.log('===================================');
 
-        // Load existing images (from ListingPhoto table)
-        existingImages = book.images || book.photos || [];
+        // Fetch ALL images from backend
+        try {
+            const accessToken = getAccessToken();
+            const imagesResponse = await fetch(`${API_BASE_URL}/api/get_listing_images_urls?listingid=${id}&access_token=${accessToken}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-        // For mock data, convert single Image_Path to array
-        if (!existingImages.length && book.Image_Path) {
-            existingImages = [{
-                photoId: 1,
-                imagePath: book.Image_Path,
-                isPrimary: true
-            }];
+            if (imagesResponse.ok) {
+                const imagesData = await imagesResponse.json();
+                // Convert to format expected by frontend
+                existingImages = imagesData.map(img => ({
+                    photoId: img.photoId,
+                    imagePath: `${API_BASE_URL}${img.imageUrl}`,
+                    isPrimary: img.isPrimary
+                }));
+            } else {
+                console.warn('No images found for this listing');
+                existingImages = [];
+            }
+        } catch (imgError) {
+            console.warn('Failed to load images:', imgError);
+            existingImages = [];
         }
 
         console.log('Loaded listing:', book);
@@ -463,37 +442,48 @@ async function fetchListingDetails(id) {
     }
 }
 
-// Load form fields - UPDATED WITH FIXES
+// Load form fields
 function loadListingDetailsIntoForm(book) {
     document.getElementById('bookTitle').value = book.Name || book.title || '';
-    
+
     // Handle author (could be array or string)
     let authorValue = book.author || '';
     if (Array.isArray(authorValue)) {
         authorValue = authorValue.join(', ');
     }
     document.getElementById('bookAuthor').value = authorValue;
-    
+
     document.getElementById('bookPrice').value = book.price || '';
-    
+
     // Handle publication date - extract year only
     let year = book.PublicationDate || book.year || book.publication_year || book.releaseDate || '';
     if (year.includes('T') || year.includes('-')) {
-        // Extract year from "1902-01-01T00:00:00" or "1902-01-01"
         year = year.split('T')[0].split('-')[0];
     }
     document.getElementById('bookYear').value = year;
-    
+
     document.getElementById('bookCondition').value = book.BookCondition || '';
     document.getElementById('bookLocation').value = book.Location || book.location || '';
-    
+
     // Handle genres (could be array or string)
-    let genresValue = book.genres || '';
-    if (Array.isArray(genresValue)) {
-        genresValue = genresValue.join(', ');
+    let genresValue = book.genres || [];
+    if (typeof genresValue === 'string') {
+        genresValue = genresValue.split(',').map(g => g.trim());
     }
-    document.getElementById('bookGenres').value = genresValue;
-    
+
+    // Check corresponding checkboxes
+    if (Array.isArray(genresValue)) {
+        genresValue.forEach(genreName => {
+            // Find checkbox with this value (case-insensitive)
+            const checkbox = Array.from(document.querySelectorAll('input[name="genres"]'))
+                .find(cb => cb.value.toLowerCase() === genreName.toLowerCase());
+
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    }
+
     document.getElementById('bookDescription').value = book.description || '';
     updateCharacterCount();
 }
@@ -731,10 +721,6 @@ function formatPrice(event) {
 function validateForm() {
     const errors = [];
 
-    if (existingImages.length === 0 && newImages.length === 0) {
-        errors.push('Please add at least one image');
-    }
-
     const title = document.getElementById('bookTitle').value.trim();
     if (title.length < 3) errors.push('Title must be at least 3 characters');
 
@@ -745,24 +731,11 @@ function validateForm() {
     const priceValue = parseFloat(price.replace('$', ''));
     if (isNaN(priceValue) || priceValue < 0) errors.push('Please enter a valid price');
 
-    const year = parseInt(document.getElementById('bookYear').value);
-    const currentYear = new Date().getFullYear();
-    if (year && (isNaN(year) || year < 1000 || year > currentYear)) {
-        errors.push(`Publication year must be between 1000 and ${currentYear}`);
-    }
-
-    const BookCondition = document.getElementById('bookCondition').value;
-    if (!BookCondition) errors.push('Please select a condition');
+    const condition = document.getElementById('bookCondition').value;
+    if (!condition) errors.push('Please select a condition');
 
     const location = document.getElementById('bookLocation').value.trim();
     if (location.length < 3) errors.push('Location must be at least 3 characters');
-
-    const genres = document.getElementById('bookGenres').value.trim();
-    if (genres.length < 3) errors.push('Please enter at least one genre');
-
-    const description = document.getElementById('bookDescription').value.trim();
-    if (description.length < 20) errors.push('Description must be at least 20 characters');
-    if (description.length > 500) errors.push('Description must not exceed 500 characters');
 
     if (errors.length > 0) {
         showToast(errors[0], 'error');
@@ -772,7 +745,7 @@ function validateForm() {
     return true;
 }
 
-// Handle form submission - FIXED WITH SAFE PRICE PARSING
+// Handle form submission - FIXED TO GET NEW VALUES FROM FORM
 async function handleFormSubmit(event) {
     event.preventDefault();
 
@@ -784,35 +757,26 @@ async function handleFormSubmit(event) {
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
     try {
-        // 1. Delete removed images
-        if (deletedImageIds.length > 0) {
-            showToast('Deleting removed images...', 'success');
-            for (const photoId of deletedImageIds) {
-                await api.deleteImage(listingId, photoId);
-            }
-        }
-
-        // 2. Upload new images to Azure Blob Storage
-        let newImageUrls = [];
-        if (newImages.length > 0) {
-            showToast(`Uploading ${newImages.length} new image(s)...`, 'success');
-            const files = newImages.map(img => img.file);
-            const uploadResponse = await api.uploadImages(listingId, files);
-            newImageUrls = uploadResponse.imageUrls || uploadResponse.image_urls || [];
-        }
-
-        // 3. Update listing data
+        // Helper to convert comma-separated string to array
         const toArray = (str) => {
             if (!str) return [];
             return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
         };
 
-        // Get price value safely
+        // Get NEW values from form (not old book data!)
+        // Collect selected genres
+        const selectedGenres = Array.from(document.querySelectorAll('input[name="genres"]:checked'))
+            .map(checkbox => checkbox.value);
+
+        const author = document.getElementById('bookAuthor').value.trim();
+        const authorsArray = toArray(author);
+        const year = document.getElementById('bookYear').value.trim();
         const priceValue = document.getElementById('bookPrice').value || '';
         const priceNumber = parseFloat(priceValue.replace('$', '').trim()) || 0;
 
         const updatedListingData = {
             ListingID: listingId,
+            BookID: book.BookID,
             ListingType: "Sale",
             Status: "Active",
             Description: document.getElementById('bookDescription').value.trim(),
@@ -820,31 +784,74 @@ async function handleFormSubmit(event) {
             BookCondition: document.getElementById('bookCondition').value,
             LocationAddress: document.getElementById('bookLocation').value.trim(),
             Book: {
-                BookID: book.BookID,
-                Title: book.Name,
+                Title: document.getElementById('bookTitle').value.trim(),  // ✅ NEW value from form
                 Language: "English",
-                ReleaseDate: book.PublicationDate,
-                ISBN: "",
+                ReleaseDate: year ? `${year}-01-01` : "2024-01-01",
+                ISBN: book.ISBN || `TEMP-${Date.now()}`,
                 AvgRating: 0,
                 Edition: 1,
-                Author: toArray(book.author),
-                Genre: toArray(book.genres)
+                Author: authorsArray,  // ✅ NEW value from form
+                Genre: selectedGenres      // ✅ NEW value from form
             }
         };
 
-        // 4. COMMENTED OUT - Update primary image (endpoint doesn't exist yet)
-        /*
-        const primaryImage = existingImages.find(img => img.isPrimary);
-        if (primaryImage) {
-            await api.setPrimaryImage(listingId, primaryImage.photoId);
-        }
-        */
-
-        console.log('Updating listing with data:', updatedListingData);
+        console.log('=== SENDING UPDATE DATA TO BACKEND ===');
+        console.log(JSON.stringify(updatedListingData, null, 2));
+        console.log('======================================');
 
         const response = await api.put(`/api/listings/${listingId}`, updatedListingData);
 
-        console.log('Update response:', response);
+        console.log('✅ Update response:', response);
+
+        // Handle deleted images first
+        if (deletedImageIds.length > 0) {
+            try {
+                for (const photoId of deletedImageIds) {
+                    const deleteResponse = await fetch(`${API_BASE_URL}/api/delete_listing_image/${photoId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'access-token': getAccessToken() || ''
+                        }
+                    });
+
+                    if (!deleteResponse.ok) {
+                        console.warn(`Failed to delete image ${photoId}`);
+                    }
+                }
+                console.log('✅ Images deleted successfully');
+            } catch (deleteError) {
+                console.warn('⚠️ Image deletion failed:', deleteError);
+            }
+        }
+
+        // Handle new images if any
+        if (newImages.length > 0) {
+            try {
+                const files = newImages.map(img => img.file);
+
+                // Upload images one by one
+                for (let i = 0; i < files.length; i++) {
+                    const formData = new FormData();
+                    formData.append('file', files[i]);
+
+                    const uploadResponse = await fetch(`${API_BASE_URL}/api/post_listings_picture?listingid=${listingId}`, {
+                        method: 'POST',
+                        headers: {
+                            'access-token': getAccessToken() || ''
+                        },
+                        body: formData
+                    });
+
+                    if (!uploadResponse.ok) {
+                        console.warn(`Failed to upload image ${i + 1}`);
+                    }
+                }
+                console.log('✅ Images uploaded successfully');
+            } catch (uploadError) {
+                console.warn('⚠️ Image upload failed:', uploadError);
+            }
+        }
+
         showToast('Listing updated successfully!', 'success');
 
         setTimeout(() => {
@@ -852,24 +859,17 @@ async function handleFormSubmit(event) {
         }, 1500);
 
     } catch (error) {
-        console.error('Failed to update listing:', error);
+        console.error('❌ Failed to update listing:', error);
         showToast(error.message || 'Failed to update listing', 'error');
         submitButton.disabled = false;
         submitButton.innerHTML = originalButtonText;
     }
 }
 
-// Confirm cancel
-function confirmCancel() {
-    if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-        window.location.href = 'announcements.html';
-    }
-}
-
 // Confirm delete
 async function confirmDelete() {
     console.log('confirmDelete called for listing:', listingId);
-    
+
     const confirmation = confirm('Are you sure you want to delete this listing? This action cannot be undone.');
     if (!confirmation) {
         console.log('User cancelled first confirmation');
@@ -895,13 +895,6 @@ async function confirmDelete() {
     } catch (error) {
         console.error('Failed to delete listing:', error);
         showToast(error.message || 'Failed to delete listing', 'error');
-    }
-}
-
-// Go back to announcements
-function goBack() {
-    if (confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
-        window.location.href = 'announcements.html';
     }
 }
 
@@ -944,3 +937,20 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Show cancel confirmation modal
+function showCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    modal.classList.add('active');
+}
+
+// Close cancel modal
+function closeCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    modal.classList.remove('active');
+}
+
+// Confirm cancel and redirect
+function confirmCancelEdit() {
+    window.location.href = 'announcements.html';
+}

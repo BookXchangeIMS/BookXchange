@@ -114,10 +114,17 @@ def insert_profile_picture(image_file: UploadFile):
     if not validate_profile_picture_ratio(image):
         raise HTTPException(status_code=400, detail="Image ratio is too small or too big")
     image_name = uuid4()
+    # Convert to RGB if necessary (JPEG doesn't support transparency)
+    if image.mode in ('RGBA', 'LA', 'P'):
+        rgb_image = Image.new('RGB', image.size, 'WHITE')
+        rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+        image = rgb_image
     path = profile_pictures_path + str(image_name) + ".jpg"
-    with open(f'backend/images/profile_pictures/{image_name}.jpg', 'w') as output:
+    with open(f'backend/images/profile_pictures/{image_name}.jpg', 'wb') as output:
         image.save(output, 'JPEG')
     return path
+
+listing_pictures_path = "backend/images/listing_pictures/"
 
 def insert_listing_picture(image_file: UploadFile):
     """
@@ -140,8 +147,13 @@ def insert_listing_picture(image_file: UploadFile):
     if not validate_listing_picture_resolution(image):
         raise HTTPException(status_code=400, detail="Image resolution is too small or too big")
     image_name = uuid4()
-    path = profile_pictures_path + str(image_name) + ".jpg"
-    with open(f'backend/images/listing_pictures/{image_name}.jpg', 'w') as output:
+    # Convert to RGB if necessary (JPEG doesn't support transparency)
+    if image.mode in ('RGBA', 'LA', 'P'):
+        rgb_image = Image.new('RGB', image.size, 'WHITE')
+        rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+        image = rgb_image
+    path = listing_pictures_path + str(image_name) + ".jpg"
+    with open(f'backend/images/listing_pictures/{image_name}.jpg', 'wb') as output:
         image.save(output, 'JPEG')
     return path
 
@@ -241,7 +253,7 @@ def get_listing_image_paths(listingid, db):
     :raises HTTPException: If the specified listing's image paths are not found or an error occurs in the query.
     """
     listingphoto = metadata.tables["ListingPhoto"]
-    stmt = listingphoto.select().where(listingphoto.c.ListingID ==listingid)
+    stmt = listingphoto.select().where(listingphoto.c.ListingID ==listingid).order_by(listingphoto.c.PhotoID)
     try:
         result = db.execute(stmt)
         return result.fetchall()

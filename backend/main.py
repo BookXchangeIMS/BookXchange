@@ -6,7 +6,7 @@ from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket,
 from collections import defaultdict
 from typing import Annotated, Dict, Set
 
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, Response
 
 from backend.scripts.auth import *
 from backend.scripts.chat_crud import *
@@ -417,48 +417,65 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
              details.
     :rtype: GetListing
     """
-    userid = get_userid_by_access_token(access_token, db)
-    latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
-    new_location = Location(
-        Latitude=latitude,
-        Longitude=longitude,
-        Address=listing_form.LocationAddress,
-        Description="")
-    new_locationid = post_location(new_location, db)
-    new_bookid = get_bookid_by_isbn(listing_form.Book.ISBN, db)
-    if not new_bookid:
-        new_bookid = post_book(listing_form.Book, db)
-    post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
-    listingid = get_listingid_by_userid_and_bookit(userid, new_bookid, db)
-    new_listing = get_listing_by_listingid(listingid, db)
-    user = get_user_by_id(userid, db)
-    return GetListing(
-        ListingID=listingid,
-        ListingType=new_listing.ListingType,
-        Description=new_listing.Description,
-        Price=new_listing.Price,
-        BookCondition=new_listing.Condition,
-        Status=new_listing.ListingState,
-        CreationDate=new_listing.CreationDate,
-        Location=new_location,
-        Book=GetBook(
-            Title=listing_form.Book.Title,
-            Language=listing_form.Book.Language,
-            ReleaseDate=listing_form.Book.ReleaseDate,
-            ISBN=listing_form.Book.ISBN,
-            AvgRating=listing_form.Book.AvgRating,
-            Edition=listing_form.Book.Edition,
-            Author= listing_form.Book.Author,
-            Genre= listing_form.Book.Genre
-        ),
-        User=GetUser(
-            Name=user.Name,
-            AboutMe=user.AboutMe,
-            UserRole=user.UserRole,
-            UserID=user.UserID
-        ),
-        IsFavorite=False
-    )
+    try:
+        print(f"DEBUG: Starting post_listing for {listing_form.Book.Title}")
+        userid = get_userid_by_access_token(access_token, db)
+        print(f"DEBUG: Got userid: {userid}")
+        
+        latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+        new_location = Location(
+            Latitude=latitude,
+            Longitude=longitude,
+            Address=listing_form.LocationAddress,
+            Description="")
+        new_locationid = post_location(new_location, db)
+        print(f"DEBUG: Created location: {new_locationid}")
+        
+        new_bookid = get_bookid_by_isbn(listing_form.Book.ISBN, db)
+        if not new_bookid:
+            print(f"DEBUG: Book not found, creating new book...")
+            print(f"DEBUG: Book data - Title: {listing_form.Book.Title}, Authors: {listing_form.Book.Author}, Genres: {listing_form.Book.Genre}")
+            new_bookid = post_book(listing_form.Book, db)
+            print(f"DEBUG: Created book with ID: {new_bookid}")
+        else:
+            print(f"DEBUG: Book already exists with ID: {new_bookid}")
+            
+        post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
+        listingid = get_listingid_by_userid_and_bookit(userid, new_bookid, db)
+        new_listing = get_listing_by_listingid(listingid, db)
+        user = get_user_by_id(userid, db)
+        return GetListing(
+            ListingID=listingid,
+            ListingType=new_listing.ListingType,
+            Description=new_listing.Description,
+            Price=new_listing.Price,
+            BookCondition=new_listing.Condition,
+            Status=new_listing.ListingState,
+            CreationDate=new_listing.CreationDate,
+            Location=new_location,
+            Book=GetBook(
+                Title=listing_form.Book.Title,
+                Language=listing_form.Book.Language,
+                ReleaseDate=listing_form.Book.ReleaseDate,
+                ISBN=listing_form.Book.ISBN,
+                AvgRating=listing_form.Book.AvgRating,
+                Edition=listing_form.Book.Edition,
+                Author= listing_form.Book.Author,
+                Genre= listing_form.Book.Genre
+            ),
+            User=GetUser(
+                Name=user.Name,
+                AboutMe=user.AboutMe,
+                UserRole=user.UserRole,
+                UserID=user.UserID
+            ),
+            IsFavorite=False
+        )
+    except Exception as e:
+        print(f"ERROR in post_listing: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 @app.get("/api/get_users_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing],
          tags=["Listings"])
@@ -880,6 +897,96 @@ async def get_listings_pictures(listingid: int, access_token: str = Header(None)
     zipfile_path = make_a_zipfile_of_pictures(listing_photo_paths)
     return FileResponse(path=zipfile_path, media_type="application/zip", filename="listingphotos.zip")
 
+@app.get("/api/get_listing_primary_image", status_code=status.HTTP_200_OK, tags=["Images"])
+async def get_listing_primary_image(listingid: int, access_token: str, db=Depends(get_db)):
+    """
+    Retrieve the primary (first) picture of a listing.
+
+    This endpoint returns a single image file that can be used directly in <img> tags.
+    If no image exists for the listing, returns a 404 error.
+
+    :param listingid: The unique identifier of the listing
+    :type listingid: int
+    :param access_token: Access token for authentication (query parameter)
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: FileResponse with the image file
+    :raises HTTPException: If no images found or authentication fails
+    """
+    if not verify_access_token(access_token):
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    image_paths = get_listing_image_paths(listingid, db)
+    if not image_paths or len(image_paths) == 0:
+        raise HTTPException(status_code=404, detail="No images found for this listing")
+    
+    # Return the first image
+    first_image_path = image_paths[0].ImagePath
+    return FileResponse(path=first_image_path, media_type="image/jpeg")
+
+@app.get("/api/get_listing_images_urls", status_code=status.HTTP_200_OK, tags=["Images"])
+async def get_listing_images_urls(listingid: int, access_token: str, db=Depends(get_db)):
+    """
+    Get all image URLs for a listing.
+    
+    Returns a JSON array of image information including PhotoID and URL to access each image.
+    This is useful for frontend to display all images in a gallery or carousel.
+    
+    :param listingid: The unique identifier of the listing
+    :type listingid: int
+    :param access_token: Access token for authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: JSON array of image objects with PhotoID and URL
+    """
+    if not verify_access_token(access_token):
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    image_paths = get_listing_image_paths(listingid, db)
+    
+    # Build array of image URLs
+    images = []
+    for idx, img_row in enumerate(image_paths):
+        # For now, all images point to the primary endpoint
+        # In the future, you could create get_listing_image_by_photoid endpoint
+        images.append({
+            "photoId": img_row.PhotoID,
+            "imagePath": img_row.ImagePath,  # Direct file path
+            "imageUrl": f"/api/get_listing_image/{img_row.PhotoID}?access_token={access_token}",
+            "isPrimary": idx == 0  # First image is primary
+        })
+    
+    return images
+
+@app.get("/api/get_listing_image/{photo_id}", status_code=status.HTTP_200_OK, tags=["Images"])
+async def get_listing_image_by_photo_id(photo_id: int, access_token: str, db=Depends(get_db)):
+    """
+    Get a specific listing image by PhotoID.
+    
+    :param photo_id: The PhotoID from ListingPhoto table
+    :type photo_id: int
+    :param access_token: Access token for authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :return: FileResponse with the image file
+    """
+    if not verify_access_token(access_token):
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    # Get the image path from database
+    listingphoto = metadata.tables["ListingPhoto"]
+    stmt = listingphoto.select().where(listingphoto.c.PhotoID == photo_id)
+    result = db.execute(stmt).fetchone()
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    image_path = result.ImagePath
+    return FileResponse(path=image_path, media_type="image/jpeg")
+
+
 @app.post("/api/post_listings_picture", status_code=status.HTTP_200_OK, tags=["Images"])
 async def post_listings_picture(listingid: int, file: UploadFile = File(...), access_token: str = Header(None), db=Depends(get_db)):
     """
@@ -936,6 +1043,68 @@ async def delete_listings_pictures(listingid: int, access_token: str = Header(No
         raise HTTPException(status_code=401, detail="User does not own this listing")
 
     return delete_listing_image_paths(listingid, db)
+
+@app.delete("/api/delete_listing_image/{photo_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Images"])
+async def delete_listing_image(photo_id: int, access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Delete a specific image by PhotoID.
+    
+    This endpoint allows authenticated users to delete a single image from their listing.
+    It validates ownership before deletion.
+    
+    :param photo_id: The PhotoID from ListingPhoto table
+    :type photo_id: int
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :return: 204 No Content on success
+    :raises HTTPException: If authentication fails or user doesn't own the listing
+    """
+    userid = get_userid_by_access_token(access_token, db)
+    
+    # Get the image and verify ownership through listing
+    listingphoto = metadata.tables["ListingPhoto"]
+    stmt = listingphoto.select().where(listingphoto.c.PhotoID == photo_id)
+    photo_result = db.execute(stmt).fetchone()
+    
+    if not photo_result:
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    listing = get_listing_by_listingid(photo_result.ListingID, db)
+    if listing.UserID != userid:
+        raise HTTPException(status_code=401, detail="User does not own this listing")
+    
+    # Delete the image record
+    delete_stmt = listingphoto.delete().where(listingphoto.c.PhotoID == photo_id)
+    db.execute(delete_stmt)
+    db.commit()
+    
+    # Optionally: delete the actual image file from disk
+    # import os
+    # if os.path.exists(photo_result.ImagePath):
+    #     os.remove(photo_result.ImagePath)
+    
+    return Response(status_code=204)
+
+@app.get("/api/get_all_genres", status_code=status.HTTP_200_OK, tags=["Genres"])
+async def get_all_genres(db=Depends(get_db)):
+    """
+    Get all available genres from the database.
+    
+    Returns a list of all genre names that can be used when creating or editing listings.
+    This is useful for providing a predefined list of genres to users.
+    
+    :param db: Database session dependency
+    :return: List of genre objects with GenreID and GenreName
+    """
+    try:
+        genre_table = metadata.tables["Genres"]
+        stmt = genre_table.select().order_by(genre_table.c.GenreName)
+        result = db.execute(stmt)
+        genres = [{"GenreID": row.GenreID, "GenreName": row.GenreName} for row in result.fetchall()]
+        return genres
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch genres: {str(e)}")
 
 
 # ===================================================================================================================

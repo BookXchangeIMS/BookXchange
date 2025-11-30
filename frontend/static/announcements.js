@@ -20,6 +20,15 @@ function extractYear(dateString) {
     return dateString; // Already just a year
 }
 
+// Helper function to format arrays as comma-separated strings
+function formatArray(arr) {
+    if (!arr) return '';
+    if (Array.isArray(arr)) {
+        return arr.join(', ');
+    }
+    return arr;
+}
+
 // Initialize books in localStorage on first load (for mock mode only)
 function initializeBooksStorage() {
     if (!localStorage.getItem('MOCK_USER_BOOKS')) {
@@ -102,21 +111,28 @@ async function fetchListingsFromBackend() {
         }
 
         const listings = await response.json();
-        
+
+        console.log('✅ Fetched listings from backend:', listings);
+
         // Transform backend data to match frontend format
-        return listings.map(listing => ({
-            ListingID: listing.ListingID,
-            Name: listing.Book.Title,
-            // FIXED: Use existing image as fallback instead of non-existent placeholder
-            Image_Path: listing.Book.Image_Path || "../static/resources/harrypotter.png",
-            PublicationDate: listing.Book.ReleaseDate,
-            Location: listing.Location.Address,
-            author: listing.Book.Author,
-            price: `$${listing.Price}`,
-            condition: listing.BookCondition,
-            genres: listing.Book.Genre,
-            description: listing.Description
-        }));
+        return listings.map(listing => {
+            // Format authors and genres
+            const authors = formatArray(listing.Book.Author);
+            const genres = formatArray(listing.Book.Genre);
+
+            return {
+                ListingID: listing.ListingID,
+                Name: listing.Book.Title,
+                Image_Path: `${API_BASE_URL}/api/get_listing_primary_image?listingid=${listing.ListingID}&access_token=${accessToken}`,
+                PublicationDate: listing.Book.ReleaseDate,
+                Location: listing.Location.Address,
+                author: authors,
+                price: `$${parseFloat(listing.Price).toFixed(2)}`,
+                condition: listing.BookCondition,
+                genres: genres,
+                description: listing.Description
+            };
+        });
     } catch (error) {
         console.error('Failed to fetch listings from backend:', error);
         throw error;
@@ -134,9 +150,6 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// Initialize storage (only used in mock mode)
-initializeBooksStorage();
-
 // DOM elements
 const userBooksGrid = document.getElementById('userBooksGrid');
 
@@ -146,17 +159,19 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 // Initialize search after components are loaded
-document.addEventListener('componentsLoaded', async function() {
+document.addEventListener('componentsLoaded', async function () {
     const books = USE_MOCK_DATA ? getBooksFromStorage() : await fetchListingsFromBackend();
-    
+
     // Convert to format SearchManager expects (with title and author)
     const searchableData = books.map(book => ({
         ...book,
         title: book.Name,
         author: book.author || ''
     }));
-    
-    SearchManager.init(searchableData, displayUserBooks);
+
+    if (window.SearchManager) {
+        SearchManager.init(searchableData, displayUserBooks);
+    }
 });
 
 /**
@@ -165,16 +180,15 @@ document.addEventListener('componentsLoaded', async function() {
 async function loadUserBooks() {
     try {
         let books;
-        
+
         if (USE_MOCK_DATA) {
             // Use localStorage
             books = getBooksFromStorage();
         } else {
             // Fetch from backend
-            showToast('Loading your listings...', 'success');
             books = await fetchListingsFromBackend();
         }
-        
+
         displayUserBooks(books);
     } catch (error) {
         console.error('Error loading books:', error);
@@ -192,10 +206,10 @@ function displayUserBooks(books) {
 
     // Get the add-book-card element (first child)
     const addBookCard = userBooksGrid.querySelector('.add-book-card');
-    
+
     // Clear grid but keep add-book-card
     userBooksGrid.innerHTML = '';
-    
+
     // Re-add the add-book-card as first item
     if (addBookCard) {
         userBooksGrid.appendChild(addBookCard);
@@ -240,7 +254,8 @@ function createBookCard(book) {
     const card = document.createElement('div');
     card.className = 'book-card';
 
-    const location = book.Location ? escapeHtml(book.Location) : "Benfica - Lisboa";
+    const location = book.Location ? escapeHtml(book.Location) : "Unknown Location";
+    const price = book.price || "Price not set";
 
     card.innerHTML = `
         <img src="${escapeHtml(book.Image_Path)}" 
@@ -250,7 +265,7 @@ function createBookCard(book) {
         <div class="book-info">
             <div class="book-title">${escapeHtml(book.Name)}</div>
             <div class="book-location">${location}</div>
-            <div class="book-date">${extractYear(book.PublicationDate)}</div>
+            <div class="book-date">${price}</div>
             <button class="edit-btn" onclick="editListing(${book.ListingID})">
                 Edit Listing
             </button>

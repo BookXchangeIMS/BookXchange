@@ -26,7 +26,13 @@ VALUES
 ('Mystery'),
 ('Fantasy'),
 ('Non-Fiction'),
-('Romance');
+('Romance'),
+('History'),
+('Biography'),
+('Horror'),
+('Adventure'),
+('Thriller');
+ 
 
 
 INSERT INTO Books (Title, [Language], ReleaseDate, [Edition], ISBN)

@@ -11,19 +11,39 @@
 
 <body>
     <!-- Back Button -->
-    <button class="back-btn"
-        onclick="if(confirm('Are you sure you want to go back? All entered data will be lost.')) { window.location.href='announcements.html'; }">
+    <button class="back-btn" onclick="showCancelModal()">
         <i class="fas fa-arrow-left"></i>
     </button>
 
     <!-- Main Content -->
     <main>
-        <h1 class="page-title">Add New Listing</h1>
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <img src="../static/resources/add_listing.png" class="logo-img" alt="Add Listing">
+            <img src="../static/resources/add_listing_phone.png" class="logo-img-mobile" alt="Add Listing">
+        </div>
 
         <form id="addListingForm">
+            <!-- AI Scan Section -->
+            <div class="ai-scan-section">
+                <button type="button" class="scan-btn-prominent" onclick="document.getElementById('scanInput').click()">
+                    <i class="fas fa-magic"></i>
+                    <div class="scan-btn-text">
+                        <span class="scan-btn-title">Scan Book with AI</span>
+                        <span class="scan-btn-subtitle">Auto-fill details from book cover</span>
+                    </div>
+                </button>
+                <input type="file" id="scanInput" accept="image/*" style="display: none;"
+                    onchange="handleScanBook(event)">
+            </div>
+
+            <!-- Or Divider -->
+            <div class="or-divider">
+                <span>Or</span>
+            </div>
+
             <!-- Multiple Image Upload Section -->
             <div class="form-section">
-                <label class="form-label">Book Photos (Max 10)</label>
                 <div class="image-upload-container">
                     <!-- Upload Zone -->
                     <div class="upload-zone" id="uploadZone">
@@ -32,20 +52,6 @@
                         <span class="upload-hint">Max 10 images, 10MB each</span>
                     </div>
                     <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
-
-                    <!-- Add Upload Button -->
-                    <button type="button" class="change-image-btn"
-                        onclick="document.getElementById('imageInput').click()">
-                        <i class="fas fa-camera"></i> Add Images
-                    </button>
-
-                    <button type="button" class="change-image-btn scan-btn"
-                        style="background-color: #8e44ad; margin-left: 10px;"
-                        onclick="document.getElementById('scanInput').click()">
-                        <i class="fas fa-magic"></i> Scan Book (AI)
-                    </button>
-                    <input type="file" id="scanInput" accept="image/*" style="display: none;"
-                        onchange="handleScanBook(event)">
 
 
                     <!-- Image Preview Grid -->
@@ -101,9 +107,13 @@
 
             <!-- Genres -->
             <div class="form-section">
-                <label for="bookGenres" class="form-label">Genres</label>
-                <input type="text" id="bookGenres" class="form-input" placeholder="e.g., Fantasy, Adventure">
-                <p class="form-hint">Separate multiple genres with commas</p>
+                <label class="form-label">Genres</label>
+                <div class="genre-selection-container">
+                    <div id="availableGenres" class="genre-checkboxes">
+                        <!-- Genres will be populated here via JavaScript -->
+                        <div class="loading-genres">Loading genres...</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Description -->
@@ -116,8 +126,7 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button type="button" class="btn-secondary"
-                    onclick="if(confirm('Are you sure you want to cancel? All entered data will be lost.')) { window.location.href='announcements.html'; }">
+                <button type="button" class="btn-secondary" onclick="showCancelModal()">
                     Cancel
                 </button>
                 <button type="submit" class="btn-primary">
@@ -126,6 +135,27 @@
             </div>
         </form>
     </main>
+
+    <!-- Cancel Confirmation Modal -->
+    <div id="cancelModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="modal-title">Discard Changes?</h2>
+            <p class="modal-message">
+                Are you sure you want to leave?<br><br>
+                • All entered data will be lost<br>
+                • Images will not be saved<br>
+                • Book details will be cleared<br><br>
+                <strong>This action cannot be undone!</strong>
+            </p>
+            <div class="modal-actions">
+                <button class="modal-btn cancel-modal-btn" onclick="closeCancelModal()">Stay</button>
+                <button class="modal-btn confirm-modal-btn" onclick="confirmCancel()">Leave</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Load the main script -->
     <script src="../static/addlisting.js"></script>
