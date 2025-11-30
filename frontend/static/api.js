@@ -196,6 +196,44 @@ async function updateProfile(profileData, accessToken) {
 }
 
 /**
+ * Get another user's profile (public information)
+ */
+async function getUserProfile(userId, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_profile?userid=${userId}`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Get user profile API error:', response.status, errorText);
+        throw new Error(`Failed to fetch user profile: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Get a user's listings
+ */
+async function getUserListings(userId, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_users_listings?user_id=${userId}`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Get user listings API error:', response.status, errorText);
+        throw new Error(`Failed to fetch user listings: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
  * Get user preferences (genres)
  */
 async function getPreferences(accessToken) {
