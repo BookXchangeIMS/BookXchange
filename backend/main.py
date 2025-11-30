@@ -370,7 +370,11 @@ async def update_profile(new_info: UpdateUser, access_token: str = Header(None),
 
     """
     userid = get_userid_by_access_token(access_token, db)
-    latitude, longitude = address_to_coordinates(new_info.LocationAddress)
+    coordinates = address_to_coordinates(new_info.LocationAddress)
+    if coordinates:
+        latitude, longitude = coordinates
+    else:
+        latitude, longitude = 0.0, 0.0
     new_locationid = post_location(Location(
         Latitude=latitude,
         Longitude=longitude,
@@ -422,7 +426,11 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
         userid = get_userid_by_access_token(access_token, db)
         print(f"DEBUG: Got userid: {userid}")
         
-        latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+        coordinates = address_to_coordinates(listing_form.LocationAddress)
+        if coordinates:
+            latitude, longitude = coordinates
+        else:
+            latitude, longitude = 0.0, 0.0
         new_location = Location(
             Latitude=latitude,
             Longitude=longitude,
@@ -577,7 +585,14 @@ async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db
     :return: A list of all listings with complete book, user, and location information
     :rtype: list[GetListing]
     """
-    userid = get_userid_by_access_token(access_token, db)
+    if access_token:
+        try:
+            userid = get_userid_by_access_token(access_token, db)
+        except:
+            userid = None
+    else:
+        userid = None
+        
     listings = get_all_listings(db)
     result = []
     

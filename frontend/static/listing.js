@@ -54,10 +54,42 @@ async function loadListingDetails(listingId) {
         // Load images
         await loadImages(listingId, accessToken);
 
+        // Initialize Map
+        if (listing.Location && listing.Location.Latitude && listing.Location.Longitude) {
+            initializeMap(listing.Location.Latitude, listing.Location.Longitude);
+        }
+
     } catch (error) {
         console.error('Error in loadListingDetails:', error);
         throw error;
     }
+}
+
+// ============================================
+// INITIALIZE MAP
+// ============================================
+
+function initializeMap(lat, lng) {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    // Create map instance
+    const map = L.map('map').setView([lat, lng], 13);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Add marker
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup('Book Location')
+        .openPopup();
+
+    // Fix for map rendering issues when inside hidden/dynamic containers
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 100);
 }
 
 // ============================================
