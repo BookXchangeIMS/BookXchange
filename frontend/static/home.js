@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', function () {
     setupSearch();
+    setupFilters();
 });
 
 let searchTimeout;
@@ -44,11 +45,154 @@ function setupSearch() {
     }
 }
 
+let filterMap;
+let filterMarker;
+let selectedLat = null;
+let selectedLon = null;
+let selectedRadius = 10;
+
+function setupFilters() {
+    const filterBtn = document.getElementById('filterBtn');
+    const filterModal = document.getElementById('filterModal');
+    const closeFilterBtn = document.getElementById('closeFilterBtn');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const radiusSlider = document.getElementById('radiusSlider');
+    const radiusValue = document.getElementById('radiusValue');
+
+    if (filterBtn && filterModal) {
+        // Show filter button on home page
+        filterBtn.style.display = 'flex';
+
+        // Open Modal
+        filterBtn.addEventListener('click', () => {
+            filterModal.classList.add('active');
+            // Initialize map after modal is visible to ensure correct rendering
+            setTimeout(initFilterMap, 100);
+        });
+
+        // Close Modal
+        if (closeFilterBtn) {
+            closeFilterBtn.addEventListener('click', () => {
+                filterModal.classList.remove('active');
+            });
+        }
+
+        // Close on outside click
+        filterModal.addEventListener('click', (e) => {
+            if (e.target === filterModal) {
+                filterModal.classList.remove('active');
+            }
+        });
+
+        // Radius Slider
+        if (radiusSlider && radiusValue) {
+            radiusSlider.addEventListener('input', (e) => {
+                selectedRadius = e.target.value;
+                radiusValue.textContent = selectedRadius;
+                if (filterMarker) {
+                    // Update circle radius if we had one (optional visual improvement)
+                }
+            });
+        }
+
+        // Apply Filters
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', () => {
+                const searchInput = document.getElementById('searchInput');
+                const query = searchInput ? searchInput.value : '';
+
+                handleSearch(query);
+                filterModal.classList.remove('active');
+            });
+        }
+
+        // Reset Filters
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', () => {
+                // Clear all inputs
+                document.querySelectorAll('.genre-checkbox').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.type-checkbox').forEach(cb => cb.checked = false);
+                document.getElementById('minPrice').value = '';
+                document.getElementById('maxPrice').value = '';
+
+                // Reset Map
+                if (filterMarker) {
+                    filterMap.removeLayer(filterMarker);
+                    filterMarker = null;
+                }
+                selectedLat = null;
+                selectedLon = null;
+                selectedRadius = 10;
+                if (radiusSlider) radiusSlider.value = 10;
+                if (radiusValue) radiusValue.textContent = 10;
+
+                // Search without filters
+                const searchInput = document.getElementById('searchInput');
+                const query = searchInput ? searchInput.value : '';
+                handleSearch(query);
+            });
+        }
+    }
+}
+
+function initFilterMap() {
+    if (filterMap) {
+        filterMap.invalidateSize();
+        return;
+    }
+
+    // Default to Lisbon
+    filterMap = L.map('filterMap').setView([38.7223, -9.1393], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(filterMap);
+
+    filterMap.on('click', function (e) {
+        selectedLat = e.latlng.lat;
+        selectedLon = e.latlng.lng;
+
+        if (filterMarker) {
+            filterMap.removeLayer(filterMarker);
+        }
+
+        filterMarker = L.marker([selectedLat, selectedLon]).addTo(filterMap);
+    });
+}
+
+function getFilterValues() {
+    const filters = {
+        genres: [],
+        minPrice: document.getElementById('minPrice')?.value || null,
+        maxPrice: document.getElementById('maxPrice')?.value || null,
+        listingTypes: [],
+        lat: selectedLat,
+        lon: selectedLon,
+        radius: selectedRadius
+    };
+
+    // Collect Genres
+    document.querySelectorAll('.genre-checkbox:checked').forEach(cb => {
+        filters.genres.push(cb.value);
+    });
+
+    // Collect Types
+    document.querySelectorAll('.type-checkbox:checked').forEach(cb => {
+        filters.listingTypes.push(cb.value);
+    });
+
+    return filters;
+}
+
 async function handleSearch(query) {
     const accessToken = getAccessToken();
     try {
-        if (!query.trim()) {
-            loadAllListings(); // Reload all if empty
+        const filters = getFilterValues();
+
+        // If query is empty and no filters, load all
+        if (!query.trim() && !filters.genres.length && !filters.minPrice && !filters.maxPrice && !filters.listingTypes.length && filters.lat === null) {
+            loadAllListings();
             return;
         }
 
@@ -56,7 +200,7 @@ async function handleSearch(query) {
         if (skeletonGrid) skeletonGrid.style.display = 'grid';
         if (booksGrid) booksGrid.style.display = 'none';
 
-        const results = await searchListings(query, accessToken);
+        const results = await searchListings(query, filters, accessToken);
         allListings = results.map(transformListingData);
         hideSkeletonAndShowBooks();
 

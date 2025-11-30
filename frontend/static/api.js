@@ -283,10 +283,28 @@ async function getAllListings(accessToken) {
 }
 
 /**
- * Search listings by query
+ * Search listings by query and filters
  */
-async function searchListings(query, accessToken) {
-    const response = await fetch(`${API_BASE_URL}/api/search_listings?q=${encodeURIComponent(query)}`, {
+async function searchListings(query, filters = {}, accessToken) {
+    let url = `${API_BASE_URL}/api/search_listings?q=${encodeURIComponent(query)}`;
+
+    // Append filters
+    if (filters.genres && filters.genres.length > 0) {
+        filters.genres.forEach(genre => url += `&genres=${encodeURIComponent(genre)}`);
+    }
+
+    if (filters.minPrice) url += `&min_price=${filters.minPrice}`;
+    if (filters.maxPrice) url += `&max_price=${filters.maxPrice}`;
+
+    if (filters.listingTypes && filters.listingTypes.length > 0) {
+        filters.listingTypes.forEach(type => url += `&listing_types=${encodeURIComponent(type)}`);
+    }
+
+    if (filters.lat !== null && filters.lon !== null && filters.radius) {
+        url += `&lat=${filters.lat}&lon=${filters.lon}&radius=${filters.radius}`;
+    }
+
+    const response = await fetch(url, {
         headers: {
             'access-token': accessToken
         }

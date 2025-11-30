@@ -2,7 +2,7 @@ import asyncio
 from http import HTTPStatus
 import zipfile
 
-from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status
+from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status, Query
 from collections import defaultdict
 from typing import Annotated, Dict, Set
 
@@ -637,9 +637,20 @@ async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db
     return result
 
 @app.get("/api/search_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
-async def search_listings_endpoint(q: str, access_token=Header(None), db=Depends(get_db)):
+async def search_listings_endpoint(
+    q: str = "",
+    genres: list[str] = Query(None),
+    min_price: float = None,
+    max_price: float = None,
+    listing_types: list[str] = Query(None),
+    lat: float = None,
+    lon: float = None,
+    radius: float = None,
+    access_token=Header(None), 
+    db=Depends(get_db)
+):
     """
-    Search for listings by book title, ISBN, or author name.
+    Search for listings by book title, ISBN, or author name, with optional filters including location.
     """
     if access_token:
         try:
@@ -649,7 +660,7 @@ async def search_listings_endpoint(q: str, access_token=Header(None), db=Depends
     else:
         userid = None
         
-    listings = search_listings(q, db)
+    listings = search_listings(q, db, genres, min_price, max_price, listing_types, lat, lon, radius)
     result = []
     
     for listing in listings:

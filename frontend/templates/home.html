@@ -15,10 +15,17 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <!-- CSS Files -->
     <link rel="stylesheet" href="../static/home.css">
     <link rel="stylesheet" href="../static/header.css">
     <link rel="stylesheet" href="../static/footer.css">
+    <link rel="stylesheet" href="../static/filters.css">
 
     <!-- Script to load header and footer -->
     <script src="../static/include.js"></script>
@@ -53,6 +60,132 @@
             </div>
         </section>
     </main>
+
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filterModal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h2><i class="fas fa-sliders-h" style="color: #c84c3d;"></i> Filters</h2>
+                <button class="close-filter-btn" id="closeFilterBtn">&times;</button>
+            </div>
+
+            <div class="filter-body">
+                <!-- Genre Filter -->
+                <div class="filter-section">
+                    <h3>Genres</h3>
+                    <div class="genre-tags" id="genreTags">
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Science Fiction">
+                            <span class="genre-label">Science Fiction</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Mystery">
+                            <span class="genre-label">Mystery</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Fantasy">
+                            <span class="genre-label">Fantasy</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Non-Fiction">
+                            <span class="genre-label">Non-Fiction</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Romance">
+                            <span class="genre-label">Romance</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="History">
+                            <span class="genre-label">History</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Biography">
+                            <span class="genre-label">Biography</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Horror">
+                            <span class="genre-label">Horror</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Adventure">
+                            <span class="genre-label">Adventure</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="genre-checkbox" value="Thriller">
+                            <span class="genre-label">Thriller</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Price Range Filter -->
+                <div class="filter-section">
+                    <h3>Price Range (€)</h3>
+                    <div class="price-inputs">
+                        <div class="price-input-group">
+                            <span>€</span>
+                            <input type="number" id="minPrice" placeholder="Min" min="0">
+                        </div>
+                        <span class="price-separator">-</span>
+                        <div class="price-input-group">
+                            <span>€</span>
+                            <input type="number" id="maxPrice" placeholder="Max" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Type Filter -->
+                <div class="filter-section">
+                    <h3>Listing Type</h3>
+                    <div class="type-options">
+                        <div class="type-option">
+                            <label>
+                                <input type="checkbox" class="type-checkbox" value="Sale">
+                                <span class="type-label">
+                                    <i class="fas fa-tag"></i> Sale
+                                </span>
+                            </label>
+                        </div>
+                        <div class="type-option">
+                            <label>
+                                <input type="checkbox" class="type-checkbox" value="Exchange">
+                                <span class="type-label">
+                                    <i class="fas fa-exchange-alt"></i> Exchange
+                                </span>
+                            </label>
+                        </div>
+                        <div class="type-option">
+                            <label>
+                                <input type="checkbox" class="type-checkbox" value="Donation">
+                                <span class="type-label">
+                                    <i class="fas fa-gift"></i> Donation
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Filter -->
+                <div class="filter-section">
+                    <h3>Location & Radius</h3>
+                    <div class="location-filter">
+                        <div id="filterMap" style="height: 200px; border-radius: 12px; margin-bottom: 15px;"></div>
+                        <div class="radius-control">
+                            <label for="radiusSlider">Radius: <span id="radiusValue">10</span> km</label>
+                            <input type="range" id="radiusSlider" min="1" max="100" value="10" class="radius-slider">
+                        </div>
+                        <p class="location-hint" style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+                            <i class="fas fa-map-marker-alt"></i> Click on map to set center point
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-footer">
+                <button class="reset-btn" id="resetFiltersBtn">Reset</button>
+                <button class="apply-btn" id="applyFiltersBtn">Apply Filters</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <div id="footer-placeholder"></div>
