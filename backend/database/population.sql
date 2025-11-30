@@ -13,11 +13,11 @@ VALUES
 
 INSERT INTO Users ([Name], Email, PasswordHash, ProfileImagePath, UserRole, AboutMe, CreationDate, DateOfBirth, LocationID)
 VALUES
-('Alice Johnson', 'alice@example.com', 'Password123!', 'backend/images/profile_pictures/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME(), '1990-05-15', 1),
-('Bob Smith', 'bob@example.com', 'Password123!', 'backend/images/profile_pictures/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME(), '1985-08-22', 2),
-('Charlie Brown', 'charlie@example.com', 'Password123!', 'backend/images/profile_pictures/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME(), '1992-11-30', 3),
-('Diana Prince', 'diana@example.com', 'Password123!', 'backend/images/profile_pictures/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME(), '1988-03-10', 4),
-('Ethan Hunt', 'ethan@example.com', 'Password123!', 'backend/images/profile_pictures/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME(),'1979-07-13', 5);
+('Alice Johnson', 'alice@example.com', 'Password123!', 'images/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME(), '1990-05-15', 1),
+('Bob Smith', 'bob@example.com', 'Password123!', 'images/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME(), '1985-08-22', 2),
+('Charlie Brown', 'charlie@example.com', 'Password123!', 'images/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME(), '1992-11-30', 3),
+('Diana Prince', 'diana@example.com', 'Password123!', 'images/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME(), '1988-03-10', 4),
+('Ethan Hunt', 'ethan@example.com', 'Password123!', 'images/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME(),'1979-07-13', 5);
 
 
 INSERT INTO Genres (GenreName)
@@ -29,19 +29,13 @@ VALUES
 ('Romance');
 
 
-INSERT INTO Books (Title, [Language], ReleaseDate, [Edition], ISBN)
+INSERT INTO Books (Title, [Language], ReleaseDate, [Edition])
 VALUES
-('Dune', 'English', '1965-01-01', 1, 123),
-('The Hound of the Baskervilles', 'English', '1902-01-01', 1, 132),
-('The Hobbit', 'English', '1937-01-01', 2, 312),
-('Sapiens: A Brief History of Humankind', 'English', '2011-01-01', 1, 213),
-('Pride and Prejudice', 'English', '1813-01-01', 3, 321);
-
-INSERT INTO BookGenre (BookID, GenreID)
-VALUES
-(1, 1),
-(1,2),
-(2,3)
+('Dune', 'English', '1965-01-01', 1),
+('The Hound of the Baskervilles', 'English', '1902-01-01', 1),
+('The Hobbit', 'English', '1937-01-01', 2),
+('Sapiens: A Brief History of Humankind', 'English', '2011-01-01', 1),
+('Pride and Prejudice', 'English', '1813-01-01', 3);
 
 
 INSERT INTO Authors (AuthorName)
@@ -72,23 +66,23 @@ VALUES
 (5, 5); 
 
 
-INSERT INTO Listings (UserID, BookID, ListingType, Price, ListingState, CreationDate, [Description], LocationID, Condition)
+INSERT INTO Listings (UserID, BookID, ListingType, Price, ListingState, CreationDate)
 VALUES
-(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(5, 5, 'Donation', NULL, 'Active', SYSDATETIME(), "baaaad", 1, "good");
+(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME()),
+(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME()),
+(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME()),
+(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME()),
+(5, 5, 'Donation', NULL, 'Active', SYSDATETIME());
 
 
 INSERT INTO ListingPhoto (ListingID, ImagePath)
 VALUES
-(1, 'backend/images/listing_pictures/book1.jpg'),
-(2, 'backend/images/listing_pictures/book2-1.jpg'),
-(2, 'backend/images/listing_pictures/book2-2.jpg'),
-(3, 'backend/images/listing_pictures/book3.jpg'),
-(4, 'backend/images/listing_pictures/book4.jpg'),
-(5, 'backend/images/listing_pictures/book5.jpg');
+(1, 'images/book1.jpg'),
+(1, 'images/book1_alt.jpg'),
+(2, 'images/book2.jpg'),
+(3, 'images/book3.jpg'),
+(4, 'images/book4.jpg'),
+(5, 'images/book5.jpg');
 
 
 INSERT INTO Reports (UserID, ListingID, ReportType, [Description], CreationDate)
@@ -114,13 +108,4 @@ VALUES
 (2, 3), 
 (3, 4), 
 (4, 5), 
-(5, 5);
-
-INSERT INTO Messages (SenderID, ListingID, ReceiverID, Content, SentDate)
-VALUES
-(2, 1, 1, "Is it still for sale?", '2025-01-10 09:00:00'),
-(1, 1, 2, "Yeah, sure!", '2025-01-10 09:01:00'),
-(1, 1, 2, "Want to meet? I can show you",'2025-01-10 09:02:00'),
-(3, 2, 2, "Hello, can I get this one cheaper?", '2025-01-10 09:00:00'),
-(2, 2, 3, "Nope.", '2025-01-10 09:05:00');
-
+(5, 5); 

@@ -80,37 +80,18 @@
           </div>
 
           <div class="form-actions">
-            <button type="button" class="secondary-btn delete-btn" onclick="confirmDeleteAccount()">Delete
-              Account</button>
-            <button type="submit" class="primary-btn">Save Changes</button>
+            <button type="button" class="secondary-btn" onclick="goToProfile()">
+              Back
+            </button>
+            <button type="submit" class="primary-btn">
+              Save changes
+            </button>
           </div>
 
           <p id="formMessage" class="form-message"></p>
         </form>
       </section>
     </main>
-
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal-overlay">
-      <div class="modal-container">
-        <div class="modal-icon">
-          <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <h2 class="modal-title" id="modalTitle">Delete Account?</h2>
-        <p class="modal-message" id="modalMessage">
-          This action will permanently delete:<br><br>
-          • Your profile and all personal information<br>
-          • All your listings<br>
-          • All your messages<br>
-          • All your preferences<br><br>
-          <strong>This action CANNOT be undone!</strong>
-        </p>
-        <div class="modal-actions">
-          <button class="modal-btn cancel-modal-btn" onclick="closeDeleteModal()">Cancel</button>
-          <button class="modal-btn confirm-modal-btn" onclick="proceedDeleteAccount()">Delete Account</button>
-        </div>
-      </div>
-    </div>
 
   </div>
 

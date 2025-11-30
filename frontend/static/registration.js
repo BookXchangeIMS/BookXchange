@@ -1,37 +1,8 @@
-async function handleRegistration(event) {
+function handleRegistration(event) {
     event.preventDefault();
 
-    const name = event.target[0].value.trim();
-    const email = event.target[1].value.trim();
-    const submitButton = event.target.querySelector('button[type="submit"]');
-
-    // Disable button
-    submitButton.disabled = true;
-    submitButton.textContent = 'Checking...';
-
-    try {
-        // Check if email already exists
-        const exists = await doesUserExist(email);
-
-        if (exists) {
-            alert('This email is already registered. Please use a different email or login.');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Continue';
-            return;
-        }
-
-        // Save data to localStorage
-        localStorage.setItem('reg_name', name);
-        localStorage.setItem('reg_email', email);
-
-        // Navigate to next step
-        window.location.href = 'registration2.html';
-    } catch (error) {
-        console.error('Registration error:', error);
-        alert('Error checking email. Please try again.');
-        submitButton.disabled = false;
-        submitButton.textContent = 'Continue';
-    }
+    // Navigate to registration2.html
+    window.location.href = 'registration2.html';
 }
 
 function goToLogin() {

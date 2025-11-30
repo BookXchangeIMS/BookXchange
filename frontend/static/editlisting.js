@@ -1,62 +1,8 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000';
-const USE_MOCK_DATA = false; // Change to false for backend
+const API_BASE_URL = ''; // Empty since FastAPI routes start with /api
+const USE_MOCK_DATA = false; // Set to true for testing without backend
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-// Get books from localStorage (shared with announcements page)
-function getBooksDatabase() {
-    const stored = localStorage.getItem('MOCK_USER_BOOKS');
-    if (stored) {
-        return JSON.parse(stored);
-    }
-    // Default books if nothing in storage
-    const defaultBooks = {
-        101: {
-            ListingID: 101,
-            Name: "Harry Potter and the Sorcerer's Stone",
-            author: "J.K. Rowling",
-            price: "$18.25",
-            PublicationDate: "1997",
-            condition: "Good",
-            Location: "Benfica - Lisboa",
-            genres: "Fantasy, Adventure",
-            description: "A magical journey begins at Hogwarts! Follow Harry Potter as he discovers his true identity and battles the forces of darkness.",
-            Image_Path: "../static/resources/harrypotter.png"
-        },
-        102: {
-            ListingID: 102,
-            Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-            author: "J.R.R. Tolkien",
-            price: "$45.00",
-            PublicationDate: "1954",
-            condition: "Almost new",
-            Location: "Benfica - Lisboa",
-            genres: "Fantasy, Adventure",
-            description: "A classic masterpiece by J.R.R. Tolkien! This book will take you on an unforgettable journey through Middle-earth.",
-            Image_Path: "../static/resources/lotr.png"
-        },
-        103: {
-            ListingID: 103,
-            Name: "Sapiens: A Brief History of Humankind",
-            author: "Yuval Noah Harari",
-            price: "$15.00",
-            PublicationDate: "2011",
-            condition: "Good",
-            Location: "Benfica - Lisboa",
-            genres: "Non-fiction, History",
-            description: "Explore the history of humankind from the Stone Age to the modern era in this thought-provoking book.",
-            Image_Path: "../static/resources/sapiens.png"
-        }
-    };
-    localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(defaultBooks));
-    return defaultBooks;
-}
-
-// Save books to localStorage
-function saveBooksDatabase(books) {
-    localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(books));
-}
 
 // Token Management
 function getAccessToken() {
@@ -80,21 +26,13 @@ function clearTokens() {
 // API Helper Functions
 const api = {
     async get(endpoint) {
-        if (USE_MOCK_DATA) {
-            // Mock API - use localStorage
-            const id = parseInt(endpoint.split('/').pop());
-            const booksDB = getBooksDatabase();
-            const book = booksDB[id];
-            if (!book) {
-                throw new Error('Book not found');
-            }
-            return { data: book };
+        if (USE_MOCK_DATA && window.mockAPI) {
+            const id = endpoint.split('/').pop();
+            return await window.mockAPI.getBook(id);
         }
 
         try {
-            // Use backend endpoint: /api/get_listing_by_ListingID
-            const listingId = endpoint.split('/').pop();
-            const response = await fetch(`${API_BASE_URL}/api/get_listing_by_ListingID?listing_id=${listingId}`, {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -108,36 +46,7 @@ const api = {
             }
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            
-            const data = await response.json();
-            
-            // Helper function to extract year from date string
-            const extractYear = (dateString) => {
-                if (!dateString) return '';
-                if (dateString.includes('T')) {
-                    // ISO format: "1902-01-01T00:00:00"
-                    return dateString.split('T')[0].split('-')[0];
-                }
-                return dateString.split('-')[0]; // "1902-01-01" or just "1902"
-            };
-            
-            // Transform backend response to match frontend format
-            return {
-                data: {
-                    ListingID: data.ListingID,
-                    BookID: data.Book.BookID,
-                    Name: data.Book.Title,
-                    author: Array.isArray(data.Book.Author) ? data.Book.Author.join(', ') : data.Book.Author,
-                    price: `$${data.Price}`,
-                    PublicationDate: extractYear(data.Book.ReleaseDate),
-                    BookCondition: data.BookCondition,
-                    Location: data.Location.Address,
-                    genres: Array.isArray(data.Book.Genre) ? data.Book.Genre.join(', ') : data.Book.Genre,
-                    description: data.Description,
-                    Image_Path: data.Book.Image_Path || "../static/resources/harrypotter.png",
-                    images: []
-                }
-            };
+            return await response.json();
         } catch (error) {
             console.error('GET request failed:', error);
             throw error;
@@ -145,33 +54,19 @@ const api = {
     },
 
     async put(endpoint, data) {
-        if (USE_MOCK_DATA) {
-            // Mock API - update localStorage
-            const id = parseInt(endpoint.split('/').pop());
-            const booksDB = getBooksDatabase();
-            if (booksDB[id]) {
-                booksDB[id] = { ...booksDB[id], ...data };
-                saveBooksDatabase(booksDB);
-                return { success: true, data: booksDB[id] };
-            }
-            throw new Error('Book not found');
+        if (USE_MOCK_DATA && window.mockAPI) {
+            const id = endpoint.split('/').pop();
+            return await window.mockAPI.updateBook(id, data);
         }
 
         try {
-            // Data is already formatted correctly from handleFormSubmit
-            const updateData = data;
-
-            console.log('=== SENDING UPDATE DATA TO BACKEND ===');
-            console.log(JSON.stringify(updateData, null, 2));
-            console.log('======================================');
-
-            const response = await fetch(`${API_BASE_URL}/api/update_listing`, {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'access-token': getAccessToken() || ''
                 },
-                body: JSON.stringify(updateData)
+                body: JSON.stringify(data)
             });
 
             if (response.status === 401) {
@@ -181,10 +76,7 @@ const api = {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('=== BACKEND ERROR RESPONSE ===');
-                console.error(errorData);
-                console.error('==============================');
-                throw new Error(JSON.stringify(errorData, null, 2) || `HTTP error! Status: ${response.status}`);
+                throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
             }
             return await response.json();
         } catch (error) {
@@ -194,22 +86,13 @@ const api = {
     },
 
     async delete(endpoint) {
-        if (USE_MOCK_DATA) {
-            // Mock API - delete from localStorage
-            const id = parseInt(endpoint.split('/').pop());
-            const booksDB = getBooksDatabase();
-            if (booksDB[id]) {
-                delete booksDB[id];
-                saveBooksDatabase(booksDB);
-                return { success: true, message: 'Deleted successfully' };
-            }
-            throw new Error('Book not found');
+        if (USE_MOCK_DATA && window.mockAPI) {
+            const id = endpoint.split('/').pop();
+            return await window.mockAPI.deleteBook(id);
         }
 
         try {
-            // Use backend endpoint: /api/delete_listing
-            const listingId = endpoint.split('/').pop();
-            const response = await fetch(`${API_BASE_URL}/api/delete_listing?listing_id=${listingId}`, {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -241,10 +124,11 @@ const api = {
 
     // Upload multiple images to Azure Blob Storage
     async uploadImages(listingId, files) {
-        if (USE_MOCK_DATA) {
+        if (USE_MOCK_DATA && window.mockAPI) {
             const uploadedUrls = [];
             for (const file of files) {
-                uploadedUrls.push(`mock-url-${Date.now()}.jpg`);
+                const response = await window.mockAPI.uploadImage(file);
+                uploadedUrls.push(response.imageUrl);
             }
             return { success: true, imageUrls: uploadedUrls };
         }
@@ -387,7 +271,7 @@ let newImages = []; // [{file, preview, tempId}]
 let deletedImageIds = [];
 
 // Initialize
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to edit listings', 'error');
@@ -399,7 +283,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     if (!listingId || isNaN(listingId)) {
         showToast('Invalid listing ID', 'error');
-        setTimeout(() => window.location.href = 'announcements.html', 2000);
+        setTimeout(() => window.location.href = 'home.html', 2000);
         return;
     }
 
@@ -409,7 +293,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('Error loading listing:', error);
         showToast('Failed to load listing details', 'error');
-        setTimeout(() => window.location.href = 'announcements.html', 2000);
+        setTimeout(() => window.location.href = 'home.html', 2000);
     }
 });
 
@@ -427,26 +311,20 @@ function showMockModeIndicator() {
 }
 
 // Fetch listing details including images
-// Fetch listing details including images
 async function fetchListingDetails(id) {
     try {
         showToast('Loading listing details...', 'success');
         const response = await api.get(`/api/listings/${id}`);
         book = response.data || response;
 
-        // ADD THIS DEBUG LOG
-        console.log('=== DATA RETURNED FROM BACKEND ===');
-        console.log(JSON.stringify(book, null, 2));
-        console.log('===================================');
-
         // Load existing images (from ListingPhoto table)
         existingImages = book.images || book.photos || [];
 
-        // For mock data, convert single Image_Path to array
-        if (!existingImages.length && book.Image_Path) {
+        // For mock data, convert single imagePath to array
+        if (!existingImages.length && book.imagePath) {
             existingImages = [{
                 photoId: 1,
-                imagePath: book.Image_Path,
+                imagePath: book.imagePath,
                 isPrimary: true
             }];
         }
@@ -463,37 +341,15 @@ async function fetchListingDetails(id) {
     }
 }
 
-// Load form fields - UPDATED WITH FIXES
+// Load form fields
 function loadListingDetailsIntoForm(book) {
-    document.getElementById('bookTitle').value = book.Name || book.title || '';
-    
-    // Handle author (could be array or string)
-    let authorValue = book.author || '';
-    if (Array.isArray(authorValue)) {
-        authorValue = authorValue.join(', ');
-    }
-    document.getElementById('bookAuthor').value = authorValue;
-    
+    document.getElementById('bookTitle').value = book.title || '';
+    document.getElementById('bookAuthor').value = book.author || '';
     document.getElementById('bookPrice').value = book.price || '';
-    
-    // Handle publication date - extract year only
-    let year = book.PublicationDate || book.year || book.publication_year || book.releaseDate || '';
-    if (year.includes('T') || year.includes('-')) {
-        // Extract year from "1902-01-01T00:00:00" or "1902-01-01"
-        year = year.split('T')[0].split('-')[0];
-    }
-    document.getElementById('bookYear').value = year;
-    
-    document.getElementById('bookCondition').value = book.BookCondition || '';
-    document.getElementById('bookLocation').value = book.Location || book.location || '';
-    
-    // Handle genres (could be array or string)
-    let genresValue = book.genres || '';
-    if (Array.isArray(genresValue)) {
-        genresValue = genresValue.join(', ');
-    }
-    document.getElementById('bookGenres').value = genresValue;
-    
+    document.getElementById('bookYear').value = book.year || book.publication_year || book.releaseDate || '';
+    document.getElementById('bookCondition').value = book.condition || book.listingState || '';
+    document.getElementById('bookLocation').value = book.location || '';
+    document.getElementById('bookGenres').value = book.genres || '';
     document.getElementById('bookDescription').value = book.description || '';
     updateCharacterCount();
 }
@@ -729,8 +585,17 @@ function formatPrice(event) {
 
 // Validate form
 function validateForm() {
+    // Require login
+    if (!isLoggedIn()) {
+        window.location.href = 'Login.html';
+        return false;
+    }
+
     const errors = [];
 
+    // ===================================================
+    // LISTING IMAGE UPLOAD FUNCTIONALITY
+    // ===================================================
     if (existingImages.length === 0 && newImages.length === 0) {
         errors.push('Please add at least one image');
     }
@@ -747,12 +612,12 @@ function validateForm() {
 
     const year = parseInt(document.getElementById('bookYear').value);
     const currentYear = new Date().getFullYear();
-    if (year && (isNaN(year) || year < 1000 || year > currentYear)) {
+    if (isNaN(year) || year < 1000 || year > currentYear) {
         errors.push(`Publication year must be between 1000 and ${currentYear}`);
     }
 
-    const BookCondition = document.getElementById('bookCondition').value;
-    if (!BookCondition) errors.push('Please select a condition');
+    const condition = document.getElementById('bookCondition').value;
+    if (!condition) errors.push('Please select a condition');
 
     const location = document.getElementById('bookLocation').value.trim();
     if (location.length < 3) errors.push('Location must be at least 3 characters');
@@ -772,7 +637,7 @@ function validateForm() {
     return true;
 }
 
-// Handle form submission - FIXED WITH SAFE PRICE PARSING
+// Handle form submission
 async function handleFormSubmit(event) {
     event.preventDefault();
 
@@ -802,43 +667,22 @@ async function handleFormSubmit(event) {
         }
 
         // 3. Update listing data
-        const toArray = (str) => {
-            if (!str) return [];
-            return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        };
-
-        // Get price value safely
-        const priceValue = document.getElementById('bookPrice').value || '';
-        const priceNumber = parseFloat(priceValue.replace('$', '').trim()) || 0;
-
         const updatedListingData = {
-            ListingID: listingId,
-            ListingType: "Sale",
-            Status: "Active",
-            Description: document.getElementById('bookDescription').value.trim(),
-            Price: priceNumber,
-            BookCondition: document.getElementById('bookCondition').value,
-            LocationAddress: document.getElementById('bookLocation').value.trim(),
-            Book: {
-                BookID: book.BookID,
-                Title: book.Name,
-                Language: "English",
-                ReleaseDate: book.PublicationDate,
-                ISBN: "",
-                AvgRating: 0,
-                Edition: 1,
-                Author: toArray(book.author),
-                Genre: toArray(book.genres)
-            }
+            title: document.getElementById('bookTitle').value.trim(),
+            author: document.getElementById('bookAuthor').value.trim(),
+            price: parseFloat(document.getElementById('bookPrice').value.replace('$', '')),
+            year: parseInt(document.getElementById('bookYear').value),
+            condition: document.getElementById('bookCondition').value,
+            location: document.getElementById('bookLocation').value.trim(),
+            genres: document.getElementById('bookGenres').value.trim(),
+            description: document.getElementById('bookDescription').value.trim()
         };
 
-        // 4. COMMENTED OUT - Update primary image (endpoint doesn't exist yet)
-        /*
+        // 4. Update primary image if changed
         const primaryImage = existingImages.find(img => img.isPrimary);
         if (primaryImage) {
             await api.setPrimaryImage(listingId, primaryImage.photoId);
         }
-        */
 
         console.log('Updating listing with data:', updatedListingData);
 
@@ -848,7 +692,7 @@ async function handleFormSubmit(event) {
         showToast('Listing updated successfully!', 'success');
 
         setTimeout(() => {
-            window.location.href = 'announcements.html';
+            window.location.href = `listing.html?id=${listingId}`;
         }, 1500);
 
     } catch (error) {
@@ -862,35 +706,25 @@ async function handleFormSubmit(event) {
 // Confirm cancel
 function confirmCancel() {
     if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-        window.location.href = 'announcements.html';
+        window.location.href = `listing.html?id=${listingId}`;
     }
 }
 
 // Confirm delete
 async function confirmDelete() {
-    console.log('confirmDelete called for listing:', listingId);
-    
     const confirmation = confirm('Are you sure you want to delete this listing? This action cannot be undone.');
-    if (!confirmation) {
-        console.log('User cancelled first confirmation');
-        return;
-    }
+    if (!confirmation) return;
 
-    const doubleCheck = confirm('This will permanently delete your listing. Are you absolutely sure?');
-    if (!doubleCheck) {
-        console.log('User cancelled second confirmation');
-        return;
-    }
+    const doubleCheck = confirm('This will permanently delete your listing and all its images. Are you absolutely sure?');
+    if (!doubleCheck) return;
 
     try {
-        console.log('Starting delete process...');
         const response = await api.delete(`/api/listings/${listingId}`);
         console.log('Delete response:', response);
         showToast('Listing deleted successfully', 'success');
 
         setTimeout(() => {
-            console.log('Redirecting to announcements...');
-            window.location.href = 'announcements.html';
+            window.location.href = 'home.html';
         }, 1500);
     } catch (error) {
         console.error('Failed to delete listing:', error);
@@ -898,10 +732,10 @@ async function confirmDelete() {
     }
 }
 
-// Go back to announcements
+// Go back
 function goBack() {
     if (confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
-        window.location.href = 'announcements.html';
+        window.history.back();
     }
 }
 

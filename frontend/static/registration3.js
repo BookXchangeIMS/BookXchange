@@ -1,23 +1,20 @@
 function handleRegistration3(event) {
     event.preventDefault();
-
+    
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const errorMessage = document.getElementById('errorMessage');
-
+    
     // Check if passwords match
     if (password !== confirmPassword) {
         errorMessage.textContent = 'Passwords do not match!';
         document.getElementById('confirmPassword').focus();
         return;
     }
-
+    
     // Clear error message
     errorMessage.textContent = '';
-
-    // Save password to localStorage
-    localStorage.setItem('reg_password', password);
-
+    
     // Navigate to next page (preferences dashboard)
     window.location.href = 'preferencedashboard.html';
 }
@@ -31,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirmPassword');
     const errorMessage = document.getElementById('errorMessage');
-
+    
     // Check passwords match while typing
     confirmPassword.addEventListener('input', () => {
         if (confirmPassword.value === '') {
@@ -43,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.style.color = '#27ae60';
         }
     });
-
+    
     // Reset error color when typing again
     password.addEventListener('input', () => {
         errorMessage.style.color = '#e74c3c';
@@ -54,12 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.style.color = '#27ae60';
         }
     });
-
+    
     // Add fade-in animation
     const container = document.querySelector('.container');
     container.style.opacity = '0';
     container.style.transform = 'translateY(20px)';
-
+    
     setTimeout(() => {
         container.style.transition = 'all 0.6s ease';
         container.style.opacity = '1';

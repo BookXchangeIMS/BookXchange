@@ -29,13 +29,10 @@ CREATE TABLE Users(
 CREATE TABLE Books(
     BookID INT IDENTITY PRIMARY KEY,
     Title NVARCHAR(256) NOT NULL,
-    [Language] NVARCHAR(64),
+    Language NVARCHAR(64),
     ReleaseDate DATE,
-    ISBN NVARCHAR(32),
-    AvgRating FLOAT,
-    [Edition] INT
+    Edition INT
 );
-
 
 CREATE TABLE Authors(
     AuthorID INT IDENTITY PRIMARY KEY,
@@ -55,14 +52,6 @@ CREATE TABLE Genres(
     GenreName NVARCHAR(256) NOT NULL
 );
 
-CREATE TABLE BookGenre(
-    BookID INT NOT NULL,
-    GenreID INT NOT NULL,
-    PRIMARY KEY(BookID, GenreID),
-    FOREIGN KEY(BookID) REFERENCES Books(BookID) ON DELETE CASCADE,
-    FOREIGN KEY(GenreID) REFERENCES Genres(GenreID) ON DELETE CASCADE
-);
-
 CREATE TABLE Preferences(
     UserID INT NOT NULL,
     GenreID INT NOT NULL,
@@ -76,15 +65,11 @@ CREATE TABLE Listings(
     UserID INT NOT NULL,
     BookID INT NOT NULL,
     ListingType NVARCHAR(64) NOT NULL,
-    [Description] NVARCHAR(512),
     Price FLOAT,
-    Condition NVARCHAR(64),
     ListingState NVARCHAR(64) NOT NULL, -- Visibility of listing
     CreationDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    LocationID INT NOT NULL,
     FOREIGN KEY(UserID) REFERENCES Users(UserID),
-    FOREIGN KEY(BookID) REFERENCES Books(BookID),
-    FOREIGN KEY(LocationID) REFERENCES Locations(LocationID)
+    FOREIGN KEY(BookID) REFERENCES Books(BookID)
 );
 
 CREATE TABLE ListingPhoto(

@@ -1,21 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookXchange - Your Books</title>
-    
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- CSS Files -->
     <link rel="stylesheet" href="../static/announcements.css">
     <link rel="stylesheet" href="../static/header.css">
     <link rel="stylesheet" href="../static/footer.css">
-    
+
     <!-- Script to load header and footer -->
     <script src="../static/include.js"></script>
+    <script src="../static/api.js"></script>
 </head>
+
 <body>
     <!-- Header will be loaded here -->
     <div id="header-placeholder"></div>
@@ -23,7 +32,7 @@
     <!-- Main Content -->
     <main>
         <!-- Logo Section (same as home page) -->
-        <div class="logo-section">
+        <div class="logo-section fade-in">
             <img src="../static/resources/your_books.png" class="logo-img" alt="BookXchange Logo">
         </div>
 
@@ -31,7 +40,7 @@
         <section class="books-section">
             <div class="books-grid" id="userBooksGrid">
                 <!-- Add Book Card (First item in grid) -->
-                <div class="book-card add-book-card" onclick="goToAddListing()">
+                <div class="book-card add-book-card" onclick="goToHome()">
                     <div class="add-book-content">
                         <i class="fas fa-plus"></i>
                         <p>Add a Book</p>
@@ -48,4 +57,5 @@
     <!-- Page JavaScript -->
     <script src="../static/announcements.js"></script>
 </body>
+
 </html>
