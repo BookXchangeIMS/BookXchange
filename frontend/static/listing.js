@@ -88,7 +88,7 @@ function initializeMap(lat, lng) {
         fillOpacity: 0.2,
         radius: 500
     }).addTo(map)
-       
+
         .openPopup();
 
     // Fix for map rendering issues when inside hidden/dynamic containers
@@ -130,7 +130,6 @@ function populateBookDetails(listing) {
     document.getElementById('bookGenres').textContent = genres;
 
     // Location
-    document.getElementById('bookLocation').textContent = listing.Location.Address || 'Location not specified';
 
     // Description
     document.getElementById('bookDescription').textContent = listing.Description || 'No description provided.';
