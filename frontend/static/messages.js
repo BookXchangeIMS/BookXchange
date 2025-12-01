@@ -1,16 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     // GLOBAL NAVIGATION FUNCTIONS
-    window.goBack = function () {
-        window.history.back();
-    };
-
-    window.goToHome = function () {
-        window.location.href = 'home.html';
-    };
-
-    window.goToAnnouncements = function () {
-        window.location.href = 'announcements.html';
-    };
+    window.goBack = function () { window.history.back(); };
+    window.goToHome = function () { window.location.href = 'home.html'; };
+    window.goToAnnouncements = function () { window.location.href = 'announcements.html'; };
 
     // Require login
     if (!isLoggedIn()) {
@@ -20,84 +12,101 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const accessToken = getAccessToken();
 
-    // Read query parameters (conversation key = other user + listing)
+    // Query params
     const url = new URL(window.location.href);
-    const params = url.searchParams; // URLSearchParams API
-    const conversationId = params.get("conversation_id"); // reserved for future if you add explicit IDs
+    const params = url.searchParams;
     const listingId = params.get("listing_id");
     const sellerIdParam = params.get("seller_id");
     const otherUserIdParam = params.get("user_id");
-    // Prefer explicit user_id if present, otherwise fall back to sellerId
     const otherUserId = otherUserIdParam || sellerIdParam;
 
-    console.log("Conversation ID (unused for now):", conversationId);
-    console.log("Listing ID:", listingId);
-    console.log("Other user ID (seller):", otherUserId);
+    // Navigation shortcuts
+    window.goToFavorites = function () { window.location.href = 'favourites.html'; };
+    window.goToMessages = function () { window.location.href = 'mymessages.html'; };
+    window.goToProfile = function () { window.location.href = 'profile.html'; };
 
-    // Navigation functions - MUST be in global scope for onclick to work
-    window.goToFavorites = function () {
-        window.location.href = 'favourites.html';
-    };
-
-    // Go to inbox (list of conversations)
-    window.goToMessages = function () {
-        window.location.href = 'mymessages.html';
-    };
-
-    window.goToProfile = function () {
-        window.location.href = 'profile.html';
-    };
-
-    // CHAT FUNCTIONALITY
+    // CHAT DOM
     const chatForm = document.getElementById("chatForm");
     const messageInput = document.getElementById("messageInput");
     const chatMessages = document.getElementById("chatMessages");
-    const profileNameEl = document.querySelector(".profile-name");
+    const profileNameEl = document.getElementById("profileName");
+    const userRoleTextEl = document.getElementById("userRoleText");
+
+    // Listing card DOM
+    const listingImageEl = document.getElementById("listingImage");
+    const listingTitleEl = document.getElementById("listingTitle");
+    const listingAuthorEl = document.getElementById("listingAuthor");
+    const listingLocationEl = document.getElementById("listingLocation");
+    const listingDateEl = document.getElementById("listingDate");
+    const listingPriceEl = document.getElementById("listingPrice");
 
     let currentUserId = null;
 
-    // Helper to format times from ISO strings or Date objects
+    // ==== Helpers ====
+
     function formatTime(dateOrString) {
         const d = dateOrString instanceof Date ? dateOrString : new Date(dateOrString);
         return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     }
 
-    // Append a single message element to the chat
     function appendMessage(text, type, sentAt = null) {
         if (!chatMessages) return;
-
         const msgDiv = document.createElement("div");
         msgDiv.classList.add("message", type);
-
         const timeString = sentAt ? formatTime(sentAt) : formatTime(new Date());
-
         msgDiv.innerHTML = `
             <div class="message-content">
                 <p>${text}</p>
                 <span class="message-time">${timeString}</span>
             </div>
         `;
-
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Render an array of messages from backend (GetMessage list)
     function renderMessages(messages) {
         if (!chatMessages || !Array.isArray(messages)) return;
-
         chatMessages.innerHTML = "";
-
-        // Sort by SentDate ascending just in case
         messages.sort((a, b) => new Date(a.SentDate) - new Date(b.SentDate));
-
         messages.forEach(msg => {
             const type = msg.SenderID === currentUserId ? "sent" : "received";
             appendMessage(msg.Content, type, msg.SentDate);
         });
     }
 
-    // Load current user and dialogue from backend
+    function populateListingCard(mapped) {
+        if (!mapped) return;
+        if (listingImageEl) {
+            listingImageEl.src = mapped.imagePath;
+            listingImageEl.alt = mapped.title;
+            listingImageEl.onerror = function () {
+                this.onerror = null;
+                this.src = '../static/resources/placeholder.jpg';
+            };
+        }
+        if (listingTitleEl) listingTitleEl.textContent = mapped.title;
+        if (listingAuthorEl) listingAuthorEl.textContent = `by ${mapped.author}`;
+        if (listingLocationEl) listingLocationEl.textContent = mapped.location;
+        if (listingDateEl) listingDateEl.textContent = mapped.date;
+        if (listingPriceEl) listingPriceEl.textContent = mapped.price;
+    }
+
+    function addSystemMessage(htmlText) {
+        if (!chatMessages) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message system';
+        wrapper.innerHTML = `
+            <div class="message-content">
+                <p>${htmlText}</p>
+                <span class="message-time">${formatTime(new Date())}</span>
+            </div>
+        `;
+        chatMessages.appendChild(wrapper);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // ==== Chat init ====
+
     async function initChat() {
         try {
             if (!listingId || !otherUserId) {
@@ -105,11 +114,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 1) Get current user profile to know own UserID
             const myProfile = await getMyProfile(accessToken);
             currentUserId = myProfile.UserID;
 
-            // 2) Set sidebar name to the other user's name
             try {
                 const otherProfile = await getUserProfile(otherUserId, accessToken);
                 if (profileNameEl && otherProfile && otherProfile.Name) {
@@ -119,20 +126,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.warn("Could not load other user's profile:", e);
             }
 
-            // 3) Get dialogue for (otherUserId, listingId)
             const dialogue = await getDialogue(otherUserId, listingId, accessToken);
-            // dialogue.Messages is expected to be a list[GetMessage]
             if (dialogue && Array.isArray(dialogue.Messages)) {
                 renderMessages(dialogue.Messages);
             } else if (Array.isArray(dialogue)) {
-                // fallback if backend returns array directly
                 renderMessages(dialogue);
-            } else {
-                console.log("No previous messages in this dialogue.");
             }
         } catch (error) {
             console.error("Error initializing chat:", error);
-            // Optional: show a simple error message in the chat area
             if (chatMessages) {
                 chatMessages.innerHTML = `
                     <div class="message system-error">
@@ -145,97 +146,182 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Initialize chat (load from backend)
-    initChat();
-
-    // Auto-scroll to bottom on load (after existing messages, if any)
-    if (chatMessages) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // Handle sending a new message
+    // Send message
     if (chatForm && messageInput) {
         chatForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const text = messageInput.value.trim();
             if (!text) return;
-
             if (!listingId || !otherUserId) {
                 alert("Cannot send message: missing listing or user information.");
                 return;
             }
-
-            // Optimistically render the sent message
             appendMessage(text, "sent");
             messageInput.value = "";
-
             try {
                 await sendMessageApi(otherUserId, listingId, text, accessToken);
-                // Optionally re-fetch dialogue to ensure perfect sync:
-                // const dialogue = await getDialogue(otherUserId, listingId, accessToken);
-                // renderMessages(dialogue.Messages || dialogue);
             } catch (error) {
                 console.error("Error sending message:", error);
-                // Show a simple error message; you could also mark last message as failed
                 appendMessage("Failed to send message. Please try again.", "received");
             }
         });
     }
 
-    // TOGGLE DEAL BUTTON FUNCTIONALITY
+    // ==== Handshakes / transactions ====
+
     const dealButton = document.getElementById('dealButton');
-    let isDealConfirmed = false;
+    let transactionStatus = -1;   // -1 none, 0 one party, 1 both
+    let listingOwnerId = null;
+    let buyerId = null;
 
-    if (dealButton && chatMessages) {
-        dealButton.addEventListener('click', function () {
-            const now = new Date();
-            const timeString = formatTime(now);
+    function updateDealButtonUI() {
+        if (!dealButton) return;
+        if (transactionStatus === 1) {
+            dealButton.classList.add('deal-confirmed');
+            dealButton.innerHTML = '<i class="fas fa-check-circle" style="font-size: 24px; color: white;"></i>';
+        } else {
+            dealButton.classList.remove('deal-confirmed');
+            dealButton.innerHTML = '<img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake" class="handshake-img">';
+        }
+    }
 
-            if (!isDealConfirmed) {
-                // CONFIRM DEAL
-                const confirmed = confirm("Are you sure you want to close the deal? This will mark the transaction as complete.");
+    function normalizeTransactionStatus(rawStatus) {
+        const n = Number(rawStatus);
+        if (n === -1 || n === 0 || n === 1) return n;
+        // Fallback: treat anything else (null/undefined) as "no transaction yet"
+        return -1;
+    }
 
-                if (confirmed) {
-                    dealButton.classList.add('deal-confirmed');
-                    dealButton.innerHTML = '<i class="fas fa-check-circle" style="font-size: 24px; color: white;"></i>';
+    async function refreshTransactionStatusAndUI(showMessage = true) {
+        if (!listingId || !buyerId) return;
+        try {
+            const raw = await getTransactionStatus(listingId, buyerId, accessToken);
+            transactionStatus = normalizeTransactionStatus(raw);
+            updateDealButtonUI();
 
-                    const confirmationMsg = document.createElement('div');
-                    confirmationMsg.className = 'message sent';
-                    confirmationMsg.innerHTML = `
-                        <div class="message-content">
-                            <p><strong>✅ Deal Closed!</strong><br>Transaction marked as complete.</p>
-                            <span class="message-time">${timeString}</span>
-                        </div>
-                    `;
-                    chatMessages.appendChild(confirmationMsg);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+            if (!showMessage) return;
 
-                    isDealConfirmed = true;
+            if (transactionStatus === 0) {
+                addSystemMessage(
+                    "<strong>🤝 Deal proposal pending.</strong><br>One of you has proposed closing the deal. Press the handshake button if you agree."
+                );
+            } else if (transactionStatus === 1) {
+                addSystemMessage(
+                    "<strong>✅ Deal Closed!</strong><br>Both parties confirmed the transaction."
+                );
+            } else if (transactionStatus === -1) {
+                addSystemMessage(
+                    "<strong>❌ No active deal.</strong><br>The handshake has been cancelled."
+                );
+            }
+        } catch (e) {
+            console.error("Failed to refresh transaction status:", e);
+        }
+    }
 
-                    // Later you can call a handshake/transaction API here
-                }
+    async function initHandshake() {
+        if (!dealButton || !listingId || !otherUserId || !accessToken) return;
+
+        try {
+            const listing = await getListingById(listingId, accessToken);
+            const mapped = transformListingData(listing);
+            populateListingCard(mapped);
+
+            // Figure out who is seller vs buyer
+            listingOwnerId = listing.User.UserID;
+            if (currentUserId === listingOwnerId) {
+                buyerId = parseInt(otherUserId, 10);
             } else {
-                // UNCONFIRM DEAL
-                const unconfirmed = confirm("Are you sure you want to undo the deal confirmation?");
+                buyerId = currentUserId;
+            }
 
-                if (unconfirmed) {
-                    dealButton.classList.remove('deal-confirmed');
-                    dealButton.innerHTML = '<img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake" class="handshake-img">';
+            // Set "You are selling / buying"
+            if (userRoleTextEl) {
+                userRoleTextEl.textContent = (currentUserId === listingOwnerId)
+                    ? "You are selling"
+                    : "You are buying";
+            }
 
-                    const unconfirmationMsg = document.createElement('div');
-                    unconfirmationMsg.className = 'message sent';
-                    unconfirmationMsg.innerHTML = `
-                        <div class="message-content">
-                            <p><strong>❌ Deal Confirmation Removed</strong><br>Transaction status updated.</p>
-                            <span class="message-time">${timeString}</span>
-                        </div>
-                    `;
-                    chatMessages.appendChild(unconfirmationMsg);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Initial status
+            await refreshTransactionStatusAndUI(true);
+        } catch (e) {
+            console.warn('Handshake init failed:', e);
+        }
+    }
 
-                    isDealConfirmed = false;
+    // Attach handshake button click listener
+    if (dealButton && chatMessages) {
+        console.log('Attaching handshake click listener');
+        dealButton.addEventListener('click', async function () {
+            console.log('Handshake button clicked with status', transactionStatus, {
+                listingId,
+                buyerId
+            });
+
+            if (!listingId || !buyerId) {
+                alert('Cannot process deal: missing listing or user information.');
+                return;
+            }
+
+            try {
+                if (transactionStatus === -1 || transactionStatus === 0) {
+                    // Confirm (first or second party)
+                    const confirmed = confirm(
+                        "Do you want to confirm this deal? Once both parties confirm, the transaction will be closed."
+                    );
+                    if (!confirmed) return;
+
+                    try {
+                        await confirmTransaction(listingId, buyerId, accessToken);
+                    } catch (e) {
+                        const msg = String(e.message || "");
+                        // If server says already confirmed, just fall through and refresh
+                        if (!msg.includes("Transaction already confirmed")) {
+                            throw e;
+                        }
+                    }
+
+                    await refreshTransactionStatusAndUI(true);
+
+                    // Optional: notify other user that you confirmed
+                    if (transactionStatus === 0) {
+                        try {
+                            await sendMessageApi(
+                                otherUserId,
+                                listingId,
+                                "I would like to close the deal for this book. Do you also agree?",
+                                accessToken
+                            );
+                        } catch (err) {
+                            console.warn("Failed to send deal proposal message:", err);
+                        }
+                    }
+
+                } else if (transactionStatus === 1) {
+                    // Unconfirm / undo
+                    const unconfirmed = confirm(
+                        "Do you want to undo your confirmation of this deal?"
+                    );
+                    if (!unconfirmed) return;
+
+                    await unconfirmTransaction(listingId, buyerId, accessToken);
+                    await refreshTransactionStatusAndUI(true);
                 }
+            } catch (error) {
+                console.error('Error handling deal button:', error);
+                addSystemMessage(
+                    "<strong>⚠️ Deal update failed.</strong><br>Please try again later."
+                );
             }
         });
     }
+
+    // ==== Init all ====
+    async function initAll() {
+        await initChat();
+        await initHandshake();
+        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    initAll();
 });

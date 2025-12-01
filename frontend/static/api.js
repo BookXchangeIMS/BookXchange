@@ -477,3 +477,77 @@ async function sendMessageApi(receiverId, listingId, content, accessToken) {
 
     return await response.json(); // whatever post_new_message returns
 }
+
+
+// ============================================
+// HANDSHAKES / TRANSACTIONS
+// ============================================
+
+/**
+ * Get the transaction status for a listing + buyer.
+ * -1 = no transaction yet
+ *  0 = one party confirmed
+ *  1 = both parties confirmed
+ */
+async function getTransactionStatus(listingId, buyerId, accessToken) {
+    const url = `${API_BASE_URL}/api/get_transaction_status?listingid=${listingId}&buyerid=${buyerId}`;
+    const response = await fetch(url, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GetTransactionStatus API error:', response.status, errorText);
+        throw new Error(`Failed to get transaction status: ${response.status}`);
+    }
+
+    // Backend returns -1, 0, or 1
+    return await response.json();
+}
+
+/**
+ * Confirm a transaction for listing + buyer.
+ * First confirm creates or updates to status 0 or 1 depending on the other party.
+ */
+async function confirmTransaction(listingId, buyerId, accessToken) {
+    const url = `${API_BASE_URL}/api/confirm_transaction?listingid=${listingId}&buyerid=${buyerId}`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('ConfirmTransaction API error:', response.status, errorText);
+        throw new Error(`Failed to confirm transaction: ${response.status} - ${errorText}`);
+    }
+
+    // Backend returns JSON with updated transaction info
+    return await response.json();
+}
+
+/**
+ * Unconfirm / undo a transaction for listing + buyer.
+ */
+async function unconfirmTransaction(listingId, buyerId, accessToken) {
+    const url = `${API_BASE_URL}/api/unconfirm_transaction?listingid=${listingId}&buyerid=${buyerId}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('UnconfirmTransaction API error:', response.status, errorText);
+        throw new Error(`Failed to unconfirm transaction: ${response.status} - ${errorText}`);
+    }
+
+    // 204 No Content → nothing to parse
+    return { success: true };
+}
