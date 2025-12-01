@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.textContent = '✓ Passwords match';
             errorMessage.style.color = '#27ae60';
         }
-    });
+    };
 
     // Reset error color when typing again
     password.addEventListener('input', () => {
