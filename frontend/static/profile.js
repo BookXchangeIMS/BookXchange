@@ -3,7 +3,7 @@
 // ============================================
 
 window.goBack = function () {
-    window.history.back();
+    window.location.href = 'home.html';
 };
 
 // ============================================
@@ -52,6 +52,15 @@ async function loadUserProfile() {
 
         if (aboutTextElement) {
             aboutTextElement.textContent = profile.AboutMe || 'No information provided';
+        }
+
+        // Load profile image if exists
+        if (profile.ProfileImagePath) {
+            const avatarElement = document.querySelector('.avatar');
+            if (avatarElement) {
+                const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${profile.UserID}&access_token=${token}`;
+                avatarElement.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+            }
         }
 
         // Fetch and display preferences
@@ -107,28 +116,38 @@ if (!isLoggedIn()) {
 }
 
 function handleLogout() {
-    const confirmLogout = confirm('Are you sure you want to log out?');
-
-    if (confirmLogout) {
-        const accessToken = getAccessToken();
-        const refreshToken = getRefreshToken();
-
-        // Always clear tokens and redirect, even if API call fails
-        clearTokens();
-
-        // Try to call logout API (don't wait for it)
-        if (accessToken && refreshToken) {
-            logout(accessToken, refreshToken).catch(err => {
-                console.error('Logout API error:', err);
-            });
-        }
-
-        // Show toast and redirect
-        showToast('Logged out successfully', 'success');
-        setTimeout(() => {
-            window.location.href = 'Login.html';
-        }, 1000);
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.add('active');
     }
+}
+
+function closeLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function confirmLogout() {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+
+    // Always clear tokens and redirect, even if API call fails
+    clearTokens();
+
+    // Try to call logout API (don't wait for it)
+    if (accessToken && refreshToken) {
+        logout(accessToken, refreshToken).catch(err => {
+            console.error('Logout API error:', err);
+        });
+    }
+
+    // Show toast and redirect
+    showToast('Logged out successfully', 'success');
+    setTimeout(() => {
+        window.location.href = 'Login.html';
+    }, 1000);
 }
 
 // ============================================

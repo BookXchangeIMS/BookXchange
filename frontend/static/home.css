@@ -636,10 +636,11 @@ html {
         width: 100%;
         height: 36px;
     }
+
     .logo-section {
 
-    margin-bottom: 30px;
-    min-height: 250px;
+        margin-bottom: 30px;
+        min-height: 250px;
 
-}
+    }
 }
