@@ -12,12 +12,14 @@ from backend.scripts.auth import *
 from backend.scripts.chat_crud import *
 from backend.scripts.image_management import *
 from backend.scripts.profile_crud import *
-from backend.config.db import get_db
+from backend.config.db import get_db, SessionLocal
 from backend.scripts.location_scripts import *
 from backend.scripts.listings_crud import *
 from backend.scripts.ai_service import analyze_book_image
 from fastapi import UploadFile, File
 from backend.scripts.transactions_crud import *
+
+from datetime import datetime
 
 tags_metadata = [
     {
@@ -1480,122 +1482,94 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # WebSocket endpoint
+# WebSocket endpoint
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str = "", db=Depends(get_db)):
-    """
-    WebSocket connection:
-      - Authenticate: token can be provided as a query param `?token=...`
-        or client can set header `Authorization: Bearer <token>` (WebSocket libs
-        vary on header support; query param is most-compatible).
-      - After connect, client sends JSON messages in the shape:
-          { "receiverid": 123, "listingid": 55, "content": "Hello!" }
-      - Server validates, persists (using post_new_message), and forwards to receiver if online.
-    """
-    # --- Authenticate the user ---
-    # Try token param first, otherwise check Authorization header
-    if not token:
+async def websocket_endpoint(websocket: WebSocket):
+    # 1. Create a manual DB session
+    db = SessionLocal() 
+    
+    try:
+        # 2. Authenticate
         token = websocket.query_params.get("token") or websocket.headers.get("authorization") or ""
-        # if header like "Bearer <token>"
         if token.lower().startswith("bearer "):
             token = token.split(" ", 1)[1]
 
-    # verify token / get userid; reuse your function
-    try:
-        current_userid = get_userid_by_access_token(token, db)
-    except Exception:
         current_userid = None
+        try:
+            # Get User ID and force it to be an Integer
+            uid = get_userid_by_access_token(token, db)
+            if uid is not None:
+                current_userid = int(uid)
+        except Exception as e:
+            print(f"WebSocket Auth Error: {e}")
+            current_userid = None
 
-    if not current_userid:
-        # reject connection with HTTP 401-like close code
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
+        # 3. Reject if invalid
+        if not current_userid:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
 
-    # register connection
-    await manager.connect(current_userid, websocket)
+        # 4. Accept connection
+        await manager.connect(current_userid, websocket)
 
-    try:
-        while True:
-            # Expect JSON text frames
-            data = await websocket.receive_json()
+        try:
+            while True:
+                data = await websocket.receive_json()
+                
+                # Validate and Force Integers
+                try:
+                    receiverid = int(data.get("receiverid"))
+                    listingid = int(data.get("listingid"))
+                    content = data.get("content")
+                except (ValueError, TypeError):
+                    continue # Ignore invalid data
 
-            # Basic JSON validation / rate limits should be done by client & server
-            # required fields: receiverid, listingid, content
-            receiverid = data.get("receiverid")
-            listingid = data.get("listingid")
-            content = data.get("content")
+                if not content or not content.strip():
+                     continue
+                
+                # Prevent self-messages
+                if receiverid == current_userid:
+                    continue
 
-            # validate basic inputs
-            if not receiverid or not listingid or not content or not content.strip():
-                # send error back to sender
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Missing required fields or empty content"
-                })
-                continue
+                # 5. Persist & Send
+                try:
+                    # This returns True, not an object
+                    post_new_message(current_userid, receiverid, listingid, content, db)
+                    
+                    # Manually construct the message object
+                    # We use '0' for MessageID since we don't have it, but the UI will still show it
+                    outgoing = {
+                        "type": "message",
+                        "message": {
+                             "MessageID": 0, 
+                             "Content": content,
+                             "SentDate": str(datetime.now()),
+                             "SenderID": current_userid,
+                             "ReceiverID": receiverid,
+                             "ListingID": listingid
+                        }
+                    }
 
-            # disallow self-messaging
-            if receiverid == current_userid:
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Cannot send message to yourself"
-                })
-                continue
+                    # Send to receiver
+                    await manager.send_to_user(receiverid, outgoing)
+                    
+                    # Send Ack to sender
+                    await manager.send_personal_message(websocket, {"type": "ack", "message": outgoing["message"]})
 
-            # verify receiver exists and listing exists (use your existing helpers)
-            if not get_user_by_id(receiverid, db):
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Receiver not found"
-                })
-                continue
+                except Exception as e:
+                    print(f"Error saving message: {e}")
+                    await manager.send_personal_message(websocket, {"type": "error", "error": "Failed to save"})
 
-            if not get_listing_by_listingid(listingid, db):
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Listing not found"
-                })
-                continue
+        except WebSocketDisconnect:
+            await manager.disconnect(current_userid, websocket)
+        except Exception as e:
+            print(f"WebSocket Error: {e}")
+            await manager.disconnect(current_userid, websocket)
+            
+    finally:
+        # 6. Always close the session
+        db.close()
 
-            # Persist message to DB using your post_new_message (same logic as REST)
-            try:
-                # post_new_message returns the created row or id in your setup (used by REST)
-                # keep behavior the same as your POST endpoint
-                saved = post_new_message(current_userid, receiverid, listingid, content, db)
-            except Exception as e:
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Failed to save message",
-                    "detail": str(e)
-                })
-                continue
-
-            # Build outgoing message payload. Include DB-generated fields if available.
-            # Try to be consistent with your GetMessage schema (MessageID, Content, SentDate, SenderID, ReceiverID, ListingID)
-            outgoing = {
-                "type": "message",
-                "message": {
-                    "MessageID": getattr(saved, "MessageID", None) or saved.get("MessageID", None) if isinstance(saved, dict) else None,
-                    "Content": content,
-                    "SentDate": getattr(saved, "SentDate", None) or saved.get("SentDate", None) if isinstance(saved, dict) else None,
-                    "SenderID": current_userid,
-                    "ReceiverID": receiverid,
-                    "ListingID": listingid
-                }
-            }
-
-            # send to receiver if online
-            await manager.send_to_user(receiverid, outgoing)
-
-            # send ack back to sender (so their UI can render the message as 'sent' + id/timestamp)
-            await manager.send_personal_message(websocket, {"type": "ack", "message": outgoing["message"]})
-
-    except WebSocketDisconnect:
-        # client disconnected
-        await manager.disconnect(current_userid, websocket)
-    except Exception:
-        # ensure remove on any error
-        await manager.disconnect(current_userid, websocket)
-        raise
 
 # ===================================================================================================================
 # HANDSHAKE ENDPOINTS

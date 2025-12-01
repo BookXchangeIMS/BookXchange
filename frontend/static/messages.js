@@ -41,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const listingPriceEl = document.getElementById("listingPrice");
 
     let currentUserId = null;
+    let socket = null;
+    let reconnectInterval = 3000;
 
     // ==== Helpers ====
 
@@ -69,7 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
         chatMessages.innerHTML = "";
         messages.sort((a, b) => new Date(a.SentDate) - new Date(b.SentDate));
         messages.forEach(msg => {
-            const type = msg.SenderID === currentUserId ? "sent" : "received";
+            const isMe = String(msg.SenderID) === String(currentUserId);
+            const type = isMe ? "sent" : "received";
             appendMessage(msg.Content, type, msg.SentDate);
         });
     }
@@ -105,12 +108,72 @@ document.addEventListener("DOMContentLoaded", () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // ==== WebSocket Connection ====
+
+        function connectWebSocket() {
+        if (!accessToken) return;
+
+        // Determine URL: Force 127.0.0.1
+        let wsBaseUrl = API_BASE_URL.replace(/^http/, 'ws').replace('localhost', '127.0.0.1');
+        
+        // Clean token
+        const cleanToken = accessToken.replace(/['"]+/g, '');
+        const wsUrl = `${wsBaseUrl}/ws?token=${encodeURIComponent(cleanToken)}`;
+        
+        console.log(`[WebSocket] Connecting to: ${wsUrl}`);
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function(e) {
+            console.log("[WebSocket] Connected");
+            reconnectInterval = 3000;
+        };
+
+        socket.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("[WebSocket] Received:", data); // Debug Log
+
+                if (data.type === 'message' && data.message) {
+                    const msg = data.message;
+                    
+                    // Convert all IDs to strings for safe comparison
+                    const msgListingId = String(msg.ListingID);
+                    const msgSenderId = String(msg.SenderID);
+                    const currentListingId = String(listingId);
+                    const otherUserStr = String(otherUserId);
+
+                    // Only display if it belongs to THIS conversation
+                    if (msgListingId === currentListingId) {
+                        // If the sender is the person we are talking to, show it
+                        if (msgSenderId === otherUserStr) {
+                            appendMessage(msg.Content, 'received', msg.SentDate);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("[WebSocket] Parse error:", e);
+            }
+        };
+
+        socket.onclose = function(event) {
+            console.log(`[WebSocket] Closed. Code: ${event.code}`);
+            if (event.code !== 1000 && event.code !== 1008) {
+                setTimeout(() => connectWebSocket(), reconnectInterval);
+            }
+        };
+        
+        socket.onerror = function(e) {
+            console.error("[WebSocket] Error:", e);
+        };
+    }
+
+
     // ==== Chat init ====
 
     async function initChat() {
         try {
             if (!listingId || !otherUserId) {
-                console.warn("Missing listing_id or other user id in URL, skipping API calls.");
+                console.warn("Missing listing/user info");
                 return;
             }
 
@@ -119,12 +182,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 const otherProfile = await getUserProfile(otherUserId, accessToken);
-                if (profileNameEl && otherProfile && otherProfile.Name) {
-                    profileNameEl.textContent = otherProfile.Name;
-                }
-            } catch (e) {
-                console.warn("Could not load other user's profile:", e);
-            }
+                if (profileNameEl && otherProfile) profileNameEl.textContent = otherProfile.Name;
+            } catch (e) {}
 
             const dialogue = await getDialogue(otherUserId, listingId, accessToken);
             if (dialogue && Array.isArray(dialogue.Messages)) {
@@ -133,16 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderMessages(dialogue);
             }
         } catch (error) {
-            console.error("Error initializing chat:", error);
-            if (chatMessages) {
-                chatMessages.innerHTML = `
-                    <div class="message system-error">
-                        <div class="message-content">
-                            <p>Failed to load conversation. Please try reloading the page.</p>
-                        </div>
-                    </div>
-                `;
-            }
+            console.error("Chat init error:", error);
         }
     }
 
@@ -152,23 +202,23 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const text = messageInput.value.trim();
             if (!text) return;
-            if (!listingId || !otherUserId) {
-                alert("Cannot send message: missing listing or user information.");
-                return;
-            }
+
             appendMessage(text, "sent");
             messageInput.value = "";
-            try {
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    receiverid: parseInt(otherUserId),
+                    listingid: parseInt(listingId),
+                    content: text
+                }));
+            } else {
                 await sendMessageApi(otherUserId, listingId, text, accessToken);
-            } catch (error) {
-                console.error("Error sending message:", error);
-                appendMessage("Failed to send message. Please try again.", "received");
             }
         });
     }
 
-    // ==== Handshakes / transactions ====
-
+    // ==== Handshakes ====
     const dealButton = document.getElementById('dealButton');
     let transactionStatus = -1;   // -1 none, 0 one party, 1 both
     let listingOwnerId = null;
@@ -185,140 +235,69 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function normalizeTransactionStatus(rawStatus) {
-        const n = Number(rawStatus);
-        if (n === -1 || n === 0 || n === 1) return n;
-        // Fallback: treat anything else (null/undefined) as "no transaction yet"
-        return -1;
-    }
-
     async function refreshTransactionStatusAndUI(showMessage = true) {
         if (!listingId || !buyerId) return;
         try {
             const raw = await getTransactionStatus(listingId, buyerId, accessToken);
-            transactionStatus = normalizeTransactionStatus(raw);
+            transactionStatus = Number(raw);
+            if (isNaN(transactionStatus)) transactionStatus = -1;
             updateDealButtonUI();
 
             if (!showMessage) return;
-
             if (transactionStatus === 0) {
-                addSystemMessage(
-                    "<strong>🤝 Deal proposal pending.</strong><br>One of you has proposed closing the deal. Press the handshake button if you agree."
-                );
+                addSystemMessage("<strong>🤝 Deal proposal pending.</strong><br>One of you has proposed closing the deal.");
             } else if (transactionStatus === 1) {
-                addSystemMessage(
-                    "<strong>✅ Deal Closed!</strong><br>Both parties confirmed the transaction."
-                );
-            } else if (transactionStatus === -1) {
-                addSystemMessage(
-                    "<strong>❌ No active deal.</strong><br>The handshake has been cancelled."
-                );
+                addSystemMessage("<strong>✅ Deal Closed!</strong><br>Both parties confirmed.");
             }
-        } catch (e) {
-            console.error("Failed to refresh transaction status:", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     async function initHandshake() {
-        if (!dealButton || !listingId || !otherUserId || !accessToken) return;
-
+        if (!dealButton || !listingId || !otherUserId) return;
         try {
             const listing = await getListingById(listingId, accessToken);
             const mapped = transformListingData(listing);
             populateListingCard(mapped);
 
-            // Figure out who is seller vs buyer
             listingOwnerId = listing.User.UserID;
-            if (currentUserId === listingOwnerId) {
-                buyerId = parseInt(otherUserId, 10);
-            } else {
-                buyerId = currentUserId;
-            }
+            buyerId = (currentUserId === listingOwnerId) ? parseInt(otherUserId) : currentUserId;
 
-            // Set "You are selling / buying"
-            if (userRoleTextEl) {
-                userRoleTextEl.textContent = (currentUserId === listingOwnerId)
-                    ? "You are selling"
-                    : "You are buying";
-            }
-
-            // Initial status
+            if (userRoleTextEl) userRoleTextEl.textContent = (currentUserId === listingOwnerId) ? "You are selling" : "You are buying";
             await refreshTransactionStatusAndUI(true);
-        } catch (e) {
-            console.warn('Handshake init failed:', e);
-        }
+        } catch (e) {}
     }
 
-    // Attach handshake button click listener
-    if (dealButton && chatMessages) {
-        console.log('Attaching handshake click listener');
+    if (dealButton) {
         dealButton.addEventListener('click', async function () {
-            console.log('Handshake button clicked with status', transactionStatus, {
-                listingId,
-                buyerId
-            });
-
-            if (!listingId || !buyerId) {
-                alert('Cannot process deal: missing listing or user information.');
-                return;
-            }
-
+            if (!listingId || !buyerId) return;
             try {
-                if (transactionStatus === -1 || transactionStatus === 0) {
-                    // Confirm (first or second party)
-                    const confirmed = confirm(
-                        "Do you want to confirm this deal? Once both parties confirm, the transaction will be closed."
-                    );
-                    if (!confirmed) return;
-
-                    try {
-                        await confirmTransaction(listingId, buyerId, accessToken);
-                    } catch (e) {
-                        const msg = String(e.message || "");
-                        // If server says already confirmed, just fall through and refresh
-                        if (!msg.includes("Transaction already confirmed")) {
-                            throw e;
-                        }
-                    }
-
+                if (transactionStatus <= 0) {
+                    if (!confirm("Confirm deal?")) return;
+                    try { await confirmTransaction(listingId, buyerId, accessToken); } catch(e) {}
                     await refreshTransactionStatusAndUI(true);
-
-                    // Optional: notify other user that you confirmed
+                    
                     if (transactionStatus === 0) {
-                        try {
-                            await sendMessageApi(
-                                otherUserId,
-                                listingId,
-                                "I would like to close the deal for this book. Do you also agree?",
-                                accessToken
-                            );
-                        } catch (err) {
-                            console.warn("Failed to send deal proposal message:", err);
-                        }
+                         const dealMsg = "I would like to close the deal. Do you agree?";
+                         if (socket && socket.readyState === WebSocket.OPEN) {
+                             socket.send(JSON.stringify({receiverid: parseInt(otherUserId), listingid: parseInt(listingId), content: dealMsg}));
+                             appendMessage(dealMsg, "sent");
+                         } else {
+                             await sendMessageApi(otherUserId, listingId, dealMsg, accessToken);
+                             appendMessage(dealMsg, "sent");
+                         }
                     }
-
-                } else if (transactionStatus === 1) {
-                    // Unconfirm / undo
-                    const unconfirmed = confirm(
-                        "Do you want to undo your confirmation of this deal?"
-                    );
-                    if (!unconfirmed) return;
-
+                } else {
+                    if (!confirm("Undo deal?")) return;
                     await unconfirmTransaction(listingId, buyerId, accessToken);
                     await refreshTransactionStatusAndUI(true);
                 }
-            } catch (error) {
-                console.error('Error handling deal button:', error);
-                addSystemMessage(
-                    "<strong>⚠️ Deal update failed.</strong><br>Please try again later."
-                );
-            }
+            } catch (error) { console.error(error); }
         });
     }
 
-    // ==== Init all ====
     async function initAll() {
         await initChat();
+        connectWebSocket();
         await initHandshake();
         if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
     }
