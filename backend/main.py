@@ -360,6 +360,7 @@ async def get_profile(userid: int, access_token: str = Header(None), db= Depends
             Name=user_data.Name,
             UserRole=user_data.UserRole,
             AboutMe=user_data.AboutMe,
+            ProfileImagePath=user_data.ProfileImagePath,
         )
     else:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -495,7 +496,8 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             ),
             IsFavorite=False
         )
@@ -560,7 +562,8 @@ async def get_users_listings(user_id: int, access_token=Header(None), db=Depends
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -651,7 +654,8 @@ async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -718,7 +722,8 @@ async def search_listings_endpoint(
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -778,7 +783,8 @@ async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get
             Name=user.Name,
             AboutMe=user.AboutMe,
             UserRole=user.UserRole,
-            UserID=user.UserID
+            UserID=user.UserID,
+            ProfileImagePath=user.ProfileImagePath
         ),
         IsFavorite=check_if_listing_is_favorite(listing.ListingID, userid, db)
     )
@@ -901,7 +907,8 @@ async def get_my_favorites(access_token: str = Header(None), db= Depends(get_db)
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result

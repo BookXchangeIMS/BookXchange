@@ -59,7 +59,7 @@ async function loadUserProfile() {
             const avatarElement = document.querySelector('.avatar');
             if (avatarElement) {
                 const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${profile.UserID}&access_token=${token}`;
-                avatarElement.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                avatarElement.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
             }
         }
 

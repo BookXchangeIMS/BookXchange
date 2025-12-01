@@ -154,6 +154,19 @@ function populateBookDetails(listing) {
     // Seller
     document.getElementById('sellerName').textContent = listing.User.Name || 'Unknown Seller';
 
+    // Seller profile picture
+    const sellerAvatar = document.querySelector('.seller-avatar');
+    if (sellerAvatar && listing.User.UserID) {
+        if (listing.User.ProfileImagePath) {
+            const accessToken = getAccessToken();
+            const imageUrl = `http://localhost:8000/api/get_users_profile_picture?userid=${listing.User.UserID}&access_token=${accessToken}`;
+            sellerAvatar.innerHTML = `<img src="${imageUrl}" alt="${listing.User.Name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<i class=&quot;fas fa-user&quot;></i>'">`;
+        } else {
+            // Keep default icon if no profile picture
+            sellerAvatar.innerHTML = '<i class="fas fa-user"></i>';
+        }
+    }
+
     // Favorite button state
     const favoriteBtn = document.getElementById('favoriteBtn');
     if (listing.IsFavorite) {
