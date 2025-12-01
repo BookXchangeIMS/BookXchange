@@ -13,11 +13,11 @@ VALUES
 
 INSERT INTO Users ([Name], Email, PasswordHash, ProfileImagePath, UserRole, AboutMe, CreationDate, DateOfBirth, LocationID)
 VALUES
-('Alice Johnson', 'alice@example.com', 'Password123!', 'backend/images/profile_pictures/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME(), '1990-05-15', 1),
-('Bob Smith', 'bob@example.com', 'Password123!', 'backend/images/profile_pictures/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME(), '1985-08-22', 2),
-('Charlie Brown', 'charlie@example.com', 'Password123!', 'backend/images/profile_pictures/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME(), '1992-11-30', 3),
-('Diana Prince', 'diana@example.com', 'Password123!', 'backend/images/profile_pictures/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME(), '1988-03-10', 4),
-('Ethan Hunt', 'ethan@example.com', 'Password123!', 'backend/images/profile_pictures/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME(),'1979-07-13', 5);
+('Alice Johnson', 'alice@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME(), '1990-05-15', 1),
+('Bob Smith', 'bob@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME(), '1985-08-22', 2),
+('Charlie Brown', 'charlie@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME(), '1992-11-30', 3),
+('Diana Prince', 'diana@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME(), '1988-03-10', 4),
+('Ethan Hunt', 'ethan@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME(),'1979-07-13', 5);
 
 
 INSERT INTO Genres (GenreName)
