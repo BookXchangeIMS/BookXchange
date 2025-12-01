@@ -406,3 +406,74 @@ function transformListingData(listing) {
         sellerName: listing.User.Name
     };
 }
+
+
+// ============================================
+// MESSAGES
+// ============================================
+
+/**
+ * Get all dialogues (threads) for the current user.
+ * Each item has: UserID (other user), ListingID, LastMessage{...}.
+ */
+async function getDialogues(accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_dialogues`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GetDialogues API error:', response.status, errorText);
+        throw new Error(`Failed to fetch dialogues: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Get full dialogue with a specific user about a specific listing.
+ */
+async function getDialogue(otherUserId, listingId, accessToken) {
+    const url = `${API_BASE_URL}/api/get_dialogue?userid=${otherUserId}&listingid=${listingId}`;
+    const response = await fetch(url, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GetDialogue API error:', response.status, errorText);
+        throw new Error(`Failed to fetch dialogue: ${response.status}`);
+    }
+
+    return await response.json(); // shape: { Messages: [ { MessageID, Content, SentDate, SenderID, ReceiverID, ListingID } ] }
+}
+
+/**
+ * Send a new message to another user about a listing.
+ */
+async function sendMessageApi(receiverId, listingId, content, accessToken) {
+    const params = new URLSearchParams({
+        receiverid: String(receiverId),
+        listingid: String(listingId),
+        content: content
+    });
+
+    const response = await fetch(`${API_BASE_URL}/api/post_message?${params.toString()}`, {
+        method: 'POST',
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('PostMessage API error:', response.status, errorText);
+        throw new Error(`Failed to send message: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json(); // whatever post_new_message returns
+}
