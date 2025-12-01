@@ -5,6 +5,8 @@ if (!isLoggedIn()) {
 
 // State
 let allListings = [];
+let currentPage = 1;
+const PAGE_SIZE = 4; // Set the # of results per page here
 
 // DOM elements
 const booksGrid = document.getElementById('booksGrid');
@@ -91,7 +93,7 @@ function setupFilters() {
                 selectedRadius = e.target.value;
                 radiusValue.textContent = selectedRadius;
                 if (filterMarker) {
-                    // Update circle radius if we had one (optional visual improvement)
+                    // Optional: update circle radius if added
                 }
             });
         }
@@ -202,6 +204,7 @@ async function handleSearch(query) {
 
         const results = await searchListings(query, filters, accessToken);
         allListings = results.map(transformListingData);
+        currentPage = 1; // Reset to page 1 on search/filter
         hideSkeletonAndShowBooks();
 
     } catch (error) {
@@ -214,12 +217,8 @@ async function handleSearch(query) {
 async function loadAllListings() {
     try {
         // Show skeleton loading state
-        if (skeletonGrid) {
-            skeletonGrid.style.display = 'grid';
-        }
-        if (booksGrid) {
-            booksGrid.style.display = 'none';
-        }
+        if (skeletonGrid) skeletonGrid.style.display = 'grid';
+        if (booksGrid) booksGrid.style.display = 'none';
 
         const accessToken = getAccessToken();
         const apiResponse = await getAllListings(accessToken);
@@ -227,7 +226,7 @@ async function loadAllListings() {
         // Transform API response to internal format using centralized function
         allListings = apiResponse.map(transformListingData);
 
-        // Hide skeleton and show books
+        currentPage = 1; // Reset to page 1
         hideSkeletonAndShowBooks();
 
     } catch (error) {
@@ -238,9 +237,7 @@ async function loadAllListings() {
 
 // Hide skeleton and show books with animation
 function hideSkeletonAndShowBooks() {
-    if (skeletonGrid) {
-        skeletonGrid.style.display = 'none';
-    }
+    if (skeletonGrid) skeletonGrid.style.display = 'none';
 
     if (booksGrid) {
         booksGrid.style.display = 'grid';
@@ -254,7 +251,6 @@ function hideSkeletonAndShowBooks() {
             setTimeout(() => {
                 card.style.opacity = '1';
                 card.style.transform = 'translateY(0)';
-                // Remove inline transition after animation completes
                 setTimeout(() => {
                     card.style.opacity = '';
                     card.style.transform = '';
@@ -264,13 +260,20 @@ function hideSkeletonAndShowBooks() {
     }
 }
 
-// Load books into the grid
+// ---- PAGINATION LOGIC ----
 function loadBooks(books) {
     if (!booksGrid) return;
-
     booksGrid.innerHTML = '';
 
-    if (books.length === 0) {
+    // Pagination
+    const totalPages = Math.ceil(books.length / PAGE_SIZE) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const pageBooks = books.slice(start, end);
+
+    if (pageBooks.length === 0) {
         booksGrid.innerHTML = `
             <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
                 <i class="fas fa-book-open" style="font-size: 48px; color: #c84c3d; margin-bottom: 20px;"></i>
@@ -278,14 +281,81 @@ function loadBooks(books) {
                 <small style="color: #999;">Check back later for new listings!</small>
             </div>
         `;
-        return;
+    } else {
+        pageBooks.forEach(book => {
+            const bookCard = createBookCard(book);
+            booksGrid.appendChild(bookCard);
+        });
     }
 
-    books.forEach(book => {
-        const bookCard = createBookCard(book);
-        booksGrid.appendChild(bookCard);
+    renderPaginationControls(totalPages);
+}
+
+function renderPaginationControls(totalPages) {
+    const container = document.getElementById('paginationControls');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (totalPages < 2) return;
+
+    // Prev
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = 'Previous';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => { currentPage--; loadBooks(allListings); };
+    container.appendChild(prevBtn);
+
+    // Page numbers (up to 5, with ... for gaps)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+    if (currentPage === 1) endPage = Math.min(totalPages, 5);
+    if (currentPage === totalPages) startPage = Math.max(1, totalPages - 4);
+
+    if (startPage > 1) {
+        container.appendChild(makePageButton(1));
+        if (startPage > 2) {
+            container.appendChild(document.createTextNode('...'));
+        }
+    }
+    for (let i = startPage; i <= endPage; i++) {
+        container.appendChild(makePageButton(i));
+    }
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            container.appendChild(document.createTextNode('...'));
+        }
+        container.appendChild(makePageButton(totalPages));
+    }
+
+    // Next
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => { currentPage++; loadBooks(allListings); };
+    container.appendChild(nextBtn);
+
+    // Quick styling
+    container.querySelectorAll('button').forEach(btn => {
+        btn.style.margin = '0 5px';
+        btn.style.padding = '6px 12px';
+        btn.style.borderRadius = '7px';
+        btn.style.border = 'none';
+        btn.style.background = '#c84c3d';
+        btn.style.color = '#fff';
+        btn.style.fontWeight = '600';
+        btn.style.cursor = btn.disabled ? 'not-allowed' : 'pointer';
     });
 }
+
+function makePageButton(pageNum) {
+    const btn = document.createElement('button');
+    btn.textContent = pageNum;
+    btn.disabled = currentPage === pageNum;
+    btn.onclick = () => { currentPage = pageNum; loadBooks(allListings); };
+    if (btn.disabled) btn.style.background = '#d6d6d6';
+    return btn;
+}
+// ---- End pagination logic ----
 
 // Create a book card element
 function createBookCard(book) {
@@ -293,9 +363,9 @@ function createBookCard(book) {
     card.className = 'book-card';
 
     card.innerHTML = `
-        <img src="${book.imagePath}" 
-             alt="${book.title}" 
-             class="book-image" 
+        <img src="${book.imagePath}"
+             alt="${book.title}"
+             class="book-image"
              onerror="this.src='../static/resources/placeholder.jpg'"
              loading="lazy">
         <div class="book-info">
@@ -428,7 +498,7 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Add CSS for animations
+// Add CSS for toast animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideUp {
@@ -441,7 +511,6 @@ style.textContent = `
             opacity: 1;
         }
     }
-    
     @keyframes slideDown {
         from {
             transform: translate(-50%, 0);

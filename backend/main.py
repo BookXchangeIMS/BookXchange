@@ -12,12 +12,14 @@ from backend.scripts.auth import *
 from backend.scripts.chat_crud import *
 from backend.scripts.image_management import *
 from backend.scripts.profile_crud import *
-from backend.config.db import get_db
+from backend.config.db import get_db, SessionLocal
 from backend.scripts.location_scripts import *
 from backend.scripts.listings_crud import *
 from backend.scripts.ai_service import analyze_book_image
 from fastapi import UploadFile, File
 from backend.scripts.transactions_crud import *
+
+from datetime import datetime
 
 tags_metadata = [
     {
@@ -324,6 +326,7 @@ async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)
         Name=user_data.Name,
         UserRole=user_data.UserRole,
         AboutMe=user_data.AboutMe,
+        ProfileImagePath=user_data.ProfileImagePath,
         CreationDate=user_data.CreationDate,
         Location= Location(Longitude=location.Longitude,
                            Latitude=location.Latitude,
@@ -358,6 +361,7 @@ async def get_profile(userid: int, access_token: str = Header(None), db= Depends
             Name=user_data.Name,
             UserRole=user_data.UserRole,
             AboutMe=user_data.AboutMe,
+            ProfileImagePath=user_data.ProfileImagePath,
         )
     else:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -376,16 +380,28 @@ async def update_profile(new_info: UpdateUser, access_token: str = Header(None),
 
     """
     userid = get_userid_by_access_token(access_token, db)
-    coordinates = address_to_coordinates(new_info.LocationAddress)
-    if coordinates:
-        latitude, longitude = coordinates
-    else:
-        latitude, longitude = 0.0, 0.0
-    new_locationid = post_location(Location(
-        Latitude=latitude,
-        Longitude=longitude,
-        Address=new_info.LocationAddress,
-        Description=""), db)
+    
+    # Get current user to preserve old location if needed
+    current_user = get_user_by_id(userid, db)
+    
+    # Try to convert address to coordinates
+    try:
+        coordinates = address_to_coordinates(new_info.LocationAddress)
+        if coordinates:
+            latitude, longitude = coordinates
+            # Create new location
+            new_locationid = post_location(Location(
+                Latitude=latitude,
+                Longitude=longitude,
+                Address=new_info.LocationAddress,
+                Description=""), db)
+        else:
+            # Use old location if address conversion fails
+            new_locationid = current_user.LocationID
+    except Exception as e:
+        # Use old location if any error occurs
+        new_locationid = current_user.LocationID
+    
     return update_profile_by_userid(userid, new_info, new_locationid, db)
 
 @app.delete("/api/delete_profile", status_code=status.HTTP_204_NO_CONTENT, tags=["Profile"])
@@ -481,7 +497,8 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             ),
             IsFavorite=False
         )
@@ -546,7 +563,8 @@ async def get_users_listings(user_id: int, access_token=Header(None), db=Depends
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -637,7 +655,8 @@ async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -704,7 +723,8 @@ async def search_listings_endpoint(
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -764,7 +784,8 @@ async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get
             Name=user.Name,
             AboutMe=user.AboutMe,
             UserRole=user.UserRole,
-            UserID=user.UserID
+            UserID=user.UserID,
+            ProfileImagePath=user.ProfileImagePath
         ),
         IsFavorite=check_if_listing_is_favorite(listing.ListingID, userid, db)
     )
@@ -887,7 +908,8 @@ async def get_my_favorites(access_token: str = Header(None), db= Depends(get_db)
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -980,10 +1002,12 @@ async def update_profile_image(file: UploadFile = File(...), access_token: str =
         profile image update was successful.
     """
     userid = get_userid_by_access_token(access_token, db)
-    return insert_profile_image_path(userid, insert_profile_picture(file), db)
+    new_path = insert_profile_picture(file)
+    insert_profile_image_path(userid, new_path, db)
+    return {"path": new_path}
 
 @app.get("/api/get_users_profile_picture", status_code=status.HTTP_200_OK, tags=["Images"])
-async def get_users_profile_picture(userid: int, access_token: str = Header(None), db= Depends(get_db)):
+async def get_users_profile_picture(userid: int, access_token: str, db= Depends(get_db)):
     """
     Retrieve a user's profile picture.
 
@@ -995,7 +1019,7 @@ async def get_users_profile_picture(userid: int, access_token: str = Header(None
     :param userid: The unique identifier of the user whose profile picture
         is to be retrieved.
     :type userid: int
-    :param access_token: A required access token included as a header for
+    :param access_token: A required access token as a query parameter for
         authentication and authorization.
     :type access_token: str
     :param db: An instance of the database session, provided through dependency
@@ -1006,6 +1030,8 @@ async def get_users_profile_picture(userid: int, access_token: str = Header(None
     if not verify_access_token(access_token):
         raise HTTPException(status_code=401, detail="Invalid access token")
     user = get_user_by_id(userid, db)
+    if not user.ProfileImagePath:
+        raise HTTPException(status_code=404, detail="User has no profile picture")
     return FileResponse(path=user.ProfileImagePath)
 
 
@@ -1553,122 +1579,94 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # WebSocket endpoint
+# WebSocket endpoint
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str = "", db=Depends(get_db)):
-    """
-    WebSocket connection:
-      - Authenticate: token can be provided as a query param `?token=...`
-        or client can set header `Authorization: Bearer <token>` (WebSocket libs
-        vary on header support; query param is most-compatible).
-      - After connect, client sends JSON messages in the shape:
-          { "receiverid": 123, "listingid": 55, "content": "Hello!" }
-      - Server validates, persists (using post_new_message), and forwards to receiver if online.
-    """
-    # --- Authenticate the user ---
-    # Try token param first, otherwise check Authorization header
-    if not token:
+async def websocket_endpoint(websocket: WebSocket):
+    # 1. Create a manual DB session
+    db = SessionLocal() 
+    
+    try:
+        # 2. Authenticate
         token = websocket.query_params.get("token") or websocket.headers.get("authorization") or ""
-        # if header like "Bearer <token>"
         if token.lower().startswith("bearer "):
             token = token.split(" ", 1)[1]
 
-    # verify token / get userid; reuse your function
-    try:
-        current_userid = get_userid_by_access_token(token, db)
-    except Exception:
         current_userid = None
+        try:
+            # Get User ID and force it to be an Integer
+            uid = get_userid_by_access_token(token, db)
+            if uid is not None:
+                current_userid = int(uid)
+        except Exception as e:
+            print(f"WebSocket Auth Error: {e}")
+            current_userid = None
 
-    if not current_userid:
-        # reject connection with HTTP 401-like close code
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
+        # 3. Reject if invalid
+        if not current_userid:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
 
-    # register connection
-    await manager.connect(current_userid, websocket)
+        # 4. Accept connection
+        await manager.connect(current_userid, websocket)
 
-    try:
-        while True:
-            # Expect JSON text frames
-            data = await websocket.receive_json()
+        try:
+            while True:
+                data = await websocket.receive_json()
+                
+                # Validate and Force Integers
+                try:
+                    receiverid = int(data.get("receiverid"))
+                    listingid = int(data.get("listingid"))
+                    content = data.get("content")
+                except (ValueError, TypeError):
+                    continue # Ignore invalid data
 
-            # Basic JSON validation / rate limits should be done by client & server
-            # required fields: receiverid, listingid, content
-            receiverid = data.get("receiverid")
-            listingid = data.get("listingid")
-            content = data.get("content")
+                if not content or not content.strip():
+                     continue
+                
+                # Prevent self-messages
+                if receiverid == current_userid:
+                    continue
 
-            # validate basic inputs
-            if not receiverid or not listingid or not content or not content.strip():
-                # send error back to sender
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Missing required fields or empty content"
-                })
-                continue
+                # 5. Persist & Send
+                try:
+                    # This returns True, not an object
+                    post_new_message(current_userid, receiverid, listingid, content, db)
+                    
+                    # Manually construct the message object
+                    # We use '0' for MessageID since we don't have it, but the UI will still show it
+                    outgoing = {
+                        "type": "message",
+                        "message": {
+                             "MessageID": 0, 
+                             "Content": content,
+                             "SentDate": str(datetime.now()),
+                             "SenderID": current_userid,
+                             "ReceiverID": receiverid,
+                             "ListingID": listingid
+                        }
+                    }
 
-            # disallow self-messaging
-            if receiverid == current_userid:
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Cannot send message to yourself"
-                })
-                continue
+                    # Send to receiver
+                    await manager.send_to_user(receiverid, outgoing)
+                    
+                    # Send Ack to sender
+                    await manager.send_personal_message(websocket, {"type": "ack", "message": outgoing["message"]})
 
-            # verify receiver exists and listing exists (use your existing helpers)
-            if not get_user_by_id(receiverid, db):
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Receiver not found"
-                })
-                continue
+                except Exception as e:
+                    print(f"Error saving message: {e}")
+                    await manager.send_personal_message(websocket, {"type": "error", "error": "Failed to save"})
 
-            if not get_listing_by_listingid(listingid, db):
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Listing not found"
-                })
-                continue
+        except WebSocketDisconnect:
+            await manager.disconnect(current_userid, websocket)
+        except Exception as e:
+            print(f"WebSocket Error: {e}")
+            await manager.disconnect(current_userid, websocket)
+            
+    finally:
+        # 6. Always close the session
+        db.close()
 
-            # Persist message to DB using your post_new_message (same logic as REST)
-            try:
-                # post_new_message returns the created row or id in your setup (used by REST)
-                # keep behavior the same as your POST endpoint
-                saved = post_new_message(current_userid, receiverid, listingid, content, db)
-            except Exception as e:
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Failed to save message",
-                    "detail": str(e)
-                })
-                continue
-
-            # Build outgoing message payload. Include DB-generated fields if available.
-            # Try to be consistent with your GetMessage schema (MessageID, Content, SentDate, SenderID, ReceiverID, ListingID)
-            outgoing = {
-                "type": "message",
-                "message": {
-                    "MessageID": getattr(saved, "MessageID", None) or saved.get("MessageID", None) if isinstance(saved, dict) else None,
-                    "Content": content,
-                    "SentDate": getattr(saved, "SentDate", None) or saved.get("SentDate", None) if isinstance(saved, dict) else None,
-                    "SenderID": current_userid,
-                    "ReceiverID": receiverid,
-                    "ListingID": listingid
-                }
-            }
-
-            # send to receiver if online
-            await manager.send_to_user(receiverid, outgoing)
-
-            # send ack back to sender (so their UI can render the message as 'sent' + id/timestamp)
-            await manager.send_personal_message(websocket, {"type": "ack", "message": outgoing["message"]})
-
-    except WebSocketDisconnect:
-        # client disconnected
-        await manager.disconnect(current_userid, websocket)
-    except Exception:
-        # ensure remove on any error
-        await manager.disconnect(current_userid, websocket)
-        raise
 
 # ===================================================================================================================
 # HANDSHAKE ENDPOINTS
@@ -1676,6 +1674,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = "", db=Depends(g
 
 @app.get("/api/get_transaction_status/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
 async def get_transaction_status(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
+    
     """
     Retrieve the status of a transaction for a specific listing and buyer.
 
@@ -1700,6 +1699,7 @@ async def get_transaction_status(listingid: int, buyerid: int, access_token: str
     :raises HTTPException: 404 if the listing is not found.
     :raises HTTPException: 403 if the user is unauthorized to view the transaction.
     """
+
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -1708,26 +1708,46 @@ async def get_transaction_status(listingid: int, buyerid: int, access_token: str
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
 
-    transaction = get_transaction_by_listingid_and_userid(listingid, buyerid, db)
-    if transaction and transaction.BuyerID != userid and listing.UserID != userid:
+    # ✅ CHECK AUTHORIZATION FIRST
+    # User making the request must be EITHER:
+    # 1. The listing owner (seller), OR
+    # 2. The buyer specified in the parameter
+    if listing.UserID != userid and buyerid != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to view this transaction")
+
+    # Now safe to check/create transaction
+    transaction = get_transaction_by_listingid_and_userid(listingid, buyerid, db)
+    
     if not transaction:
         return -1, False, False
     else:
         return transaction.TransactionStatus, transaction.ConfirmedByBuyer, transaction.ConfirmedBySeller
+
 
 @app.post("/api/confirm_transaction/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
 async def confirm_transaction(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
-    transaction_status, confirmedByBuyer, confirmedBySeller = await get_transaction_status(listingid, buyerid, access_token, db)
+    
     listing = get_listing_by_listingid(listingid, db)
-    if listing.UserID == buyerid:
-        raise HTTPException(status_code=400, detail="Cannot confirm transaction for your own listing")
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    # ✅ CHECK AUTHORIZATION FIRST
     if listing.UserID != userid and buyerid != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction")
+    
+    # Prevent seller from buying their own listing
+    if listing.UserID == buyerid:
+        raise HTTPException(status_code=400, detail="Cannot confirm transaction for your own listing")
+    
+    # Get current status
+    transaction_status, confirmedByBuyer, confirmedBySeller = await get_transaction_status(listingid, buyerid, access_token, db)
+    
+    # Determine who is confirming
     if listing.UserID == userid and not confirmedBySeller:
+        # Seller confirming
         if transaction_status == -1:
             return post_new_transaction(listingid, buyerid, userid, True, db)
         elif transaction_status == 0:
@@ -1735,6 +1755,7 @@ async def confirm_transaction(listingid: int, buyerid: int, access_token: str = 
         elif transaction_status == 1:
             raise HTTPException(status_code=400, detail="Transaction already confirmed")
     elif buyerid == userid and not confirmedByBuyer:
+        # Buyer confirming
         if transaction_status == -1:
             return post_new_transaction(listingid, buyerid, userid, False, db)
         elif transaction_status == 0:
@@ -1742,7 +1763,7 @@ async def confirm_transaction(listingid: int, buyerid: int, access_token: str = 
         elif transaction_status == 1:
             raise HTTPException(status_code=400, detail="Transaction already confirmed")
     else:
-        raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction or it is already confirmed from your side in the first place")
+        raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction or it is already confirmed from your side")
 
 
 @app.delete("/api/unconfirm_transaction/", status_code=status.HTTP_204_NO_CONTENT, tags=["Handshakes"])
@@ -1750,26 +1771,39 @@ async def unconfirm_transaction(listingid: int, buyerid: int, access_token: str 
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
-    transaction_status, confirmedByBuyer, confirmedBySeller = await get_transaction_status(listingid, buyerid, access_token, db)
+    
     listing = get_listing_by_listingid(listingid, db)
-    if listing.UserID == buyerid:
-        raise HTTPException(status_code=400, detail="Cannot unconfirm transaction for your own listing")
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    # ✅ CHECK AUTHORIZATION FIRST
     if listing.UserID != userid and buyerid != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction")
+    
+    # Prevent seller from unconfirming their own listing as buyer
+    if listing.UserID == buyerid:
+        raise HTTPException(status_code=400, detail="Cannot unconfirm transaction for your own listing")
+    
+    transaction_status, confirmedByBuyer, confirmedBySeller = await get_transaction_status(listingid, buyerid, access_token, db)
+    
     if transaction_status == -1:
         raise HTTPException(status_code=400, detail="Transaction doesn't exist")
+    
     if buyerid == userid and confirmedByBuyer:
+        # Buyer unconfirming
         if transaction_status == 0:
             return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, False, db)
         elif transaction_status == 1:
             return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, False, db)
     elif listing.UserID == userid and confirmedBySeller:
+        # Seller unconfirming
         if transaction_status == 0:
             return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, True, db)
         elif transaction_status == 1:
             return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, True, db)
     else:
-        raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction or it is already unconfirmed from your side in the first place")
+        raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction or it is already unconfirmed from your side")
+    
     return False
 
 

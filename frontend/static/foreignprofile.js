@@ -65,6 +65,24 @@ async function loadUserProfile(userId, accessToken) {
       }
     }
 
+    // Update profile picture
+    const avatar = document.querySelector('.avatar');
+    if (avatar) {
+      if (user.ProfileImagePath) {
+        const imageUrl = `http://localhost:8000/api/get_users_profile_picture?userid=${userId}&access_token=${accessToken}`;
+        avatar.innerHTML = `<img src="${imageUrl}" alt="${user.Name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\' /><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\' /></svg>'">`;
+      } else {
+        // Keep default SVG icon if no profile picture
+        avatar.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+            `;
+      }
+    }
+
     // Try to get user preferences/genres
     try {
       // Note: This endpoint might not exist for other users, only for current user

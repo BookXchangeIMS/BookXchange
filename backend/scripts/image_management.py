@@ -11,8 +11,8 @@ profile_pictures_path = "backend/images/profile_pictures/"
 allowed_pfp_resolutions = {
     "min_width": 100,
     "min_height": 100,
-    "max_width": 2000,
-    "max_height": 2000,
+    "max_width": 5000,
+    "max_height": 5000,
 }
 allowed_listing_resolutions = {
     "min_width": 100,
@@ -22,9 +22,9 @@ allowed_listing_resolutions = {
 }
 
 allowed_image_resolutions = [
-    'jpg', 'jpeg', 'png', 'tiff', 'raw'
+    'jpg', 'jpeg', 'png', 'tiff', 'raw', 'webp', 'gif', 'bmp'
 ]
-allowed_profile_picture_ratio = 1.6
+allowed_profile_picture_ratio = 3.0
 
 def validate_profile_picture_resolution(image: ImageFile):
     """
@@ -92,7 +92,9 @@ def validate_image_extension(image_file: UploadFile):
     :return: A boolean indicating whether the image file extension is valid or not.
     :rtype: bool
     """
-    image_extension = image_file.filename.split(".")[-1]
+    if not image_file.filename:
+        return False
+    image_extension = image_file.filename.split(".")[-1].lower()
     return image_extension in allowed_image_resolutions
 
 def insert_profile_picture(image_file: UploadFile):
@@ -113,16 +115,24 @@ def insert_profile_picture(image_file: UploadFile):
         raise HTTPException(status_code=400, detail="Image resolution is too small or too big")
     if not validate_profile_picture_ratio(image):
         raise HTTPException(status_code=400, detail="Image ratio is too small or too big")
+    
     image_name = uuid4()
     # Convert to RGB if necessary (JPEG doesn't support transparency)
     if image.mode in ('RGBA', 'LA', 'P'):
         rgb_image = Image.new('RGB', image.size, 'WHITE')
         rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
         image = rgb_image
-    path = profile_pictures_path + str(image_name) + ".jpg"
-    with open(f'backend/images/profile_pictures/{image_name}.jpg', 'wb') as output:
+    
+    # Ensure directory exists
+    import os
+    os.makedirs(profile_pictures_path, exist_ok=True)
+    
+    # Save file
+    file_path = f"{profile_pictures_path}{image_name}.jpg"
+    with open(file_path, 'wb') as output:
         image.save(output, 'JPEG')
-    return path
+        
+    return file_path
 
 listing_pictures_path = "backend/images/listing_pictures/"
 

@@ -9,16 +9,23 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="/static/header.css">
     <link rel="stylesheet" href="/static/messages.css">
+    <link rel="stylesheet" href="../static/header.css">
+    <link rel="stylesheet" href="../static/home.css">
+    <link rel="stylesheet" href="../static/messages.css">
 
     <!-- Scripts -->
     <script src="/static/include.js"></script>
@@ -27,75 +34,87 @@
 </head>
 
 <body>
-    <!-- Header will be loaded here -->
     <div id="header-placeholder"></div>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Back Button -->
         <button class="back-btn" onclick="goBack()">
             <i class="fas fa-arrow-left"></i>
         </button>
 
         <div class="content-wrapper">
-            <!-- Left Column: Profile Info -->
+            <!-- Left Column -->
             <aside class="profile-section">
                 <div class="profile-header">
-                    <div class="avatar-large">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white"
-                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <div class="avatar-large" id="profileAvatar">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="white"
+                             stroke-width="1.5"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
+                            ircle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </div>
-                    <h1 class="profile-name">John Doe</h1>
+                    <h1 class="profile-name" id="profileName">John Doe</h1>
+                    <span id="userRoleText" class="user-role-text"></span>
+                </div>
+
+                <!-- Listing card WITHOUT favourites button -->
+                <div class="book-card conversation-book-card">
+                    <img id="listingImage"
+                         src="../static/resources/placeholder.jpg"
+                         alt="Book cover"
+                         class="book-image"
+                         onerror="this.src='../static/resources/placeholder.jpg'">
+                    <div class="book-info">
+                        <div class="book-title" id="listingTitle">Book title</div>
+                        <div class="book-author" id="listingAuthor">by Author</div>
+                        <div class="book-location" id="listingLocation">Location</div>
+                        <div class="book-date" id="listingDate">Posted</div>
+                        <div class="book-price" id="listingPrice">€0.00</div>
+                    </div>
                 </div>
             </aside>
 
-            <!-- Right Column: Chat Interface -->
+            <!-- Right Column -->
             <section class="chat-interface">
                 <div class="chat-container">
-                    <div class="chat-messages" id="chatMessages">
-                        <!-- Date Separator -->
-                        <div class="chat-date">Today</div>
-
-                        <!-- Received Message (John) -->
-                        <div class="message received">
-                            <div class="message-content">
-                                <p>Hi! Is the copy of "War and Peace" still available?</p>
-                                <span class="message-time">10:30 AM</span>
-                            </div>
-                        </div>
-
-                        <!-- Sent Message (User) -->
-                        <div class="message sent">
-                            <div class="message-content">
-                                <p>Yes, it is! I can meet you in Benfica tomorrow.</p>
-                                <span class="message-time">10:32 AM</span>
-                            </div>
-                        </div>
-
-                        <!-- Received Message (John) -->
-                        <div class="message received">
-                            <div class="message-content">
-                                <p>Great! 5,00 $ right?</p>
-                                <span class="message-time">10:35 AM</span>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="chat-messages" id="chatMessages"></div>
 
                     <form class="chat-input-area" id="chatForm">
                         <!-- TOGGLE DEAL BUTTON -->
                         <button type="button" class="attach-btn deal-btn" id="dealButton" aria-label="Close Deal">
                             <img src="/static/resources/handshake.png" width="40" height="40" alt="Handshake"
                                 class="handshake-img">
+                        <button type="button"
+                                class="attach-btn deal-btn"
+                                id="dealButton"
+                                aria-label="Close Deal">
+                            <img src="../static/resources/handshake.png"
+                                 width="40"
+                                 height="40"
+                                 alt="Handshake"
+                                 class="handshake-img">
                         </button>
 
-                        <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
-                        <button type="submit" class="send-btn" aria-label="Send message">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
+                        <input type="text"
+                               id="messageInput"
+                               placeholder="Type a message..."
+                               autocomplete="off">
+                        <button type="submit"
+                                class="send-btn"
+                                aria-label="Send message">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 width="20"
+                                 height="20"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
