@@ -1671,16 +1671,28 @@ async def websocket_endpoint(websocket: WebSocket, token: str = "", db=Depends(g
 @app.get("/api/get_transaction_status/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
 async def get_transaction_status(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
     """
-    Get the transaction status for a listing.
-    
-    This endpoint allows users to check the status of a transaction for a specific listing.
-    It verifies the user's access token and checks if the listing exists before returning
-    the transaction status.
-    
-    returns:
-    -1 - None of parties declared the transaction
-    0 - Only one party declared the transaction
-    1 - Both parties declared the transaction
+    Retrieve the status of a transaction for a specific listing and buyer.
+
+    This function is part of an API endpoint that allows users to check the current status
+    of a transaction associated with a particular listing and buyer. The function ensures that
+    proper authorization is enforced by validating the access token and only allowing users
+    who are either the listing owner or the buyer involved in the transaction to access the
+    information.
+
+    :param listingid: The unique identifier of the listing associated with the transaction.
+    :type listingid: int
+    :param buyerid: The ID of the buyer involved in the transaction.
+    :type buyerid: int
+    :param access_token: The access token used to authenticate the user's identity.
+    :type access_token: str
+    :param db: Dependency injection used to interact with the database.
+    :return: Returns the transaction status, whether confirmed by the buyer, and whether
+             confirmed by the seller if the transaction exists and is accessed by authorized users.
+             Returns -1 if the transaction does not exist but is accessed by authorized users.
+    :rtype: tuple[int, bool, bool] or int
+    :raises HTTPException: 401 if the access token is invalid.
+    :raises HTTPException: 404 if the listing is not found.
+    :raises HTTPException: 403 if the user is unauthorized to view the transaction.
     """
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
@@ -1693,37 +1705,46 @@ async def get_transaction_status(listingid: int, buyerid: int, access_token: str
     transaction = get_transaction_by_listingid_and_userid(listingid, buyerid, db)
     if transaction and transaction.BuyerID != userid and listing.UserID != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to view this transaction")
-    if not(transaction) and listing.UserID != userid:
-        raise HTTPException(status_code=403, detail="Unauthorized to view this transaction")
     if not transaction:
-        return -1
+        return -1, False, False
     else:
-        return transaction.TransactionStatus
+        return transaction.TransactionStatus, transaction.ConfirmedByBuyer, transaction.ConfirmedBySeller
 
 @app.post("/api/confirm_transaction/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
 async def confirm_transaction(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
-    transaction_status = await get_transaction_status(listingid, buyerid, access_token, db)
+    transaction_status, confirmedByBuyer, confirmedBySeller = await get_transaction_status(listingid, buyerid, access_token, db)
     listing = get_listing_by_listingid(listingid, db)
     if listing.UserID == buyerid:
         raise HTTPException(status_code=400, detail="Cannot confirm transaction for your own listing")
     if listing.UserID != userid and buyerid != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction")
-    if transaction_status == -1:
-        return post_new_transaction(listingid, buyerid, db)
-    elif transaction_status == 0:
-        return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, db)
-    elif transaction_status == 1:
-        raise HTTPException(status_code=400, detail="Transaction already confirmed")
+    if listing.UserID == userid and not confirmedBySeller:
+        if transaction_status == -1:
+            return post_new_transaction(listingid, buyerid, userid, True, db)
+        elif transaction_status == 0:
+            return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, True, db)
+        elif transaction_status == 1:
+            raise HTTPException(status_code=400, detail="Transaction already confirmed")
+    elif buyerid == userid and not confirmedByBuyer:
+        if transaction_status == -1:
+            return post_new_transaction(listingid, buyerid, userid, False, db)
+        elif transaction_status == 0:
+            return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, userid, False, db)
+        elif transaction_status == 1:
+            raise HTTPException(status_code=400, detail="Transaction already confirmed")
+    else:
+        raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction or it is already confirmed from your side in the first place")
+
 
 @app.delete("/api/unconfirm_transaction/", status_code=status.HTTP_204_NO_CONTENT, tags=["Handshakes"])
 async def unconfirm_transaction(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
-    transaction_status = await get_transaction_status(listingid, buyerid, access_token, db)
+    transaction_status, confirmedByBuyer, confirmedBySeller = await get_transaction_status(listingid, buyerid, access_token, db)
     listing = get_listing_by_listingid(listingid, db)
     if listing.UserID == buyerid:
         raise HTTPException(status_code=400, detail="Cannot unconfirm transaction for your own listing")
@@ -1731,10 +1752,18 @@ async def unconfirm_transaction(listingid: int, buyerid: int, access_token: str 
         raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction")
     if transaction_status == -1:
         raise HTTPException(status_code=400, detail="Transaction doesn't exist")
-    elif transaction_status == 0:
-        return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, db)
-    elif transaction_status == 1:
-        return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, db)
+    if buyerid == userid and confirmedByBuyer:
+        if transaction_status == 0:
+            return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, False, db)
+        elif transaction_status == 1:
+            return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, False, db)
+    elif listing.UserID == userid and confirmedBySeller:
+        if transaction_status == 0:
+            return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, True, db)
+        elif transaction_status == 1:
+            return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, True, db)
+    else:
+        raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction or it is already unconfirmed from your side in the first place")
     return False
 
 
@@ -1772,8 +1801,10 @@ async def get_transaction_history(access_token: str = Header(None), db=Depends(g
             Listing=listing,
             TransactionStatus=transaction.TransactionStatus,
             Buyer= await get_profile(transaction.BuyerID, access_token, db),
-            TransactionDate=transaction.TransactionDate
-        )
+            TransactionDate=transaction.TransactionDate,
+            ConfirmedByBuyer=transaction.ConfirmedByBuyer,
+            ConfirmedBySeller=transaction.ConfirmedBySeller
+        ),
         )
     return result
 

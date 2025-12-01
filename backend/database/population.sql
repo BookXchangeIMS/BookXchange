@@ -80,11 +80,11 @@ VALUES
 
 INSERT INTO Listings (UserID, BookID, ListingType, Price, ListingState, CreationDate, [Description], LocationID, Condition)
 VALUES
-(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(5, 5, 'Donation', NULL, 'Active', SYSDATETIME(), "baaaad", 1, "good");
+(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME(), "Nice book, read it a few times, now I want to find it a new holder", 1, "good"),
+(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME(), "Didn't like this book, I am going to sell it", 2, "good"),
+(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME(), "Want to exchange this one for something similar, any ideas?", 3, "good"),
+(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME(), "International classic", 4, "good"),
+(5, 5, 'Donation', NULL, 'Active', SYSDATETIME(), "I want to give this book away in good hands", 5, "good");
 
 
 INSERT INTO ListingPhoto (ListingID, ImagePath)
