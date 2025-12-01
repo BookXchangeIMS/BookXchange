@@ -101,10 +101,7 @@ function editProfile() {
 }
 
 function viewTransactionHistory() {
-    // In a real app, this would navigate to transaction history page
-    console.log('View Transaction History clicked');
-    showToast('Transaction History feature coming soon!', 'info');
-    // window.location.href = 'transaction-history.html';
+    window.location.href = 'transactionhistory.html';
 }
 
 // Add login check at page load
