@@ -110,8 +110,25 @@ function populateBookDetails(listing) {
         : listing.Book.Author || 'Unknown Author';
     document.getElementById('bookAuthor').textContent = authors;
 
-    // Price
-    const price = listing.Price ? `€${listing.Price.toFixed(2)}` : 'Free';
+    // Price - format based on listing type
+    let price;
+    const priceLabel = document.querySelector('.price-label');
+
+    if (listing.Price !== null && listing.Price !== undefined) {
+        price = `€${listing.Price.toFixed(2)}`;
+        if (priceLabel) priceLabel.textContent = 'Price';
+    } else {
+        // No price - check listing type
+        if (listing.ListingType === 'Exchange') {
+            price = 'XChange';
+        } else if (listing.ListingType === 'Donation') {
+            price = 'Free';
+        } else {
+            price = 'Free';
+        }
+        // Hide the "Price" label for non-sale items
+        if (priceLabel) priceLabel.style.display = 'none';
+    }
     document.getElementById('bookPrice').textContent = price;
 
     // Year (from ReleaseDate)

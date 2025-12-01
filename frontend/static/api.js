@@ -388,8 +388,20 @@ async function removeFavorite(listingId, accessToken) {
  * This function is used across multiple pages (home, favourites, announcements)
  */
 function transformListingData(listing) {
-    // Format price
-    const price = listing.Price ? `€${listing.Price.toFixed(2)}` : 'Free';
+    // Format price based on listing type
+    let price;
+    if (listing.Price !== null && listing.Price !== undefined) {
+        price = `€${listing.Price.toFixed(2)}`;
+    } else {
+        // No price - check listing type
+        if (listing.ListingType === 'Exchange') {
+            price = 'XChange';
+        } else if (listing.ListingType === 'Donation') {
+            price = 'Free';
+        } else {
+            price = 'Free'; // Default fallback
+        }
+    }
 
     // Format date
     const creationDate = new Date(listing.CreationDate);

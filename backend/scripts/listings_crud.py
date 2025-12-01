@@ -512,11 +512,21 @@ def delete_new_listing(listingid: int, db):
     :raises HTTPException: If an error occurs during the deletion process, raising an exception
         with HTTP status code 500 and a message detailing the failure.
     """
-    stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
+    # First, delete all associated images from ListingPhoto table
+    listingphoto = metadata.tables["ListingPhoto"]
+    img_stmt = listingphoto.delete().where(listingphoto.c.ListingID == listingid)
+    
+    # Then delete the listing itself
+    listing_stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
+    
     try:
-        db.execute(stmt)
+        # Delete images first (due to foreign key constraints)
+        db.execute(img_stmt)
+        # Then delete the listing
+        db.execute(listing_stmt)
         db.commit()
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail="Couldn't delete listing. Please try again later.")
 
 def get_listings_by_userid(user_id: int, db):

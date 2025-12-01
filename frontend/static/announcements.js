@@ -120,6 +120,21 @@ async function fetchListingsFromBackend() {
             const authors = formatArray(listing.Book.Author);
             const genres = formatArray(listing.Book.Genre);
 
+            // Format price based on listing type
+            let price;
+            if (listing.Price !== null && listing.Price !== undefined) {
+                price = `€${parseFloat(listing.Price).toFixed(2)}`;
+            } else {
+                // No price - check listing type
+                if (listing.ListingType === 'Exchange') {
+                    price = 'XChange';
+                } else if (listing.ListingType === 'Donation') {
+                    price = 'Free';
+                } else {
+                    price = 'Free';
+                }
+            }
+
             return {
                 ListingID: listing.ListingID,
                 Name: listing.Book.Title,
@@ -127,7 +142,7 @@ async function fetchListingsFromBackend() {
                 PublicationDate: listing.Book.ReleaseDate,
                 Location: listing.Location.Address,
                 author: authors,
-                price: `$${parseFloat(listing.Price).toFixed(2)}`,
+                price: price,
                 condition: listing.BookCondition,
                 genres: genres,
                 description: listing.Description

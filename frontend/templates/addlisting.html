@@ -73,11 +73,39 @@
                 <input type="text" id="bookAuthor" class="form-input" placeholder="Enter author name" required>
             </div>
 
+            <!-- Listing Type Selection -->
+            <div class="form-section">
+                <label class="form-label">Listing Type <span class="required">*</span></label>
+                <div class="listing-type-options">
+                    <label class="type-option">
+                        <input type="radio" name="listingType" value="Sale">
+                        <span class="type-label">
+                            <i class="fas fa-tag"></i>
+                            Sale
+                        </span>
+                    </label>
+                    <label class="type-option">
+                        <input type="radio" name="listingType" value="Exchange">
+                        <span class="type-label">
+                            <i class="fas fa-exchange-alt"></i>
+                            Exchange
+                        </span>
+                    </label>
+                    <label class="type-option">
+                        <input type="radio" name="listingType" value="Donation" checked>
+                        <span class="type-label">
+                            <i class="fas fa-gift"></i>
+                            Donation
+                        </span>
+                    </label>
+                </div>
+            </div>
+
             <!-- Price and Year Grid -->
             <div class="form-grid">
-                <div class="form-section">
-                    <label for="bookPrice" class="form-label">Price <span class="required">*</span></label>
-                    <input type="text" id="bookPrice" class="form-input" placeholder="$0.00" required>
+                <div class="form-section hidden" id="priceSection">
+                    <label for="bookPrice" class="form-label">Price</label>
+                    <input type="text" id="bookPrice" class="form-input" placeholder="$0.00">
                 </div>
 
                 <div class="form-section">

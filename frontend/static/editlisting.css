@@ -819,6 +819,71 @@ main {
 }
 
 /* ===========================
+   LISTING TYPE SELECTION
+   =========================== */
+.listing-type-options {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.type-option {
+    flex: 1;
+    min-width: 150px;
+}
+
+.type-option input[type="radio"] {
+    display: none;
+}
+
+.type-option .type-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: white;
+    border: 2px solid rgba(200, 76, 61, 0.2);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+}
+
+.type-option .type-label i {
+    font-size: 24px;
+    color: #c84c3d;
+    opacity: 0.6;
+}
+
+.type-option input[type="radio"]:checked+.type-label {
+    border-color: #c84c3d;
+    background: rgba(200, 76, 61, 0.05);
+    box-shadow: 0 4px 12px rgba(200, 76, 61, 0.2);
+}
+
+.type-option input[type="radio"]:checked+.type-label i {
+    opacity: 1;
+}
+
+.type-option .type-label:hover {
+    border-color: #c84c3d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(200, 76, 61, 0.15);
+}
+
+#priceSection {
+    transition: opacity 0.3s ease, height 0.3s ease;
+}
+
+#priceSection.hidden {
+    display: none;
+}
+
+/* ===========================
    RESPONSIVE DESIGN
    =========================== */
 

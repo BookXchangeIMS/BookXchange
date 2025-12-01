@@ -193,6 +193,7 @@ const api = {
 
 // State management
 let newImages = []; // [{file, preview, tempId}]
+let hasFormChanged = false; // Track if form has been modified
 
 
 // Initialize
@@ -341,9 +342,46 @@ function setupEventListeners() {
     uploadZone.addEventListener('drop', handleDrop);
 
     // Form events
-    document.getElementById('bookDescription').addEventListener('input', updateCharacterCount);
+    document.getElementById('bookDescription').addEventListener('input', () => {
+        updateCharacterCount();
+        hasFormChanged = true;
+    });
     document.getElementById('bookPrice').addEventListener('blur', formatPrice);
     document.getElementById('addListingForm').addEventListener('submit', handleFormSubmit);
+
+    // Track changes on all form inputs
+    const formInputs = document.querySelectorAll('#addListingForm input, #addListingForm select, #addListingForm textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            hasFormChanged = true;
+        });
+    });
+
+    // Listing type event listeners
+    document.querySelectorAll('input[name="listingType"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            handleListingTypeChange(event);
+            hasFormChanged = true;
+        });
+    });
+}
+
+// Handle listing type change
+function handleListingTypeChange(event) {
+    const listingType = event.target.value;
+    const priceSection = document.getElementById('priceSection');
+    const priceInput = document.getElementById('bookPrice');
+
+    if (listingType === 'Sale') {
+        // Show price field for Sale
+        priceSection.classList.remove('hidden');
+        priceInput.required = true;
+    } else {
+        // Hide price field for Exchange and Donation
+        priceSection.classList.add('hidden');
+        priceInput.required = false;
+        priceInput.value = ''; // Clear price value
+    }
 }
 
 
@@ -411,6 +449,7 @@ function processFiles(files) {
                 preview: e.target.result,
                 tempId: Date.now() + Math.random()
             });
+            hasFormChanged = true; // Mark form as changed when image is added
             renderImagePreviews();
         };
         reader.readAsDataURL(file);
@@ -557,9 +596,13 @@ function validateForm() {
     const author = document.getElementById('bookAuthor').value.trim();
     if (author.length < 2) errors.push('Author name must be at least 2 characters');
 
-    const price = document.getElementById('bookPrice').value.trim();
-    const priceValue = parseFloat(price.replace('$', ''));
-    if (isNaN(priceValue) || priceValue < 0) errors.push('Please enter a valid price');
+    // Only validate price for Sale listings
+    const listingType = document.querySelector('input[name="listingType"]:checked').value;
+    if (listingType === 'Sale') {
+        const price = document.getElementById('bookPrice').value.trim();
+        const priceValue = parseFloat(price.replace('$', ''));
+        if (isNaN(priceValue) || priceValue < 0) errors.push('Please enter a valid price');
+    }
 
     const condition = document.getElementById('bookCondition').value;
     if (!condition) errors.push('Please select a condition');
@@ -606,12 +649,22 @@ async function handleFormSubmit(event) {
         const authorsArray = toArray(author);
         const year = document.getElementById('bookYear').value.trim();
 
+        // Get selected listing type
+        const listingType = document.querySelector('input[name="listingType"]:checked').value;
+
+        // Get price (null for Exchange and Donation)
+        let price = null;
+        if (listingType === 'Sale') {
+            const priceValue = document.getElementById('bookPrice').value.replace('$', '');
+            price = priceValue ? parseFloat(priceValue) : null;
+        }
+
         // Prepare data matching PostListing model
         const newListingData = {
-            ListingType: "Sale",
+            ListingType: listingType,
             Status: "Active",
             Description: document.getElementById('bookDescription').value.trim() || "No description provided",
-            Price: parseFloat(document.getElementById('bookPrice').value.replace('$', '')),
+            Price: price,
             BookCondition: document.getElementById('bookCondition').value,
             LocationAddress: document.getElementById('bookLocation').value.trim(),
             Book: {
@@ -652,7 +705,7 @@ async function handleFormSubmit(event) {
         // Always redirect after a short delay
         console.log('🔄 Redirecting to announcements page...');
         setTimeout(() => {
-            window.location.href = 'Announcements.html';
+            window.location.href = 'announcements.html';
         }, 1000);
 
     } catch (error) {
@@ -745,6 +798,13 @@ async function handleScanBook(event) {
 
 // Show cancel confirmation modal
 function showCancelModal() {
+    // If no changes were made, go directly back without showing modal
+    if (!hasFormChanged && newImages.length === 0) {
+        window.location.href = 'announcements.html';
+        return;
+    }
+
+    // Show modal if there are changes
     const modal = document.getElementById('cancelModal');
     modal.classList.add('active');
 }
