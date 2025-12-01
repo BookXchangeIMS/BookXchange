@@ -130,6 +130,7 @@ async function loadProfile() {
     // Populate form fields
     document.getElementById("fullName").value = currentProfile.Name || "";
     document.getElementById("email").value = currentProfile.Email || "";
+    document.getElementById("location").value = currentProfile.Location?.Address || "";
     document.getElementById("aboutMe").value = currentProfile.AboutMe || "";
 
     // Email is read-only
@@ -183,7 +184,7 @@ async function saveProfile(event) {
   const payload = {
     Name: formData.get("fullName").trim(),
     AboutMe: formData.get("aboutMe").trim() || "",
-    LocationAddress: currentProfile?.Location?.Address || "Unknown",
+    LocationAddress: formData.get("location").trim() || "Unknown",
     ProfileImagePath: currentProfile?.ProfileImagePath || ""
   };
 
