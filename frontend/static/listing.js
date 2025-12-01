@@ -346,9 +346,12 @@ function goToSellerProfile() {
 
 function sendMessage() {
     if (!currentListing) return;
-    // Navigate to messages page (could pass seller ID as parameter)
-    window.location.href = `messages.html?sellerId=${currentListing.User.UserID}`;
+    const listingId = currentListing.ListingID;
+    const sellerId = currentListing.User.UserID;
+    window.location.href = `messages.html?listing_id=${listingId}&seller_id=${sellerId}`;
 }
+window.sendMessage = sendMessage;
+
 
 function goBack() {
     window.history.back();
