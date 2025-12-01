@@ -33,15 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmPassword = document.getElementById('confirmPassword');
     const errorMessage = document.getElementById('errorMessage');
 
-    // Check passwords match while typing
-    confirmPassword.addEventListener('input', () => {
+    function validatePasswords() {
         if (confirmPassword.value === '') {
             errorMessage.textContent = '';
-            errorMessage.style.color = ''; // Reset
-            
         } else if (password.value !== confirmPassword.value) {
             errorMessage.textContent = 'Passwords do not match!';
-            errorMessage.style.color = '#e74c3c'; // RED
         } else {
             errorMessage.textContent = '✓ Passwords match';
             errorMessage.style.color = '#27ae60';
@@ -50,17 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Reset error color when typing again
     password.addEventListener('input', () => {
-        if (confirmPassword.value !== '') {
-            if (password.value !== confirmPassword.value) {
-                errorMessage.textContent = 'Passwords do not match!';
-                errorMessage.style.color = '#e74c3c'; // RED
-            } else {
-                errorMessage.textContent = '✓ Passwords match';
-                errorMessage.style.color = '#27ae60'; // GREEN
-            }
-        } else {
-            errorMessage.textContent = '';
-            errorMessage.style.color = '';
+        errorMessage.style.color = '#e74c3c';
+        if (confirmPassword.value !== '' && password.value !== confirmPassword.value) {
+            errorMessage.textContent = 'Passwords do not match!';
+        } else if (confirmPassword.value !== '' && password.value === confirmPassword.value) {
+            errorMessage.textContent = '✓ Passwords match';
+            errorMessage.style.color = '#27ae60';
         }
     });
 
