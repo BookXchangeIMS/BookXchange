@@ -32,37 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmPassword = document.getElementById('confirmPassword');
     const errorMessage = document.getElementById('errorMessage');
 
-    // Check passwords match while typing
-    confirmPassword.addEventListener('input', () => {
+    function validatePasswords() {
         if (confirmPassword.value === '') {
             errorMessage.textContent = '';
+            errorMessage.style.color = ''; // Reset to CSS default
         } else if (password.value !== confirmPassword.value) {
             errorMessage.textContent = 'Passwords do not match!';
+            errorMessage.style.color = '#e74c3c'; // Ensure red for mismatch
         } else {
             errorMessage.textContent = '✓ Passwords match';
-            errorMessage.style.color = '#27ae60';
+            errorMessage.style.color = '#27ae60'; // Ensure green for match
         }
-    });
+    }
 
-    // Reset error color when typing again
-    password.addEventListener('input', () => {
-        errorMessage.style.color = '#e74c3c';
-        if (confirmPassword.value !== '' && password.value !== confirmPassword.value) {
-            errorMessage.textContent = 'Passwords do not match!';
-        } else if (confirmPassword.value !== '' && password.value === confirmPassword.value) {
-            errorMessage.textContent = '✓ Passwords match';
-            errorMessage.style.color = '#27ae60';
-        }
-    });
-
-    // Add fade-in animation
-    const container = document.querySelector('.container');
-    container.style.opacity = '0';
-    container.style.transform = 'translateY(20px)';
-
-    setTimeout(() => {
-        container.style.transition = 'all 0.6s ease';
-        container.style.opacity = '1';
-        container.style.transform = 'translateY(0)';
-    }, 100);
+    confirmPassword.addEventListener('input', validatePasswords);
+    password.addEventListener('input', validatePasswords);
 });
