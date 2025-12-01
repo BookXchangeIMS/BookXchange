@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ==== WebSocket Connection ====
 
-        function connectWebSocket() {
+    function connectWebSocket() {
         if (!accessToken) return;
 
         // Determine URL: Force 127.0.0.1
@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
         socket.onmessage = function(event) {
             try {
                 const data = JSON.parse(event.data);
-                console.log("[WebSocket] Received:", data); // Debug Log
+                console.log("[WebSocket] Received:", data);
 
                 if (data.type === 'message' && data.message) {
                     const msg = data.message;
@@ -167,7 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-
     // ==== Chat init ====
 
     async function initChat() {
@@ -183,7 +182,9 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const otherProfile = await getUserProfile(otherUserId, accessToken);
                 if (profileNameEl && otherProfile) profileNameEl.textContent = otherProfile.Name;
-            } catch (e) {}
+            } catch (e) {
+                console.error("Error fetching other user profile:", e);
+            }
 
             const dialogue = await getDialogue(otherUserId, listingId, accessToken);
             if (dialogue && Array.isArray(dialogue.Messages)) {
@@ -221,35 +222,83 @@ document.addEventListener("DOMContentLoaded", () => {
     // ==== Handshakes ====
     const dealButton = document.getElementById('dealButton');
     let transactionStatus = -1;   // -1 none, 0 one party, 1 both
+    let confirmedByBuyer = false;
+    let confirmedBySeller = false;
     let listingOwnerId = null;
     let buyerId = null;
+    let iAmSeller = false;
 
     function updateDealButtonUI() {
         if (!dealButton) return;
+        
+        // Determine button state based on current user and confirmations
+        const myConfirmationStatus = iAmSeller ? confirmedBySeller : confirmedByBuyer;
+        const otherConfirmationStatus = iAmSeller ? confirmedByBuyer : confirmedBySeller;
+        
         if (transactionStatus === 1) {
+            // Both confirmed - show green checkmark
             dealButton.classList.add('deal-confirmed');
             dealButton.innerHTML = '<i class="fas fa-check-circle" style="font-size: 24px; color: white;"></i>';
-        } else {
+            dealButton.title = "Deal closed - both parties confirmed";
+        } else if (myConfirmationStatus && !otherConfirmationStatus) {
+            // I confirmed, waiting for other party
+            dealButton.classList.add('deal-confirmed');
+            dealButton.innerHTML = '<i class="fas fa-clock" style="font-size: 24px; color: white;"></i>';
+            dealButton.title = "Waiting for other party to confirm";
+        } else if (!myConfirmationStatus && otherConfirmationStatus) {
+            // Other party confirmed, waiting for me
             dealButton.classList.remove('deal-confirmed');
             dealButton.innerHTML = '<img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake" class="handshake-img">';
+            dealButton.title = "Other party confirmed - click to confirm deal";
+            dealButton.style.animation = 'pulse 1.5s ease-in-out infinite';
+        } else {
+            // No confirmations yet
+            dealButton.classList.remove('deal-confirmed');
+            dealButton.innerHTML = '<img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake" class="handshake-img">';
+            dealButton.title = "Click to propose deal";
+            dealButton.style.animation = '';
         }
     }
 
     async function refreshTransactionStatusAndUI(showMessage = true) {
         if (!listingId || !buyerId) return;
         try {
-            const raw = await getTransactionStatus(listingId, buyerId, accessToken);
-            transactionStatus = Number(raw);
+            const result = await getTransactionStatus(listingId, buyerId, accessToken);
+            
+            // Extract values from response
+            transactionStatus = Number(result.status);
+            confirmedByBuyer = Boolean(result.confirmedByBuyer);
+            confirmedBySeller = Boolean(result.confirmedBySeller);
+            
             if (isNaN(transactionStatus)) transactionStatus = -1;
+            
+            console.log('[Transaction Status]', {
+                status: transactionStatus,
+                buyer: confirmedByBuyer,
+                seller: confirmedBySeller,
+                iAmSeller: iAmSeller
+            });
+            
             updateDealButtonUI();
 
             if (!showMessage) return;
+            
+            // Show appropriate system message
             if (transactionStatus === 0) {
-                addSystemMessage("<strong>🤝 Deal proposal pending.</strong><br>One of you has proposed closing the deal.");
+                const myConfirmation = iAmSeller ? confirmedBySeller : confirmedByBuyer;
+                const otherConfirmation = iAmSeller ? confirmedByBuyer : confirmedBySeller;
+                
+                if (myConfirmation && !otherConfirmation) {
+                    addSystemMessage("<strong>🤝 Deal proposal sent.</strong><br>Waiting for the other party to confirm.");
+                } else if (!myConfirmation && otherConfirmation) {
+                    addSystemMessage("<strong>🤝 Deal proposal received!</strong><br>The other party wants to close the deal. Click the handshake to confirm.");
+                }
             } else if (transactionStatus === 1) {
-                addSystemMessage("<strong>✅ Deal Closed!</strong><br>Both parties confirmed.");
+                addSystemMessage("<strong>✅ Deal Closed!</strong><br>Both parties have confirmed the transaction.");
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error('Error refreshing transaction status:', e);
+        }
     }
 
     async function initHandshake() {
@@ -261,37 +310,81 @@ document.addEventListener("DOMContentLoaded", () => {
 
             listingOwnerId = listing.User.UserID;
             buyerId = (currentUserId === listingOwnerId) ? parseInt(otherUserId) : currentUserId;
+            iAmSeller = (currentUserId === listingOwnerId);
 
-            if (userRoleTextEl) userRoleTextEl.textContent = (currentUserId === listingOwnerId) ? "You are selling" : "You are buying";
+            if (userRoleTextEl) {
+                userRoleTextEl.textContent = iAmSeller ? "You are selling" : "You are buying";
+            }
+            
             await refreshTransactionStatusAndUI(true);
-        } catch (e) {}
+        } catch (e) {
+            console.error('Error initializing handshake:', e);
+        }
     }
 
     if (dealButton) {
         dealButton.addEventListener('click', async function () {
             if (!listingId || !buyerId) return;
+            
+            const myConfirmation = iAmSeller ? confirmedBySeller : confirmedByBuyer;
+            
             try {
-                if (transactionStatus <= 0) {
-                    if (!confirm("Confirm deal?")) return;
-                    try { await confirmTransaction(listingId, buyerId, accessToken); } catch(e) {}
-                    await refreshTransactionStatusAndUI(true);
+                if (!myConfirmation) {
+                    // User wants to confirm
+                    if (!confirm("Do you want to confirm this deal?")) return;
                     
-                    if (transactionStatus === 0) {
-                         const dealMsg = "I would like to close the deal. Do you agree?";
-                         if (socket && socket.readyState === WebSocket.OPEN) {
-                             socket.send(JSON.stringify({receiverid: parseInt(otherUserId), listingid: parseInt(listingId), content: dealMsg}));
-                             appendMessage(dealMsg, "sent");
-                         } else {
-                             await sendMessageApi(otherUserId, listingId, dealMsg, accessToken);
-                             appendMessage(dealMsg, "sent");
-                         }
+                    try {
+                        await confirmTransaction(listingId, buyerId, accessToken);
+                        console.log('[Transaction] Confirmed successfully');
+                    } catch(e) {
+                        console.error('[Transaction] Confirm failed:', e);
+                        alert('Failed to confirm transaction. Please try again.');
+                        return;
+                    }
+                    
+                    // Refresh status
+                    await refreshTransactionStatusAndUI(false);
+                    
+                    // Send message about deal proposal
+                    const dealMsg = "I would like to close the deal. Do you agree?";
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        socket.send(JSON.stringify({
+                            receiverid: parseInt(otherUserId),
+                            listingid: parseInt(listingId),
+                            content: dealMsg
+                        }));
+                        appendMessage(dealMsg, "sent");
+                    } else {
+                        await sendMessageApi(otherUserId, listingId, dealMsg, accessToken);
+                        appendMessage(dealMsg, "sent");
+                    }
+                    
+                    // Show appropriate message
+                    if (transactionStatus === 1) {
+                        addSystemMessage("<strong>✅ Deal Closed!</strong><br>Both parties have confirmed the transaction.");
+                    } else {
+                        addSystemMessage("<strong>🤝 Deal proposal sent.</strong><br>Waiting for the other party to confirm.");
                     }
                 } else {
-                    if (!confirm("Undo deal?")) return;
-                    await unconfirmTransaction(listingId, buyerId, accessToken);
-                    await refreshTransactionStatusAndUI(true);
+                    // User wants to undo confirmation
+                    if (!confirm("Do you want to undo your deal confirmation?")) return;
+                    
+                    try {
+                        await unconfirmTransaction(listingId, buyerId, accessToken);
+                        console.log('[Transaction] Unconfirmed successfully');
+                    } catch(e) {
+                        console.error('[Transaction] Unconfirm failed:', e);
+                        alert('Failed to undo confirmation. Please try again.');
+                        return;
+                    }
+                    
+                    await refreshTransactionStatusAndUI(false);
+                    addSystemMessage("<strong>↩️ Deal confirmation undone.</strong>");
                 }
-            } catch (error) { console.error(error); }
+            } catch (error) {
+                console.error('Transaction error:', error);
+                alert('An error occurred. Please try again.');
+            }
         });
     }
 
