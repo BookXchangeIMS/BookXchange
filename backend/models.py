@@ -43,12 +43,14 @@ class UpdateUser(BaseModel):
     Name: str
     AboutMe: str
     LocationAddress: str
+    ProfileImagePath: str = ""
 
 class GetUser(BaseModel):
     Name: str
     AboutMe: str
     UserID: int
     UserRole: str
+    ProfileImagePath: str = None
 
 class GetMyUser(GetUser):
     Email: str

@@ -196,6 +196,30 @@ async function updateProfile(profileData, accessToken) {
 }
 
 /**
+ * Upload profile image
+ */
+async function uploadProfileImage(file, accessToken) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/update_profile_image`, {
+        method: 'PUT',
+        headers: {
+            'access-token': accessToken
+        },
+        body: formData
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        console.error('UploadProfileImage API Error:', error);
+        throw new Error(JSON.stringify(error.detail || error));
+    }
+
+    return await response.json();
+}
+
+/**
  * Get another user's profile (public information)
  */
 async function getUserProfile(userId, accessToken) {

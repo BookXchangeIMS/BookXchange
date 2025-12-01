@@ -54,6 +54,15 @@ async function loadUserProfile() {
             aboutTextElement.textContent = profile.AboutMe || 'No information provided';
         }
 
+        // Load profile image if exists
+        if (profile.ProfileImagePath) {
+            const avatarElement = document.querySelector('.avatar');
+            if (avatarElement) {
+                const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${profile.UserID}&access_token=${token}`;
+                avatarElement.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            }
+        }
+
         // Fetch and display preferences
         try {
             console.log('Fetching preferences...');

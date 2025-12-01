@@ -70,6 +70,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files and templates
+from fastapi.staticfiles import StaticFiles
+
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+app.mount("/templates", StaticFiles(directory="frontend/templates", html=True), name="templates")
+
+
 
 #==============================================================================================================
 # TOKENIZED AUTHENTICATION
@@ -318,6 +325,7 @@ async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)
         Name=user_data.Name,
         UserRole=user_data.UserRole,
         AboutMe=user_data.AboutMe,
+        ProfileImagePath=user_data.ProfileImagePath,
         CreationDate=user_data.CreationDate,
         Location= Location(Longitude=location.Longitude,
                            Latitude=location.Latitude,
@@ -370,16 +378,28 @@ async def update_profile(new_info: UpdateUser, access_token: str = Header(None),
 
     """
     userid = get_userid_by_access_token(access_token, db)
-    coordinates = address_to_coordinates(new_info.LocationAddress)
-    if coordinates:
-        latitude, longitude = coordinates
-    else:
-        latitude, longitude = 0.0, 0.0
-    new_locationid = post_location(Location(
-        Latitude=latitude,
-        Longitude=longitude,
-        Address=new_info.LocationAddress,
-        Description=""), db)
+    
+    # Get current user to preserve old location if needed
+    current_user = get_user_by_id(userid, db)
+    
+    # Try to convert address to coordinates
+    try:
+        coordinates = address_to_coordinates(new_info.LocationAddress)
+        if coordinates:
+            latitude, longitude = coordinates
+            # Create new location
+            new_locationid = post_location(Location(
+                Latitude=latitude,
+                Longitude=longitude,
+                Address=new_info.LocationAddress,
+                Description=""), db)
+        else:
+            # Use old location if address conversion fails
+            new_locationid = current_user.LocationID
+    except Exception as e:
+        # Use old location if any error occurs
+        new_locationid = current_user.LocationID
+    
     return update_profile_by_userid(userid, new_info, new_locationid, db)
 
 @app.delete("/api/delete_profile", status_code=status.HTTP_204_NO_CONTENT, tags=["Profile"])
@@ -974,10 +994,12 @@ async def update_profile_image(file: UploadFile = File(...), access_token: str =
         profile image update was successful.
     """
     userid = get_userid_by_access_token(access_token, db)
-    return insert_profile_image_path(userid, insert_profile_picture(file), db)
+    new_path = insert_profile_picture(file)
+    insert_profile_image_path(userid, new_path, db)
+    return {"path": new_path}
 
 @app.get("/api/get_users_profile_picture", status_code=status.HTTP_200_OK, tags=["Images"])
-async def get_users_profile_picture(userid: int, access_token: str = Header(None), db= Depends(get_db)):
+async def get_users_profile_picture(userid: int, access_token: str, db= Depends(get_db)):
     """
     Retrieve a user's profile picture.
 
@@ -989,7 +1011,7 @@ async def get_users_profile_picture(userid: int, access_token: str = Header(None
     :param userid: The unique identifier of the user whose profile picture
         is to be retrieved.
     :type userid: int
-    :param access_token: A required access token included as a header for
+    :param access_token: A required access token as a query parameter for
         authentication and authorization.
     :type access_token: str
     :param db: An instance of the database session, provided through dependency
@@ -1000,6 +1022,8 @@ async def get_users_profile_picture(userid: int, access_token: str = Header(None
     if not verify_access_token(access_token):
         raise HTTPException(status_code=401, detail="Invalid access token")
     user = get_user_by_id(userid, db)
+    if not user.ProfileImagePath:
+        raise HTTPException(status_code=404, detail="User has no profile picture")
     return FileResponse(path=user.ProfileImagePath)
 
 

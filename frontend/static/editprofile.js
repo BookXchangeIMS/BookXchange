@@ -135,6 +135,13 @@ async function loadProfile() {
     // Email is read-only
     document.getElementById("email").readOnly = true;
 
+    // Set profile image if exists
+    if (currentProfile.ProfileImagePath) {
+      const avatarPreview = document.getElementById('avatarPreview');
+      const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${currentProfile.UserID}&access_token=${token}`;
+      avatarPreview.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    }
+
     // Fetch and load preferences
     try {
       const preferences = await getPreferences(token);
@@ -346,9 +353,61 @@ function goBackToForeignProfile() {
 // INITIALIZE
 // ============================================
 
+// Image Upload Setup
+function setupImageUpload() {
+  const fileInput = document.getElementById('profileImageInput');
+  const avatarPreview = document.getElementById('avatarPreview');
+
+  if (!fileInput || !avatarPreview) {
+    return;
+  }
+
+  fileInput.addEventListener('change', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      avatarPreview.innerHTML = `<img src="${readerEvent.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    };
+    reader.readAsDataURL(file);
+
+    // Upload immediately
+    try {
+      setFormMessage("Uploading image...", "");
+      const token = getAccessToken();
+
+      const result = await uploadProfileImage(file, token);
+
+      // Update current profile with new path
+      if (currentProfile) {
+        currentProfile.ProfileImagePath = result.path;
+      }
+
+      setFormMessage("✓ Image uploaded successfully", "success");
+      setTimeout(() => setFormMessage("", ""), 3000);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      setFormMessage("Image upload failed. Please try again.", "error");
+    }
+  });
+}
+
+// ============================================
+// INITIALIZE
+// ============================================
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Edit Profile page loaded - REAL API MODE");
+
   loadProfile();
+  setupImageUpload();
 
   const form = document.getElementById("editProfileForm");
   form.addEventListener("submit", saveProfile);
