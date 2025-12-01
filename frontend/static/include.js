@@ -16,7 +16,7 @@ function loadHTML() {
     // Load Header
     const headerPlaceholder = document.getElementById('header-placeholder');
     if (headerPlaceholder) {
-        fetch('../templates/header.html')
+        fetch('/header.html')
             .then(response => response.text())
             .then(data => {
                 headerPlaceholder.innerHTML = data;
@@ -35,7 +35,7 @@ function loadHTML() {
     // Load Footer
     const footerPlaceholder = document.getElementById('footer-placeholder');
     if (footerPlaceholder) {
-        fetch('../templates/footer.html')
+        fetch('footer.html')
             .then(response => response.text())
             .then(data => {
                 footerPlaceholder.innerHTML = data;
@@ -136,27 +136,27 @@ window.SearchManager = SearchManager;
 
 // Global Navigation Functions
 function goToHome() {
-    window.location.href = 'home.html';
+    window.location.href = '/';
 }
 
 function goToAnnouncements() {
-    window.location.href = 'Announcements.html';
+    window.location.href = '/announcements';
 }
 
 function goToFavorites() {
-    window.location.href = 'favourites.html';
+    window.location.href = '/favourites';
 }
 
 function goToMessages() {
-    window.location.href = 'mymessages.html';
+    window.location.href = '/mymessages';
 }
 
 function goToProfile() {
-    window.location.href = 'profile.html';
+    window.location.href = '/profile';
 }
 
 function goToLogin() {
-    window.location.href = 'Login.html';
+    window.location.href = '/login';
 }
 
 // Expose functions to window object to ensure they are callable from HTML

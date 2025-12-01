@@ -1,12 +1,12 @@
 import asyncio
-from http import HTTPStatus
-import zipfile
 
-from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status, Query
+from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status, Query, Request
 from collections import defaultdict
 from typing import Annotated, Dict, Set
 
 from starlette.responses import FileResponse, Response
+from starlette.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from backend.scripts.auth import *
 from backend.scripts.chat_crud import *
@@ -69,6 +69,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Static files configuration
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+
+# Templates configuration
+templates = Jinja2Templates(directory="frontend/templates")
 
 
 #==============================================================================================================
@@ -1807,5 +1813,129 @@ async def get_transaction_history(access_token: str = Header(None), db=Depends(g
         ),
         )
     return result
+            
+# ===================================================================================================================
+# PAGE ROUTES
+# ===================================================================================================================
+
+@app.get("/")
+async def get_home_page(request: Request):
+    """
+    Serves the home page.
+    """
+    return templates.TemplateResponse("home.html", {"request": request})
+
+@app.get("/login")
+async def get_login_page(request: Request):
+    """
+    Serves the login page.
+    """
+    return templates.TemplateResponse("Login.html", {"request": request})
+
+@app.get("/registration", response_class=FileResponse)
+async def get_registration_page():
+    """
+    Serves the registration page.
+    """
+    return FileResponse("frontend/templates/registration.html")
+
+@app.get("/registration2", response_class=FileResponse)
+async def get_registration2_page():
+    """
+    Serves the registration step 2 page.
+    """
+    return FileResponse("frontend/templates/registration2.html")
+
+@app.get("/registration3", response_class=FileResponse)
+async def get_registration3_page():
+    """
+    Serves the registration step 3 page.
+    """
+    return FileResponse("frontend/templates/registration3.html")
+
+@app.get("/profile", response_class=FileResponse)
+async def get_profile_page():
+    """
+    Serves the user's profile page.
+    """
+    return FileResponse("frontend/templates/profile.html")
+
+@app.get("/edit-profile", response_class=FileResponse)
+async def get_edit_profile_page():
+    """
+    Serves the edit profile page.
+    """
+    return FileResponse("frontend/templates/editprofile.html")
+
+@app.get("/listing?id={listing_id}", response_class=FileResponse)
+async def get_listing_page(listing_id: int):
+    """
+    Serves the listing details page.
+    The listing_id parameter will be available to the frontend JavaScript.
+    """
+    return FileResponse("frontend/templates/listing.html")
+
+@app.get("/add-listing", response_class=FileResponse)
+async def get_add_listing_page():
+    """
+    Serves the add listing page.
+    """
+    return FileResponse("frontend/templates/addlisting.html")
+
+@app.get("/edit-listing/{listing_id}", response_class=FileResponse)
+async def get_edit_listing_page(listing_id: int):
+    """
+    Serves the edit listing page.
+    """
+    return FileResponse("frontend/templates/editlisting.html")
+
+@app.get("/favorites", response_class=FileResponse)
+async def get_favorites_page():
+    """
+    Serves the user's favorites page.
+    """
+    return FileResponse("frontend/templates/favourites.html")
+
+@app.get("/messages", response_class=FileResponse)
+async def get_messages_page():
+    """
+    Serves the user's messages page.
+    """
+    return FileResponse("frontend/templates/mymessages.html")
+
+@app.get("/chat/{user_id}/{listing_id}", response_class=FileResponse)
+async def get_chat_page(user_id: int, listing_id: int):
+    """
+    Serves the chat page for a specific conversation.
+    """
+    return FileResponse("frontend/templates/messages.html")
+
+@app.get("/user/{user_id}", response_class=FileResponse)
+async def get_user_profile_page(user_id: int):
+    """
+    Serves the foreign user profile page.
+    """
+    return FileResponse("frontend/templates/foreignprofile.html")
+
+@app.get("/preferences", response_class=FileResponse)
+async def get_preferences_page():
+    """
+    Serves the user's preferences dashboard page.
+    """
+    return FileResponse("frontend/templates/preferencedashboard.html")
+
+@app.get("/transactions", response_class=FileResponse)
+async def get_transactions_page():
+    """
+    Serves the transaction history page.
+    """
+    return FileResponse("frontend/templates/transactionhistory.html")
+
+@app.get("/announcements", response_class=FileResponse)
+async def get_announcements_page():
+    """
+    Serves the announcements page.
+    """
+    return FileResponse("frontend/templates/Announcements.html")
 
 
