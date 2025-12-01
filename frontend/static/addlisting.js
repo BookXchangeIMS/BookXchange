@@ -174,7 +174,7 @@ const api = {
 
             if (!response.ok) {
                 clearTokens();
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 throw new Error('Session expired. Please login again.');
             }
 
@@ -184,7 +184,7 @@ const api = {
         } catch (error) {
             console.error('Token refresh failed:', error);
             clearTokens();
-            window.location.href = '/login.html';
+            window.location.href = '/login';
             throw error;
         }
     }
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to add a listing', 'error');
-        setTimeout(() => window.location.href = '/login.html', 2000);
+        setTimeout(() => window.location.href = '/login', 2000);
         return;
     }
 
@@ -705,7 +705,7 @@ async function handleFormSubmit(event) {
         // Always redirect after a short delay
         console.log('🔄 Redirecting to announcements page...');
         setTimeout(() => {
-            window.location.href = 'announcements.html';
+            window.location.href = '/announcements';
         }, 1000);
 
     } catch (error) {
@@ -800,7 +800,7 @@ async function handleScanBook(event) {
 function showCancelModal() {
     // If no changes were made, go directly back without showing modal
     if (!hasFormChanged && newImages.length === 0) {
-        window.location.href = 'announcements.html';
+        window.location.href = '/announcements';
         return;
     }
 
@@ -817,7 +817,7 @@ function closeCancelModal() {
 
 // Confirm cancel and redirect
 function confirmCancel() {
-    window.location.href = 'announcements.html';
+    window.location.href = '/announcements';
 }
 
 

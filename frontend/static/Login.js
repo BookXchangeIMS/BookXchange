@@ -16,7 +16,7 @@ async function handleLogin(event) {
         saveTokens(tokens.access_token, tokens.refresh_token);
 
         // Redirect to home
-        window.location.href = 'home.html';
+        window.location.href = '/';
     } catch (error) {
         // Show error
         alert('Login failed: ' + error.message);
@@ -28,7 +28,7 @@ async function handleLogin(event) {
 }
 
 function handleRegister() {
-    window.location.href = 'registration.html';
+    window.location.href = '/registration';
 
 }
 

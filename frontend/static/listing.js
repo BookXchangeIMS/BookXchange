@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     if (!listingId) {
         console.error('No listing ID provided');
-        window.location.href = 'home.html';
+        window.location.href = '/';
         return;
     }
 
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (error) {
         console.error('Error loading listing:', error);
         showError('Failed to load listing details. Please try again.');
-        setTimeout(() => window.location.href = 'home.html', 3000);
+        setTimeout(() => window.location.href = '/', 3000);
     }
 });
 
@@ -328,13 +328,13 @@ window.toggleFavorite = toggleFavorite;
 function goToSellerProfile() {
     if (!currentListing) return;
     const sellerId = currentListing.User.UserID;
-    window.location.href = `foreignprofile.html?id=${sellerId}`;
+    window.location.href = `/user?id=${sellerId}`;
 }
 
 function sendMessage() {
     if (!currentListing) return;
     // Navigate to messages page (could pass seller ID as parameter)
-    window.location.href = `messages.html?sellerId=${currentListing.User.UserID}`;
+    window.location.href = `messages?sellerId=${currentListing.User.UserID}`;
 }
 
 function goBack() {
@@ -357,7 +357,7 @@ function showError(message) {
             <div style="text-align: center; padding: 60px 20px;">
                 <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #c84c3d; margin-bottom: 20px;"></i>
                 <p style="color: #666; font-size: 18px;">${message}</p>
-                <button onclick="window.location.href='home.html'" style="margin-top: 20px; padding: 12px 30px; background: #c84c3d; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-family: 'Segoe UI', sans-serif;">
+                <button onclick="window.location.href='/'" style="margin-top: 20px; padding: 12px 30px; background: #c84c3d; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-family: 'Segoe UI', sans-serif;">
                     Go to Home
                 </button>
             </div>

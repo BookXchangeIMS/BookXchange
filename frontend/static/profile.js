@@ -78,7 +78,7 @@ async function loadUserProfile() {
         // Commented out to debug
         // setTimeout(() => {
         //     clearTokens();
-        //     window.location.href = 'Login.html';
+        //     window.location.href = '/login';
         // }, 2000);
     }
 }
@@ -88,10 +88,7 @@ async function loadUserProfile() {
 // ============================================
 
 function editProfile() {
-    // In a real app, this would open an edit profile modal or page
-    console.log('Edit Profile clicked');
-    showToast('Edit Profile feature coming soon!', 'info');
-    // window.location.href = 'edit-profile.html';
+    window.location.href = '/edit-profile';
 }
 
 function viewTransactionHistory() {
@@ -103,7 +100,7 @@ function viewTransactionHistory() {
 
 // Add login check at page load
 if (!isLoggedIn()) {
-    window.location.href = 'Login.html';
+    window.location.href = '/login';
 }
 
 function handleLogout() {
@@ -126,7 +123,7 @@ function handleLogout() {
         // Show toast and redirect
         showToast('Logged out successfully', 'success');
         setTimeout(() => {
-            window.location.href = 'Login.html';
+            window.location.href = '/login';
         }, 1000);
     }
 }
@@ -136,23 +133,23 @@ function handleLogout() {
 // ============================================
 
 function goToHome() {
-    window.location.href = 'home.html';
+    window.location.href = '/';
 }
 
 function goToAnnouncements() {
-    window.location.href = 'announcements.html';
+    window.location.href = '/announcements';
 }
 
 function goToFavorites() {
-    window.location.href = 'favourites.html';
+    window.location.href = '/favourites';
 }
 
 function goToProfile() {
-    window.location.href = 'profile.html';
+    window.location.href = '/profile';
 }
 
 function goToMessages() {
-    window.location.href = 'mymessages.html';
+    window.location.href = '/messages';
 }
 
 // ============================================

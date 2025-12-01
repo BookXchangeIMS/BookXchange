@@ -4,7 +4,7 @@
 
 // Require login
 if (!isLoggedIn()) {
-  window.location.href = 'Login.html';
+  window.location.href = '/login';
 }
 
 // All available genres
@@ -116,7 +116,7 @@ async function loadProfile() {
 
   if (!token) {
     setFormMessage("Not logged in. Redirecting...", "error");
-    setTimeout(() => window.location.href = 'Login.html', 1000);
+    setTimeout(() => window.location.href = '/login', 1000);
     return;
   }
 
@@ -222,7 +222,7 @@ async function saveProfile(event) {
     setFormMessage("✓ Profile updated successfully!", "success");
 
     // Redirect after success
-    setTimeout(() => window.location.href = 'profile.html', 1500);
+    setTimeout(() => window.location.href = '/profile', 1500);
   } catch (error) {
     console.error('Error saving profile:', error);
     setFormMessage("Error saving profile. Please try again.", "error");
@@ -295,7 +295,7 @@ async function executeDeleteAccount() {
     clearTokens();
     setFormMessage('✓ Account deleted. Redirecting...', 'success');
     setTimeout(() => {
-      window.location.href = 'Login.html';
+      window.location.href = '/login';
     }, 1500);
   } catch (error) {
     console.error('Error deleting account:', error);
@@ -319,27 +319,27 @@ function setFormMessage(message, type) {
 
 // Navigation functions
 function goToHome() {
-  window.location.href = "home.html";
+  window.location.href = "/";
 }
 
 function goToAnnouncements() {
-  window.location.href = "announcements.html";
+  window.location.href = "/announcements";
 }
 
 function goToFavorites() {
-  window.location.href = "favourites.html";
+  window.location.href = "/favourites";
 }
 
 function goToProfile() {
-  window.location.href = "profile.html";
+  window.location.href = "/profile";
 }
 
 function goToMessages() {
-  window.location.href = "messages.html";
+  window.location.href = "/messages";
 }
 
 function goBackToForeignProfile() {
-  window.location.href = "foreignprofile.html";
+  window.location.href = "/user/";
 }
 
 // ============================================

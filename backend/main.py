@@ -1825,6 +1825,20 @@ async def get_home_page(request: Request):
     """
     return templates.TemplateResponse("home.html", {"request": request})
 
+@app.get("/header.html")
+async def get_header(request: Request):
+    """
+    Serves the header component.
+    """
+    return templates.TemplateResponse("header.html", {"request": request})
+
+@app.get("/footer.html")
+async def get_footer(request: Request):
+    """
+    Serves the footer component.
+    """
+    return templates.TemplateResponse("footer.html", {"request": request})
+
 @app.get("/login")
 async def get_login_page(request: Request):
     """
@@ -1832,110 +1846,110 @@ async def get_login_page(request: Request):
     """
     return templates.TemplateResponse("Login.html", {"request": request})
 
-@app.get("/registration", response_class=FileResponse)
-async def get_registration_page():
+@app.get("/registration")
+async def get_registration_page(request: Request):
     """
     Serves the registration page.
     """
-    return FileResponse("frontend/templates/registration.html")
+    return templates.TemplateResponse("registration.html", {"request": request})
 
-@app.get("/registration2", response_class=FileResponse)
-async def get_registration2_page():
+@app.get("/registration2")
+async def get_registration2_page(request: Request):
     """
     Serves the registration step 2 page.
     """
-    return FileResponse("frontend/templates/registration2.html")
+    return templates.TemplateResponse("registration2.html", {"request": request})
 
-@app.get("/registration3", response_class=FileResponse)
-async def get_registration3_page():
+@app.get("/registration3")
+async def get_registration3_page(request: Request):
     """
     Serves the registration step 3 page.
     """
-    return FileResponse("frontend/templates/registration3.html")
+    return templates.TemplateResponse("registration3.html", {"request": request})
 
-@app.get("/profile", response_class=FileResponse)
-async def get_profile_page():
+@app.get("/profile")
+async def get_profile_page(request: Request):
     """
     Serves the user's profile page.
     """
-    return FileResponse("frontend/templates/profile.html")
+    return templates.TemplateResponse("profile.html", {"request": request})
 
-@app.get("/edit-profile", response_class=FileResponse)
-async def get_edit_profile_page():
+@app.get("/edit-profile")
+async def get_edit_profile_page(request: Request):
     """
     Serves the edit profile page.
     """
-    return FileResponse("frontend/templates/editprofile.html")
+    return templates.TemplateResponse("editprofile.html", {"request": request})
 
-@app.get("/listing?id={listing_id}", response_class=FileResponse)
-async def get_listing_page(listing_id: int):
+@app.get("/listing")
+async def get_listing_page(request: Request):
     """
     Serves the listing details page.
     The listing_id parameter will be available to the frontend JavaScript.
     """
-    return FileResponse("frontend/templates/listing.html")
+    return templates.TemplateResponse("listing.html", {"request": request})
 
-@app.get("/add-listing", response_class=FileResponse)
-async def get_add_listing_page():
+@app.get("/add-listing")
+async def get_add_listing_page(request: Request):
     """
     Serves the add listing page.
     """
-    return FileResponse("frontend/templates/addlisting.html")
+    return templates.TemplateResponse("addlisting.html", {"request": request})
 
-@app.get("/edit-listing/{listing_id}", response_class=FileResponse)
-async def get_edit_listing_page(listing_id: int):
+@app.get("/edit-listing")
+async def get_edit_listing_page(request: Request):
     """
     Serves the edit listing page.
     """
-    return FileResponse("frontend/templates/editlisting.html")
+    return templates.TemplateResponse("editlisting.html", {"request": request})
 
-@app.get("/favorites", response_class=FileResponse)
-async def get_favorites_page():
+@app.get("/favourites")
+async def get_favourites_page(request: Request):
     """
-    Serves the user's favorites page.
+    Serves the user's favourites page.
     """
-    return FileResponse("frontend/templates/favourites.html")
+    return templates.TemplateResponse("favourites.html", {"request": request})
 
-@app.get("/messages", response_class=FileResponse)
-async def get_messages_page():
+@app.get("/messages")
+async def get_messages_page(request: Request):
     """
     Serves the user's messages page.
     """
-    return FileResponse("frontend/templates/mymessages.html")
+    return templates.TemplateResponse("mymessages.html", {"request": request})
 
-@app.get("/chat/{user_id}/{listing_id}", response_class=FileResponse)
-async def get_chat_page(user_id: int, listing_id: int):
+@app.get("/chat/{user_id}/{listing_id}")
+async def get_chat_page(request: Request, user_id: int, listing_id: int):
     """
     Serves the chat page for a specific conversation.
     """
-    return FileResponse("frontend/templates/messages.html")
+    return templates.TemplateResponse("messages.html", {"request": request})
 
-@app.get("/user/{user_id}", response_class=FileResponse)
-async def get_user_profile_page(user_id: int):
+@app.get("/user")
+async def get_user_profile_page(request: Request):
     """
     Serves the foreign user profile page.
     """
-    return FileResponse("frontend/templates/foreignprofile.html")
+    return templates.TemplateResponse("foreignprofile.html", {"request": request})
 
-@app.get("/preferences", response_class=FileResponse)
-async def get_preferences_page():
+@app.get("/preferences")
+async def get_preferences_page(request: Request):
     """
     Serves the user's preferences dashboard page.
     """
-    return FileResponse("frontend/templates/preferencedashboard.html")
+    return templates.TemplateResponse("preferencedashboard.html", {"request": request})
 
-@app.get("/transactions", response_class=FileResponse)
-async def get_transactions_page():
+@app.get("/transactions")
+async def get_transactions_page(request: Request):
     """
     Serves the transaction history page.
     """
-    return FileResponse("frontend/templates/transactionhistory.html")
+    return templates.TemplateResponse("transactionhistory.html", {"request": request})
 
-@app.get("/announcements", response_class=FileResponse)
-async def get_announcements_page():
+@app.get("/announcements")
+async def get_announcements_page(request: Request):
     """
     Serves the announcements page.
     """
-    return FileResponse("frontend/templates/Announcements.html")
+    return templates.TemplateResponse("Announcements.html", {"request": request})
 
 

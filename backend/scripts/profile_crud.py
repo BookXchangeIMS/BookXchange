@@ -134,7 +134,6 @@ def update_profile_by_userid(userid: int, new_info: UpdateUser, new_location_id:
     try:
         stmt = users.update().where(users.c.UserID == userid).values(
             Name=new_info.Name,
-            ProfileImagePath=new_info.ProfileImagePath,
             AboutMe=new_info.AboutMe,
             LocationID=new_location_id)
         db.execute(stmt)
@@ -163,11 +162,14 @@ def delete_profile_by_userid(userid, db):
         UserID does not exist.
     """
     users = metadata.tables["Users"]
-    stmt = users.delete().where(users.c.UserID == userid)
-    result = db.execute(stmt)
-    if result.rowcount == 1:
-        db.commit()
-    else:
+    try:
+        stmt = users.delete().where(users.c.UserID == userid)
+        result = db.execute(stmt)
+        if result.rowcount == 1:
+            db.commit()
+        else:
+            raise HTTPException(status_code=409, detail="Couldn't delete the profile")
+    except Exception as e:
         raise HTTPException(status_code=409, detail="Couldn't delete the profile")
 # ===============================================================================================================
 # Transactions

@@ -2,7 +2,7 @@
 
 // Require login
 if (!isLoggedIn()) {
-  window.location.href = 'Login.html';
+  window.location.href = '/login';
 }
 
 // Navigation functions - MUST be in global scope for onclick to work
@@ -11,23 +11,23 @@ window.goBack = function () {
 };
 
 window.goToHome = function () {
-  window.location.href = 'home.html';
+  window.location.href = '/';
 };
 
 window.goToAnnouncements = function () {
-  window.location.href = 'announcements.html';
+  window.location.href = '/announcements';
 };
 
 window.goToFavorites = function () {
-  window.location.href = 'favourites.html';
+  window.location.href = '/favourites';
 };
 
 window.goToMessages = function () {
-  window.location.href = 'mymessages.html';
+  window.location.href = '/messages';
 };
 
 window.goToProfile = function () {
-  window.location.href = 'profile.html';
+  window.location.href = '/profile';
 };
 
 // Wait for DOM to load

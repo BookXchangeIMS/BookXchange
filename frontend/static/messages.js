@@ -5,29 +5,29 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     window.goToHome = function () {
-        window.location.href = 'home.html';
+        window.location.href = '/';
     };
 
     window.goToAnnouncements = function () {
-        window.location.href = 'announcements.html';
+        window.location.href = '/announcements';
     };
 
     // Require login
     if (!isLoggedIn()) {
-        window.location.href = 'Login.html';
+        window.location.href = '/login';
     }
 
     // Navigation functions - MUST be in global scope for onclick to work
     window.goToFavorites = function () {
-        window.location.href = 'favourites.html';
+        window.location.href = '/favourites';
     };
 
     window.goToMessages = function () {
-        window.location.href = 'messages.html';
+        window.location.href = '/messages';
     };
 
     window.goToProfile = function () {
-        window.location.href = 'profile.html';
+        window.location.href = '/profile';
     };
 
     // CHAT FUNCTIONALITY
