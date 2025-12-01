@@ -1675,6 +1675,32 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.get("/api/get_transaction_status/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
 async def get_transaction_status(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
+    
+    """
+    Retrieve the status of a transaction for a specific listing and buyer.
+
+    This function is part of an API endpoint that allows users to check the current status
+    of a transaction associated with a particular listing and buyer. The function ensures that
+    proper authorization is enforced by validating the access token and only allowing users
+    who are either the listing owner or the buyer involved in the transaction to access the
+    information.
+
+    :param listingid: The unique identifier of the listing associated with the transaction.
+    :type listingid: int
+    :param buyerid: The ID of the buyer involved in the transaction.
+    :type buyerid: int
+    :param access_token: The access token used to authenticate the user's identity.
+    :type access_token: str
+    :param db: Dependency injection used to interact with the database.
+    :return: Returns the transaction status, whether confirmed by the buyer, and whether
+             confirmed by the seller if the transaction exists and is accessed by authorized users.
+             Returns -1 if the transaction does not exist but is accessed by authorized users.
+    :rtype: tuple[int, bool, bool] or int
+    :raises HTTPException: 401 if the access token is invalid.
+    :raises HTTPException: 404 if the listing is not found.
+    :raises HTTPException: 403 if the user is unauthorized to view the transaction.
+    """
+
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
