@@ -260,6 +260,22 @@ function displayUserBooks(books) {
         const bookCard = createBookCard(book);
         userBooksGrid.appendChild(bookCard);
     });
+
+    // Add stagger animation to cards
+    const bookCards = userBooksGrid.querySelectorAll('.book-card:not(.add-book-card)');
+    bookCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+            // Remove inline styles after animation
+            setTimeout(() => {
+                card.style.opacity = '';
+                card.style.transform = '';
+            }, 500);
+        }, index * 100);
+    });
 }
 
 /**

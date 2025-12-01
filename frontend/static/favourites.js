@@ -5,9 +5,11 @@ if (!isLoggedIn()) {
 
 // State
 let allFavorites = [];
+let listingToRemove = null;
 
 // DOM elements
 const booksGrid = document.getElementById('favoritesGrid');
+const removeModal = document.getElementById('removeModal');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
@@ -128,7 +130,7 @@ function createBookCard(book) {
     // Favorite button click (Removal logic)
     favoriteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        handleRemoveFavorite(book.id);
+        openRemoveModal(book.id);
     });
 
     // Make card clickable
@@ -143,24 +145,29 @@ function createBookCard(book) {
 
 // View listing details
 function viewListing(bookId) {
-    console.log('Viewing details for book ID:', bookId);
     window.location.href = `listing.html?id=${bookId}`;
 }
 
-// Remove from favorites
-async function handleRemoveFavorite(listingId) {
-    if (!confirm('Remove this book from your favorites?')) {
-        return;
-    }
+// Modal Functions
+function openRemoveModal(listingId) {
+    listingToRemove = listingId;
+    removeModal.classList.add('active');
+}
+
+function closeRemoveModal() {
+    listingToRemove = null;
+    removeModal.classList.remove('active');
+}
+
+async function confirmRemoveFavorite() {
+    if (!listingToRemove) return;
 
     try {
         const accessToken = getAccessToken();
-        await removeFavorite(listingId, accessToken);
-
-        showToast('Removed from favorites');
+        await removeFavorite(listingToRemove, accessToken);
 
         // Remove from local array
-        allFavorites = allFavorites.filter(book => book.id !== listingId);
+        allFavorites = allFavorites.filter(book => book.id !== listingToRemove);
 
         // Reload books
         loadBooks(allFavorites);
@@ -169,9 +176,12 @@ async function handleRemoveFavorite(listingId) {
         if (window.SearchManager && typeof SearchManager.updateData === 'function') {
             SearchManager.updateData(allFavorites);
         }
+
+        closeRemoveModal();
     } catch (error) {
         console.error('Error removing favorite:', error);
-        showToast('Failed to remove from favorites. Please try again.', 'error');
+        alert('Failed to remove from favorites. Please try again.');
+        closeRemoveModal();
     }
 }
 
@@ -194,58 +204,3 @@ function showError(message) {
         </div>
     `;
 }
-
-// Toast notification
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 100px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${type === 'success' ? '#27ae60' : '#c84c3d'};
-        color: white;
-        padding: 15px 25px;
-        border-radius: 25px;
-        font-weight: 600;
-        z-index: 10000;
-        animation: slideUp 0.3s ease;
-        font-family: 'Segoe UI', sans-serif;
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideDown 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideUp {
-        from {
-            transform: translate(-50%, 20px);
-            opacity: 0;
-        }
-        to {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideDown {
-        from {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-        to {
-            transform: translate(-50%, 20px);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);

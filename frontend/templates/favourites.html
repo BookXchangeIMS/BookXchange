@@ -46,6 +46,21 @@
     <!-- Footer -->
     <div id="footer-placeholder"></div>
 
+    <!-- Remove Favorite Modal -->
+    <div class="modal-overlay" id="removeModal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-heart-broken"></i>
+            </div>
+            <h3 class="modal-title">Remove from Favorites?</h3>
+            <p class="modal-message">Are you sure you want to remove this book from your wishlist?</p>
+            <div class="modal-actions">
+                <button class="modal-btn cancel-btn" onclick="closeRemoveModal()">Cancel</button>
+                <button class="modal-btn confirm-btn" onclick="confirmRemoveFavorite()">Remove</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Page JavaScript -->
     <script src="../static/favourites.js"></script>
 </body>
