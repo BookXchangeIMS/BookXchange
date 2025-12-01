@@ -46,7 +46,7 @@ async function loadTransactionHistory() {
         const currentUser = await getMyProfile(accessToken);
         currentUserId = currentUser.UserID;
 
-        // Fetch transaction history
+        // Fetch transaction history (will return empty array if none found)
         allTransactions = await getTransactionHistory(accessToken);
 
         // Separate into purchases and sales
@@ -59,14 +59,7 @@ async function loadTransactionHistory() {
 
     } catch (error) {
         console.error('Error in loadTransactionHistory:', error);
-
-        // If 404, it means no transactions found
-        if (error.message.includes('404')) {
-            renderTransactions([], purchasesGrid, 'purchase');
-            renderTransactions([], salesGrid, 'sale');
-        } else {
-            throw error;
-        }
+        showError('Failed to load transaction history. Please try again later.');
     }
 }
 
