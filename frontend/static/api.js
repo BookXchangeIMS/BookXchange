@@ -31,7 +31,7 @@ async function logout(accessToken, refreshToken) {
     const response = await fetch(`${API_BASE_URL}/api/logout`, {
         method: 'DELETE',
         headers: {
-            'access_token': accessToken,
+            'access-token': accessToken,
             'refresh_token': refreshToken
         }
     });
@@ -46,13 +46,13 @@ async function logout(accessToken, refreshToken) {
 // TOKEN MANAGEMENT
 // ============================================
 function saveTokens(accessToken, refreshToken) {
-    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('access-token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
 }
 
 
 function getAccessToken() {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('access-token');
 }
 
 
@@ -62,7 +62,7 @@ function getRefreshToken() {
 
 
 function clearTokens() {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem('access-token');
     localStorage.removeItem('refresh_token');
 }
 
@@ -98,7 +98,7 @@ async function signUp(userData) {
     formData.append('Name', userData.name);
     formData.append('Email', userData.email);
     formData.append('PasswordHash', userData.password);
-    formData.append('DateOfBirth', userData.dob);  // Backend expects DateOfBirth, not DOB
+    formData.append('DateOfBirth', userData.dob);
     formData.append('LocationAddress', userData.location);
 
     const response = await fetch(`${API_BASE_URL}/api/sign_up`, {
@@ -125,7 +125,7 @@ async function savePreferences(genres, accessToken) {
             'Content-Type': 'application/json',
             'access-token': accessToken
         },
-        body: JSON.stringify(genres)  // Send array directly, not wrapped in object
+        body: JSON.stringify(genres)
     });
 
     if (!response.ok) {
@@ -192,13 +192,75 @@ async function updateProfile(profileData, accessToken) {
             'Content-Type': 'application/json',
             'access-token': accessToken
         },
-        body: JSON.stringify(profileData)  // Send as JSON, not FormData
+        body: JSON.stringify(profileData)
     });
 
     if (!response.ok) {
         const error = await response.json();
         console.error('UpdateProfile API Error:', error);
         throw new Error(JSON.stringify(error.detail || error));
+    }
+
+    return await response.json();
+}
+
+/**
+ * Upload profile image
+ */
+async function uploadProfileImage(file, accessToken) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/update_profile_image`, {
+        method: 'PUT',
+        headers: {
+            'access-token': accessToken
+        },
+        body: formData
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        console.error('UploadProfileImage API Error:', error);
+        throw new Error(JSON.stringify(error.detail || error));
+    }
+
+    return await response.json();
+}
+
+/**
+ * Get another user's profile (public information)
+ */
+async function getUserProfile(userId, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_profile?userid=${userId}`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Get user profile API error:', response.status, errorText);
+        throw new Error(`Failed to fetch user profile: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Get a user's listings
+ */
+async function getUserListings(userId, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_users_listings?user_id=${userId}`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Get user listings API error:', response.status, errorText);
+        throw new Error(`Failed to fetch user listings: ${response.status}`);
     }
 
     return await response.json();
@@ -240,11 +302,398 @@ async function getTransactionHistory(accessToken) {
         method: 'GET',
         headers: {
             'access-token': accessToken
+/**
+ * Get user's favorite listings
+ */
+async function getMyFavorites(accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_my_favorites`, {
+        headers: {
+            'access-token': accessToken
         }
     });
 
     if (!response.ok) {
-        // If 404, return empty array instead of throwing error
+        const errorText = await response.text();
+        console.error('Get favorites API error:', response.status, errorText);
+        throw new Error(`Failed to fetch favorites: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Get all available listings (for home page)
+ */
+async function getAllListings(accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_all_listings`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    return await response.json();
+}
+
+/**
+ * Search listings by query and filters
+ */
+async function searchListings(query, filters = {}, accessToken) {
+    let url = `${API_BASE_URL}/api/search_listings?q=${encodeURIComponent(query)}`;
+
+    // Append filters
+    if (filters.genres && filters.genres.length > 0) {
+        filters.genres.forEach(genre => url += `&genres=${encodeURIComponent(genre)}`);
+    }
+
+    if (filters.minPrice) url += `&min_price=${filters.minPrice}`;
+    if (filters.maxPrice) url += `&max_price=${filters.maxPrice}`;
+
+    if (filters.listingTypes && filters.listingTypes.length > 0) {
+        filters.listingTypes.forEach(type => url += `&listing_types=${encodeURIComponent(type)}`);
+    }
+
+    if (filters.lat !== null && filters.lon !== null && filters.radius) {
+        url += `&lat=${filters.lat}&lon=${filters.lon}&radius=${filters.radius}`;
+    }
+
+    const response = await fetch(url, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Search listings API error:', response.status, errorText);
+        throw new Error(`Failed to search listings: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Get a specific listing by ID
+ */
+async function getListingById(listingId, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_listing_by_ListingID?listing_id=${listingId}`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Get listing API error:', response.status, errorText);
+        throw new Error(`Failed to fetch listing: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Add a listing to favorites
+ */
+async function addFavorite(listingId, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/post_favorite?listing_id=${listingId}`, {
+        method: 'POST',
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Add favorite API error:', response.status, errorText);
+        throw new Error(`Failed to add favorite: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Remove a listing from favorites
+ */
+async function removeFavorite(listingId, accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/delete_favorite?listing_id=${listingId}`, {
+        method: 'DELETE',
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Remove favorite API error:', response.status, errorText);
+        throw new Error(`Failed to remove favorite: ${response.status}`);
+    }
+
+    return { success: true };
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Transform API listing data to UI-friendly format
+ */
+function transformListingData(listing) {
+    // Format price based on listing type
+    let price;
+    if (listing.Price !== null && listing.Price !== undefined) {
+        price = `€${listing.Price.toFixed(2)}`;
+    } else {
+        if (listing.ListingType === 'Exchange') {
+            price = 'XChange';
+        } else if (listing.ListingType === 'Donation') {
+            price = 'Free';
+        } else {
+            price = 'Free';
+        }
+    }
+
+    // Format date
+    const creationDate = new Date(listing.CreationDate);
+    const now = new Date();
+    const diffTime = Math.abs(now - creationDate);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    let dateText;
+    if (diffDays === 0) {
+        dateText = 'Posted today';
+    } else if (diffDays === 1) {
+        dateText = 'Posted 1 day ago';
+    } else if (diffDays < 7) {
+        dateText = `Posted ${diffDays} days ago`;
+    } else if (diffDays < 30) {
+        const weeks = Math.floor(diffDays / 7);
+        dateText = weeks === 1 ? 'Posted 1 week ago' : `Posted ${weeks} weeks ago`;
+    } else {
+        const months = Math.floor(diffDays / 30);
+        dateText = months === 1 ? 'Posted 1 month ago' : `Posted ${months} months ago`;
+    }
+
+    const author = Array.isArray(listing.Book.Author) && listing.Book.Author.length > 0
+        ? listing.Book.Author[0]
+        : listing.Book.Author || 'Unknown Author';
+
+    const accessToken = getAccessToken();
+    const imagePath = `${API_BASE_URL}/api/get_listing_primary_image?listingid=${listing.ListingID}&access_token=${accessToken}`;
+
+    return {
+        id: listing.ListingID,
+        title: listing.Book.Title || 'Untitled',
+        author: author,
+        price: price,
+        location: listing.Location.Address || 'Location not specified',
+        date: dateText,
+        isFavorite: listing.IsFavorite || false,
+        imagePath: imagePath,
+        description: listing.Description,
+        condition: listing.BookCondition,
+        status: listing.Status,
+        sellerId: listing.User.UserID,
+        sellerName: listing.User.Name
+    };
+}
+
+// ============================================
+// MESSAGES
+// ============================================
+
+/**
+ * Get all dialogues (threads) for the current user.
+ */
+async function getDialogues(accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_dialogues`, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GetDialogues API error:', response.status, errorText);
+        throw new Error(`Failed to fetch dialogues: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Get full dialogue with a specific user about a specific listing.
+ */
+async function getDialogue(otherUserId, listingId, accessToken) {
+    const url = `${API_BASE_URL}/api/get_dialogue?userid=${otherUserId}&listingid=${listingId}`;
+    const response = await fetch(url, {
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GetDialogue API error:', response.status, errorText);
+        throw new Error(`Failed to fetch dialogue: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Send a new message to another user about a listing.
+ */
+async function sendMessageApi(receiverId, listingId, content, accessToken) {
+    const params = new URLSearchParams({
+        receiverid: String(receiverId),
+        listingid: String(listingId),
+        content: content
+    });
+
+    const response = await fetch(`${API_BASE_URL}/api/post_message?${params.toString()}`, {
+        method: 'POST',
+        headers: {
+            'access-token': accessToken
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('PostMessage API error:', response.status, errorText);
+        throw new Error(`Failed to send message: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json();
+}
+
+// ============================================
+// HANDSHAKES / TRANSACTIONS
+// ============================================
+
+/**
+ * Get the transaction status for a listing + buyer.
+ * Returns: { status: number, confirmedByBuyer: boolean, confirmedBySeller: boolean }
+ * status: -1 = no transaction, 0 = one party confirmed, 1 = both confirmed
+ */
+async function getTransactionStatus(listingId, buyerId, accessToken) {
+    const url = `${API_BASE_URL}/api/get_transaction_status/?listingid=${listingId}&buyerid=${buyerId}`;
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'access-token': accessToken,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GetTransactionStatus API error:', response.status, errorText);
+        
+        // Return default values if unauthorized or not found
+        if (response.status === 403 || response.status === 401) {
+            return { status: -1, confirmedByBuyer: false, confirmedBySeller: false };
+        }
+        
+        throw new Error(`Failed to get transaction status: ${response.status}`);
+    }
+
+    // Backend returns array: [status, confirmedByBuyer, confirmedBySeller]
+    const result = await response.json();
+    
+    console.log('[GetTransactionStatus] Raw response:', result);
+    
+    // Handle tuple response from backend
+    if (Array.isArray(result)) {
+        return {
+            status: result[0],
+            confirmedByBuyer: result[1],
+            confirmedBySeller: result[2]
+        };
+    }
+    
+    // Fallback if backend returns object directly
+    return result;
+}
+
+/**
+ * Confirm a transaction for listing + buyer.
+ * Creates transaction if it doesn't exist, or updates existing one.
+ */
+async function confirmTransaction(listingId, buyerId, accessToken) {
+    const url = `${API_BASE_URL}/api/confirm_transaction/?listingid=${listingId}&buyerid=${buyerId}`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'access-token': accessToken,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('ConfirmTransaction API error:', response.status, errorText);
+        
+        // Parse error detail if available
+        try {
+            const errorJson = JSON.parse(errorText);
+            throw new Error(errorJson.detail || `Failed to confirm transaction: ${response.status}`);
+        } catch (e) {
+            throw new Error(`Failed to confirm transaction: ${response.status} - ${errorText}`);
+        }
+    }
+
+    return await response.json();
+}
+
+/**
+ * Unconfirm / undo a transaction for listing + buyer.
+ */
+async function unconfirmTransaction(listingId, buyerId, accessToken) {
+    const url = `${API_BASE_URL}/api/unconfirm_transaction/?listingid=${listingId}&buyerid=${buyerId}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'access-token': accessToken,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('UnconfirmTransaction API error:', response.status, errorText);
+        
+        // Parse error detail if available
+        try {
+            const errorJson = JSON.parse(errorText);
+            throw new Error(errorJson.detail || `Failed to unconfirm transaction: ${response.status}`);
+        } catch (e) {
+            throw new Error(`Failed to unconfirm transaction: ${response.status} - ${errorText}`);
+        }
+    }
+
+    // 204 No Content
+    return { success: true };
+}
+
+/**
+ * Get transaction history for the authenticated user.
+ * Returns all transactions where user is buyer or seller.
+ */
+async function getTransactionHistory(accessToken) {
+    const url = `${API_BASE_URL}/api/get_transaction_history/`;
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'access-token': accessToken,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('GetTransactionHistory API error:', response.status, errorText);
+        
+        // Return empty array if no transactions found (404)
         if (response.status === 404) {
             return [];
         }

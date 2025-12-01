@@ -43,12 +43,14 @@ class UpdateUser(BaseModel):
     Name: str
     AboutMe: str
     LocationAddress: str
+    ProfileImagePath: str = ""
 
 class GetUser(BaseModel):
     Name: str
     AboutMe: str
     UserID: int
     UserRole: str
+    ProfileImagePath: str = None
 
 class GetMyUser(GetUser):
     Email: str
@@ -159,6 +161,8 @@ class Transaction(BaseModel):
     BuyerID: int
     TransactionDate: datetime = datetime.now()
     TransactionStatus: int = 0
+    ConfirmedByBuyer: int = 0
+    ConfirmedBySeller: int = 0
 
 class PostTransaction(BaseModel):
     ListingID: int
@@ -173,6 +177,8 @@ class GetTransaction(BaseModel):
     Buyer: GetUser
     TransactionDate: datetime
     TransactionStatus: int
+    ConfirmedByBuyer: int
+    ConfirmedBySeller: int
 
 
 

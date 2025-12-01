@@ -13,11 +13,11 @@ VALUES
 
 INSERT INTO Users ([Name], Email, PasswordHash, ProfileImagePath, UserRole, AboutMe, CreationDate, DateOfBirth, LocationID)
 VALUES
-('Alice Johnson', 'alice@example.com', 'Password123!', 'backend/images/profile_pictures/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME(), '1990-05-15', 1),
-('Bob Smith', 'bob@example.com', 'Password123!', 'backend/images/profile_pictures/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME(), '1985-08-22', 2),
-('Charlie Brown', 'charlie@example.com', 'Password123!', 'backend/images/profile_pictures/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME(), '1992-11-30', 3),
-('Diana Prince', 'diana@example.com', 'Password123!', 'backend/images/profile_pictures/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME(), '1988-03-10', 4),
-('Ethan Hunt', 'ethan@example.com', 'Password123!', 'backend/images/profile_pictures/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME(),'1979-07-13', 5);
+('Alice Johnson', 'alice@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user1.jpg', 'Admin', 'Avid reader and book collector.', SYSDATETIME(), '1990-05-15', 1),
+('Bob Smith', 'bob@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user2.jpg', 'Member', 'Love trading rare editions.', SYSDATETIME(), '1985-08-22', 2),
+('Charlie Brown', 'charlie@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user3.jpg', 'Member', 'Casual reader.', SYSDATETIME(), '1992-11-30', 3),
+('Diana Prince', 'diana@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user4.jpg', 'Admin', 'Always on the lookout for classics.', SYSDATETIME(), '1988-03-10', 4),
+('Ethan Hunt', 'ethan@example.com', '1252cea628f96a0960253e0e656f2911f350edffcda6e63459c5e0467a15fbfd7a9e4e073300e61df9da902b894afb83e7bf096cc48e4e3ecab4639131a06488', 'backend/images/profile_pictures/user5.jpg', 'Member', 'Enjoys mystery novels.', SYSDATETIME(),'1979-07-13', 5);
 
 
 INSERT INTO Genres (GenreName)
@@ -80,11 +80,11 @@ VALUES
 
 INSERT INTO Listings (UserID, BookID, ListingType, Price, ListingState, CreationDate, [Description], LocationID, Condition)
 VALUES
-(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME(), "baaaad", 1, "good"),
-(5, 5, 'Donation', NULL, 'Active', SYSDATETIME(), "baaaad", 1, "good");
+(1, 1, 'Sale', 15.99, 'Active', SYSDATETIME(), "Nice book, read it a few times, now I want to find it a new holder", 1, "good"),
+(2, 2, 'Sale', 10.50, 'Active', SYSDATETIME(), "Didn't like this book, I am going to sell it", 2, "good"),
+(3, 3, 'Exchange', NULL, 'Active', SYSDATETIME(), "Want to exchange this one for something similar, any ideas?", 3, "good"),
+(4, 4, 'Sale', 20.00, 'Active', SYSDATETIME(), "International classic", 4, "good"),
+(5, 5, 'Donation', NULL, 'Active', SYSDATETIME(), "I want to give this book away in good hands", 5, "good");
 
 
 INSERT INTO ListingPhoto (ListingID, ImagePath)

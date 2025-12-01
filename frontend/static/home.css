@@ -40,6 +40,11 @@ body {
     filter: drop-shadow(0 4px 12px rgba(200, 76, 61, 0.15));
 }
 
+/* Mobile-specific logo */
+.logo-img-mobile {
+    display: none;
+}
+
 .hero-tagline {
     font-size: clamp(1.1rem, 2vw, 1.5rem);
     color: #1a1a2e;
@@ -286,6 +291,112 @@ main {
     box-shadow: 0 4px 12px rgba(200, 76, 61, 0.3);
 }
 
+/* ============================================
+   PAGINATION STYLES
+   ============================================ */
+
+.pagination-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px 20px;
+    margin: 20px 0;
+}
+
+.pagination-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pagination-pages {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    color: #333;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.pagination-btn:hover:not(.disabled):not(.active) {
+    border-color: #c84c3d;
+    color: #c84c3d;
+    background: #fff5f3;
+}
+
+.pagination-btn.active {
+    background: #c84c3d;
+    color: white;
+    border-color: #c84c3d;
+    cursor: default;
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.pagination-btn i {
+    font-size: 12px;
+}
+
+.pagination-dots {
+    padding: 0 4px;
+    color: #999;
+}
+
+.pagination-info {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+    .pagination-btn {
+        min-width: 36px;
+        height: 36px;
+        font-size: 13px;
+        padding: 0 8px;
+    }
+
+    .pagination-btn.pagination-prev,
+    .pagination-btn.pagination-next {
+        font-size: 12px;
+    }
+
+    .pagination-btn span {
+        display: none;
+    }
+
+    .pagination-pages {
+        gap: 4px;
+    }
+}
+
 /* ========== SKELETON LOADING ========== */
 @keyframes shimmer {
     0% {
@@ -319,81 +430,6 @@ main {
     animation: shimmer 2s infinite;
 }
 
-/* ========== RESPONSIVE DESIGN ========== */
-@media (max-width: 1200px) {
-    .books-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
-    }
-}
-
-@media (max-width: 768px) {
-    .hero-section {
-        padding: 1.5rem 16px 0.5rem;
-    }
-
-    .logo-img {
-        max-width: 80%;
-    }
-
-    .section-header {
-        margin-bottom: 2rem;
-    }
-
-    .books-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 16px;
-        padding: 0 8px;
-    }
-
-    .book-image {
-        height: 240px;
-    }
-
-    .book-info {
-        padding: 16px;
-    }
-
-    .book-title {
-        font-size: 1rem;
-    }
-
-    .book-price {
-        font-size: 1.2rem;
-    }
-
-    .contact-btn {
-        padding: 12px 16px;
-        font-size: 0.9rem;
-    }
-
-    .favorite-btn {
-        width: 44px;
-        height: 44px;
-    }
-}
-
-@media (max-width: 480px) {
-    .books-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-        max-width: 94vw;
-        margin: 0 auto;
-    }
-
-    .book-image {
-        height: 280px;
-    }
-
-    .hero-tagline {
-        font-size: 1rem;
-    }
-
-    .skeleton-card {
-        height: 500px;
-    }
-}
-
 /* ========== SMOOTH SCROLLING ========== */
 html {
     scroll-behavior: smooth;
@@ -409,4 +445,202 @@ html {
 .book-card:focus-visible {
     outline: 3px solid #c84c3d;
     outline-offset: 4px;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Large Tablets / Small Laptops (max-width: 1200px) */
+/* Transition from 4 to 3 columns */
+@media (max-width: 1200px) {
+    .books-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        max-width: 900px;
+        /* Constrain width to keep cards looking good */
+    }
+}
+
+/* Tablets (max-width: 1024px) */
+@media (max-width: 1024px) {
+    .logo-img {
+        width: 600px;
+        max-width: 85%;
+    }
+}
+
+/* Mobile / Small Tablets (max-width: 768px) */
+/* Transition to 2 columns */
+@media (max-width: 768px) {
+
+    /* Logo swap */
+    .logo-img {
+        display: none;
+    }
+
+    .logo-img-mobile {
+        display: block;
+        width: 90%;
+        max-width: 400px;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .hero-section {
+        padding: 1.5rem 16px 0.5rem;
+    }
+
+    .section-header {
+        margin-bottom: 2rem;
+    }
+
+    .books-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding: 0 8px;
+        max-width: 100%;
+    }
+
+    .book-image {
+        height: 240px;
+    }
+
+    .book-info {
+        padding: 12px;
+        /* Reduced padding */
+    }
+
+    .book-title {
+        font-size: 1rem;
+    }
+
+    .book-price {
+        font-size: 1.2rem;
+    }
+
+    /* Mobile Card Optimization */
+    .book-card {
+        position: relative;
+        /* For absolute positioning of favorite btn */
+    }
+
+    /* Hide Contact Button */
+    .contact-btn {
+        display: none;
+    }
+
+    /* Reposition Favorite Button to Top Right of Image */
+    .favorite-btn {
+        position: absolute !important;
+        top: 8px !important;
+        right: 8px !important;
+        left: auto !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+        font-size: 1rem;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .favorite-btn:hover {
+        transform: scale(1.1);
+    }
+
+    /* Adjust Book Info to be more compact */
+    .book-info {
+        padding: 10px;
+        gap: 4px;
+    }
+
+    .book-title {
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+        -webkit-line-clamp: 1;
+        /* Limit title to 1 line on mobile */
+        line-clamp: 1;
+    }
+
+    .book-author {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+
+    .book-location,
+    .book-date {
+        font-size: 0.75rem;
+    }
+
+    .book-price {
+        font-size: 1.1rem;
+        margin: 4px 0 0;
+    }
+
+    /* Hide book actions container padding/margin since contact is gone and fav is moved */
+    .book-actions {
+        padding: 0;
+        margin: 0;
+        height: 0;
+    }
+}
+
+/* Small Mobile (max-width: 480px) */
+/* Keep 2 columns but adjust sizing */
+@media (max-width: 480px) {
+    .books-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* Force 2 columns */
+        gap: 12px;
+        /* Smaller gap */
+        padding: 0 4px;
+    }
+
+    .book-image {
+        height: 180px;
+        /* Smaller image height */
+    }
+
+    .book-info {
+        padding: 10px;
+    }
+
+    .hero-tagline {
+        font-size: 1rem;
+    }
+
+    .skeleton-card {
+        height: 400px;
+    }
+
+    /* Adjust button sizes for very small screens */
+    .book-actions {
+        flex-direction: column;
+        /* Stack buttons if needed, or keep row */
+        gap: 8px;
+    }
+
+    .contact-btn {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+
+    .favorite-btn {
+        width: 100%;
+        height: 36px;
+    }
+
+    .logo-section {
+
+        margin-bottom: 30px;
+        min-height: 250px;
+
+    }
 }

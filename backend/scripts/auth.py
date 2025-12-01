@@ -3,6 +3,8 @@ from jose import jwt, JWTError
 from fastapi import HTTPException, status
 from sqlalchemy import select
 import uuid
+import hashlib
+import os
 
 from backend.config.config import Settings
 from backend.models import *
@@ -16,6 +18,29 @@ REFRESH_TOKEN_EXPIRE_DAYS = Settings().REFRESH_TOKEN_EXPIRE_DAYS
 
 #================================================================================================================
 # USER-DB LOOK-UPS ==============================================================================================
+
+def verify_password_hash(stored_password: str, provided_password: str) -> bool:
+    """
+    Verify a password against a stored hash.
+
+    :param stored_password: The hex-encoded password hash from the database
+    :param provided_password: The plain password to verify
+    :return: True if password matches, False otherwise
+    """
+    # Convert stored hex string back to bytes
+    stored_bytes = bytes.fromhex(stored_password)
+    salt = stored_bytes[:32]  # First 32 bytes are salt
+    stored_hash = stored_bytes[32:]  # Rest is the hash
+
+    # Hash the provided password with the same salt
+    new_hash = hashlib.pbkdf2_hmac(
+        Settings().HASH_ALGORITHM,
+        provided_password.encode('utf-8'),
+        salt,
+        Settings().HASH_ITERATIONS
+    )
+    return new_hash == stored_hash
+
 
 def get_userid_by_credentials(data: SignIn, db):
     """
@@ -34,9 +59,13 @@ def get_userid_by_credentials(data: SignIn, db):
     :rtype: int or None
     """
     users = metadata.tables["Users"]
-    stmt = select(users).where(users.c.Email == data.Email).where(users.c.PasswordHash == data.PasswordHash)
+    stmt = select(users).where(users.c.Email == data.Email)
     row = db.execute(stmt).fetchone()
-    return row.UserID if row else None
+
+    if row and verify_password_hash(row.PasswordHash, data.PasswordHash):
+        return row.UserID
+    return None
+
 
 def check_if_email_exists(email: str, db):
     """
@@ -60,11 +89,12 @@ def check_if_email_exists(email: str, db):
     row = db.execute(stmt).fetchone()
     return True if row else False
 
+
 def sign_user_up(data: SignUp, locationid: int, db):
     """
     Inserts a new user into the "Users" table in the database. The function takes
     user sign-up data and a database connection to create a user account record.
-    If an exception occurs during the execution, an HTTPException with status
+    If an exception occurs during the execution, an HTTPException with status 
     code 409 is raised.
 
     :param data: Data object that contains details of the user to be signed up,
@@ -73,17 +103,28 @@ def sign_user_up(data: SignUp, locationid: int, db):
         commit the changes.
     :return: None
     """
+    # Generate random salt and hash password
+    salt = os.urandom(32)
+    hash = hashlib.pbkdf2_hmac(
+        Settings().HASH_ALGORITHM,
+        data.PasswordHash.encode('utf-8'),
+        salt,
+        Settings().HASH_ITERATIONS
+    )
+    # Combine salt and hash 
+    password_hash = salt + hash
+
     users = metadata.tables["Users"]
     stmt = users.insert().values(
         Name=data.Name,
         Email=data.Email,
-        PasswordHash=data.PasswordHash,
-        DateOfBirth= data.DateOfBirth,
-        CreationDate= datetime.now(),
-        ProfileImagePath= "/image.png",
-        UserRole= "User",
-        AboutMe= "",
-        LocationID= locationid
+        PasswordHash=password_hash.hex(),
+        DateOfBirth=data.DateOfBirth,
+        CreationDate=datetime.now(),
+        ProfileImagePath="/image.png",
+        UserRole="User",
+        AboutMe="",
+        LocationID=locationid
     )
     try:
         db.execute(stmt)

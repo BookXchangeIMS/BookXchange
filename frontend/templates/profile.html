@@ -16,15 +16,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- CSS Files -->
-    <link rel="stylesheet" href="../static/profile.css">
-    <link rel="stylesheet" href="../static/header.css">
+    <link rel="stylesheet" href="/static/profile.css">
+    <link rel="stylesheet" href="/static/header.css">
 
     <!-- Script to load header -->
-    <script src="../static/include.js"></script>
+    <script src="/static/include.js"></script>
 
     <!-- Page JavaScript -->
-    <script src="../static/api.js"></script>
-    <script src="../static/profile.js"></script>
+    <script src="/static/api.js"></script>
+    <script src="/static/profile.js"></script>
 </head>
 
 <body>
@@ -68,7 +68,7 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button class="action-btn" onclick="window.location.href='editprofile.html'">
+                <button class="action-btn" onclick="window.location.href='/edit-profile'">
                     <i class="fas fa-edit"></i>
                     <span>Edit Profile</span>
                 </button>
@@ -87,6 +87,23 @@
         </div>
 
     </main>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h2 class="modal-title">Log Out?</h2>
+            <p class="modal-message">
+                Are you sure you want to log out of your account?
+            </p>
+            <div class="modal-actions">
+                <button class="modal-btn cancel-modal-btn" onclick="closeLogoutModal()">Cancel</button>
+                <button class="modal-btn confirm-modal-btn" onclick="confirmLogout()">Log Out</button>
+            </div>
+        </div>
+    </div>
 
     <!-- NO FOOTER -->
 

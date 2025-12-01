@@ -1,23 +1,25 @@
 import asyncio
-from http import HTTPStatus
-import zipfile
 
-from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status
+from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status, Query, Request
 from collections import defaultdict
 from typing import Annotated, Dict, Set
 
 from starlette.responses import FileResponse, Response
+from starlette.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from backend.scripts.auth import *
 from backend.scripts.chat_crud import *
 from backend.scripts.image_management import *
 from backend.scripts.profile_crud import *
-from backend.config.db import get_db
+from backend.config.db import get_db, SessionLocal
 from backend.scripts.location_scripts import *
 from backend.scripts.listings_crud import *
 from backend.scripts.ai_service import analyze_book_image
 from fastapi import UploadFile, File
 from backend.scripts.transactions_crud import *
+
+from datetime import datetime
 
 tags_metadata = [
     {
@@ -69,6 +71,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Static files configuration
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+
+# Templates configuration
+templates = Jinja2Templates(directory="frontend/templates")
 
 
 #==============================================================================================================
@@ -318,6 +326,7 @@ async def get_your_profile(access_token: str = Header(None), db= Depends(get_db)
         Name=user_data.Name,
         UserRole=user_data.UserRole,
         AboutMe=user_data.AboutMe,
+        ProfileImagePath=user_data.ProfileImagePath,
         CreationDate=user_data.CreationDate,
         Location= Location(Longitude=location.Longitude,
                            Latitude=location.Latitude,
@@ -352,6 +361,7 @@ async def get_profile(userid: int, access_token: str = Header(None), db= Depends
             Name=user_data.Name,
             UserRole=user_data.UserRole,
             AboutMe=user_data.AboutMe,
+            ProfileImagePath=user_data.ProfileImagePath,
         )
     else:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -370,12 +380,28 @@ async def update_profile(new_info: UpdateUser, access_token: str = Header(None),
 
     """
     userid = get_userid_by_access_token(access_token, db)
-    latitude, longitude = address_to_coordinates(new_info.LocationAddress)
-    new_locationid = post_location(Location(
-        Latitude=latitude,
-        Longitude=longitude,
-        Address=new_info.LocationAddress,
-        Description=""), db)
+    
+    # Get current user to preserve old location if needed
+    current_user = get_user_by_id(userid, db)
+    
+    # Try to convert address to coordinates
+    try:
+        coordinates = address_to_coordinates(new_info.LocationAddress)
+        if coordinates:
+            latitude, longitude = coordinates
+            # Create new location
+            new_locationid = post_location(Location(
+                Latitude=latitude,
+                Longitude=longitude,
+                Address=new_info.LocationAddress,
+                Description=""), db)
+        else:
+            # Use old location if address conversion fails
+            new_locationid = current_user.LocationID
+    except Exception as e:
+        # Use old location if any error occurs
+        new_locationid = current_user.LocationID
+    
     return update_profile_by_userid(userid, new_info, new_locationid, db)
 
 @app.delete("/api/delete_profile", status_code=status.HTTP_204_NO_CONTENT, tags=["Profile"])
@@ -422,7 +448,11 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
         userid = get_userid_by_access_token(access_token, db)
         print(f"DEBUG: Got userid: {userid}")
         
-        latitude, longitude = address_to_coordinates(listing_form.LocationAddress)
+        coordinates = address_to_coordinates(listing_form.LocationAddress)
+        if coordinates:
+            latitude, longitude = coordinates
+        else:
+            latitude, longitude = 0.0, 0.0
         new_location = Location(
             Latitude=latitude,
             Longitude=longitude,
@@ -467,7 +497,8 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             ),
             IsFavorite=False
         )
@@ -532,7 +563,8 @@ async def get_users_listings(user_id: int, access_token=Header(None), db=Depends
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -559,6 +591,143 @@ async def get_your_listings(access_token=Header(None), db=Depends(get_db)):
     """
     userid = get_userid_by_access_token(access_token, db)
     return await get_users_listings(userid, access_token, db)
+
+@app.get("/api/get_all_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
+async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db)):
+    """
+    Retrieve all available listings from the database.
+    
+    This endpoint fetches all book listings regardless of who posted them, making it
+    ideal for displaying all available books on the home page or marketplace view.
+    The authenticated user's ID is used to determine which listings are marked as
+    favorites for that user.
+    
+    :param access_token: The access token for user authentication
+    :type access_token: str
+    :param db: Database session dependency
+    :type db: Session
+    :return: A list of all listings with complete book, user, and location information
+    :rtype: list[GetListing]
+    """
+    if access_token:
+        try:
+            userid = get_userid_by_access_token(access_token, db)
+        except:
+            userid = None
+    else:
+        userid = None
+        
+    listings = get_all_listings(db)
+    result = []
+    
+    for listing in listings:
+        user = get_user_by_id(listing.UserID, db)
+        book = get_book_by_id(listing.BookID, db)
+        location = get_location_by_id(listing.LocationID, db)
+        is_favorite = check_if_listing_is_favorite(listing.ListingID, userid, db)
+        
+        result.append(GetListing(
+            ListingID=listing.ListingID,
+            ListingType=listing.ListingType,
+            Description=listing.Description,
+            Price=listing.Price,
+            BookCondition=listing.Condition,
+            Status=listing.ListingState,
+            CreationDate=listing.CreationDate,
+            IsFavorite=is_favorite,
+            Location=Location(
+                Longitude=location.Longitude,
+                Latitude=location.Latitude,
+                Address=location.Address,
+                Description=location.Description
+            ),
+            Book=GetBook(
+                Title=book.Title,
+                Language=book.Language,
+                ReleaseDate=book.ReleaseDate,
+                ISBN=book.ISBN,
+                AvgRating=book.AvgRating,
+                Edition=book.Edition,
+                Author=get_author_by_bookid(book.BookID, db),
+                Genre=get_genre_by_bookid(book.BookID, db)
+            ),
+            User=GetUser(
+                Name=user.Name,
+                AboutMe=user.AboutMe,
+                UserRole=user.UserRole,
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
+            )
+        ))
+    return result
+
+@app.get("/api/search_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
+async def search_listings_endpoint(
+    q: str = "",
+    genres: list[str] = Query(None),
+    min_price: float = None,
+    max_price: float = None,
+    listing_types: list[str] = Query(None),
+    lat: float = None,
+    lon: float = None,
+    radius: float = None,
+    access_token=Header(None), 
+    db=Depends(get_db)
+):
+    """
+    Search for listings by book title, ISBN, or author name, with optional filters including location.
+    """
+    if access_token:
+        try:
+            userid = get_userid_by_access_token(access_token, db)
+        except:
+            userid = None
+    else:
+        userid = None
+        
+    listings = search_listings(q, db, genres, min_price, max_price, listing_types, lat, lon, radius)
+    result = []
+    
+    for listing in listings:
+        user = get_user_by_id(listing.UserID, db)
+        book = get_book_by_id(listing.BookID, db)
+        location = get_location_by_id(listing.LocationID, db)
+        is_favorite = check_if_listing_is_favorite(listing.ListingID, userid, db) if userid else False
+        
+        result.append(GetListing(
+            ListingID=listing.ListingID,
+            ListingType=listing.ListingType,
+            Description=listing.Description,
+            Price=listing.Price,
+            BookCondition=listing.Condition,
+            Status=listing.ListingState,
+            CreationDate=listing.CreationDate,
+            IsFavorite=is_favorite,
+            Location=Location(
+                Longitude=location.Longitude,
+                Latitude=location.Latitude,
+                Address=location.Address,
+                Description=location.Description
+            ),
+            Book=GetBook(
+                Title=book.Title,
+                Language=book.Language,
+                ReleaseDate=book.ReleaseDate,
+                ISBN=book.ISBN,
+                AvgRating=book.AvgRating,
+                Edition=book.Edition,
+                Author=get_author_by_bookid(book.BookID, db),
+                Genre=get_genre_by_bookid(book.BookID, db)
+            ),
+            User=GetUser(
+                Name=user.Name,
+                AboutMe=user.AboutMe,
+                UserRole=user.UserRole,
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
+            )
+        ))
+    return result
 
 @app.get("/api/get_listing_by_ListingID", status_code=status.HTTP_200_OK, response_model=GetListing, tags=["Listings"])
 async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get_db)):
@@ -615,7 +784,8 @@ async def get_listing(listing_id: int, access_token=Header(None), db=Depends(get
             Name=user.Name,
             AboutMe=user.AboutMe,
             UserRole=user.UserRole,
-            UserID=user.UserID
+            UserID=user.UserID,
+            ProfileImagePath=user.ProfileImagePath
         ),
         IsFavorite=check_if_listing_is_favorite(listing.ListingID, userid, db)
     )
@@ -738,7 +908,8 @@ async def get_my_favorites(access_token: str = Header(None), db= Depends(get_db)
                 Name=user.Name,
                 AboutMe=user.AboutMe,
                 UserRole=user.UserRole,
-                UserID=user.UserID
+                UserID=user.UserID,
+                ProfileImagePath=user.ProfileImagePath
             )
         ))
     return result
@@ -831,10 +1002,12 @@ async def update_profile_image(file: UploadFile = File(...), access_token: str =
         profile image update was successful.
     """
     userid = get_userid_by_access_token(access_token, db)
-    return insert_profile_image_path(userid, insert_profile_picture(file), db)
+    new_path = insert_profile_picture(file)
+    insert_profile_image_path(userid, new_path, db)
+    return {"path": new_path}
 
 @app.get("/api/get_users_profile_picture", status_code=status.HTTP_200_OK, tags=["Images"])
-async def get_users_profile_picture(userid: int, access_token: str = Header(None), db= Depends(get_db)):
+async def get_users_profile_picture(userid: int, access_token: str, db= Depends(get_db)):
     """
     Retrieve a user's profile picture.
 
@@ -846,7 +1019,7 @@ async def get_users_profile_picture(userid: int, access_token: str = Header(None
     :param userid: The unique identifier of the user whose profile picture
         is to be retrieved.
     :type userid: int
-    :param access_token: A required access token included as a header for
+    :param access_token: A required access token as a query parameter for
         authentication and authorization.
     :type access_token: str
     :param db: An instance of the database session, provided through dependency
@@ -857,6 +1030,8 @@ async def get_users_profile_picture(userid: int, access_token: str = Header(None
     if not verify_access_token(access_token):
         raise HTTPException(status_code=401, detail="Invalid access token")
     user = get_user_by_id(userid, db)
+    if not user.ProfileImagePath:
+        raise HTTPException(status_code=404, detail="User has no profile picture")
     return FileResponse(path=user.ProfileImagePath)
 
 
@@ -914,6 +1089,8 @@ async def get_listing_primary_image(listingid: int, access_token: str, db=Depend
     :return: FileResponse with the image file
     :raises HTTPException: If no images found or authentication fails
     """
+    import os
+    
     if not verify_access_token(access_token):
         raise HTTPException(status_code=401, detail="Invalid access token")
     
@@ -921,8 +1098,13 @@ async def get_listing_primary_image(listingid: int, access_token: str, db=Depend
     if not image_paths or len(image_paths) == 0:
         raise HTTPException(status_code=404, detail="No images found for this listing")
     
-    # Return the first image
+    # Return the first image if file exists
     first_image_path = image_paths[0].ImagePath
+    
+    # Check if file actually exists
+    if not os.path.exists(first_image_path):
+        raise HTTPException(status_code=404, detail="Image file not found on server")
+    
     return FileResponse(path=first_image_path, media_type="image/jpeg")
 
 @app.get("/api/get_listing_images_urls", status_code=status.HTTP_200_OK, tags=["Images"])
@@ -984,6 +1166,12 @@ async def get_listing_image_by_photo_id(photo_id: int, access_token: str, db=Dep
         raise HTTPException(status_code=404, detail="Image not found")
     
     image_path = result.ImagePath
+    
+    # Check if file actually exists
+    import os
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="Image file not found on server")
+    
     return FileResponse(path=image_path, media_type="image/jpeg")
 
 
@@ -1391,122 +1579,94 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # WebSocket endpoint
+# WebSocket endpoint
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str = "", db=Depends(get_db)):
-    """
-    WebSocket connection:
-      - Authenticate: token can be provided as a query param `?token=...`
-        or client can set header `Authorization: Bearer <token>` (WebSocket libs
-        vary on header support; query param is most-compatible).
-      - After connect, client sends JSON messages in the shape:
-          { "receiverid": 123, "listingid": 55, "content": "Hello!" }
-      - Server validates, persists (using post_new_message), and forwards to receiver if online.
-    """
-    # --- Authenticate the user ---
-    # Try token param first, otherwise check Authorization header
-    if not token:
+async def websocket_endpoint(websocket: WebSocket):
+    # 1. Create a manual DB session
+    db = SessionLocal() 
+    
+    try:
+        # 2. Authenticate
         token = websocket.query_params.get("token") or websocket.headers.get("authorization") or ""
-        # if header like "Bearer <token>"
         if token.lower().startswith("bearer "):
             token = token.split(" ", 1)[1]
 
-    # verify token / get userid; reuse your function
-    try:
-        current_userid = get_userid_by_access_token(token, db)
-    except Exception:
         current_userid = None
+        try:
+            # Get User ID and force it to be an Integer
+            uid = get_userid_by_access_token(token, db)
+            if uid is not None:
+                current_userid = int(uid)
+        except Exception as e:
+            print(f"WebSocket Auth Error: {e}")
+            current_userid = None
 
-    if not current_userid:
-        # reject connection with HTTP 401-like close code
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
+        # 3. Reject if invalid
+        if not current_userid:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
 
-    # register connection
-    await manager.connect(current_userid, websocket)
+        # 4. Accept connection
+        await manager.connect(current_userid, websocket)
 
-    try:
-        while True:
-            # Expect JSON text frames
-            data = await websocket.receive_json()
+        try:
+            while True:
+                data = await websocket.receive_json()
+                
+                # Validate and Force Integers
+                try:
+                    receiverid = int(data.get("receiverid"))
+                    listingid = int(data.get("listingid"))
+                    content = data.get("content")
+                except (ValueError, TypeError):
+                    continue # Ignore invalid data
 
-            # Basic JSON validation / rate limits should be done by client & server
-            # required fields: receiverid, listingid, content
-            receiverid = data.get("receiverid")
-            listingid = data.get("listingid")
-            content = data.get("content")
+                if not content or not content.strip():
+                     continue
+                
+                # Prevent self-messages
+                if receiverid == current_userid:
+                    continue
 
-            # validate basic inputs
-            if not receiverid or not listingid or not content or not content.strip():
-                # send error back to sender
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Missing required fields or empty content"
-                })
-                continue
+                # 5. Persist & Send
+                try:
+                    # This returns True, not an object
+                    post_new_message(current_userid, receiverid, listingid, content, db)
+                    
+                    # Manually construct the message object
+                    # We use '0' for MessageID since we don't have it, but the UI will still show it
+                    outgoing = {
+                        "type": "message",
+                        "message": {
+                             "MessageID": 0, 
+                             "Content": content,
+                             "SentDate": str(datetime.now()),
+                             "SenderID": current_userid,
+                             "ReceiverID": receiverid,
+                             "ListingID": listingid
+                        }
+                    }
 
-            # disallow self-messaging
-            if receiverid == current_userid:
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Cannot send message to yourself"
-                })
-                continue
+                    # Send to receiver
+                    await manager.send_to_user(receiverid, outgoing)
+                    
+                    # Send Ack to sender
+                    await manager.send_personal_message(websocket, {"type": "ack", "message": outgoing["message"]})
 
-            # verify receiver exists and listing exists (use your existing helpers)
-            if not get_user_by_id(receiverid, db):
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Receiver not found"
-                })
-                continue
+                except Exception as e:
+                    print(f"Error saving message: {e}")
+                    await manager.send_personal_message(websocket, {"type": "error", "error": "Failed to save"})
 
-            if not get_listing_by_listingid(listingid, db):
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Listing not found"
-                })
-                continue
+        except WebSocketDisconnect:
+            await manager.disconnect(current_userid, websocket)
+        except Exception as e:
+            print(f"WebSocket Error: {e}")
+            await manager.disconnect(current_userid, websocket)
+            
+    finally:
+        # 6. Always close the session
+        db.close()
 
-            # Persist message to DB using your post_new_message (same logic as REST)
-            try:
-                # post_new_message returns the created row or id in your setup (used by REST)
-                # keep behavior the same as your POST endpoint
-                saved = post_new_message(current_userid, receiverid, listingid, content, db)
-            except Exception as e:
-                await manager.send_personal_message(websocket, {
-                    "type": "error",
-                    "error": "Failed to save message",
-                    "detail": str(e)
-                })
-                continue
-
-            # Build outgoing message payload. Include DB-generated fields if available.
-            # Try to be consistent with your GetMessage schema (MessageID, Content, SentDate, SenderID, ReceiverID, ListingID)
-            outgoing = {
-                "type": "message",
-                "message": {
-                    "MessageID": getattr(saved, "MessageID", None) or saved.get("MessageID", None) if isinstance(saved, dict) else None,
-                    "Content": content,
-                    "SentDate": getattr(saved, "SentDate", None) or saved.get("SentDate", None) if isinstance(saved, dict) else None,
-                    "SenderID": current_userid,
-                    "ReceiverID": receiverid,
-                    "ListingID": listingid
-                }
-            }
-
-            # send to receiver if online
-            await manager.send_to_user(receiverid, outgoing)
-
-            # send ack back to sender (so their UI can render the message as 'sent' + id/timestamp)
-            await manager.send_personal_message(websocket, {"type": "ack", "message": outgoing["message"]})
-
-    except WebSocketDisconnect:
-        # client disconnected
-        await manager.disconnect(current_userid, websocket)
-    except Exception:
-        # ensure remove on any error
-        await manager.disconnect(current_userid, websocket)
-        raise
 
 # ===================================================================================================================
 # HANDSHAKE ENDPOINTS
@@ -1514,18 +1674,32 @@ async def websocket_endpoint(websocket: WebSocket, token: str = "", db=Depends(g
 
 @app.get("/api/get_transaction_status/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
 async def get_transaction_status(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
-    """
-    Get the transaction status for a listing.
     
-    This endpoint allows users to check the status of a transaction for a specific listing.
-    It verifies the user's access token and checks if the listing exists before returning
-    the transaction status.
-    
-    returns:
-    -1 - None of parties declared the transaction
-    0 - Only one party declared the transaction
-    1 - Both parties declared the transaction
     """
+    Retrieve the status of a transaction for a specific listing and buyer.
+
+    This function is part of an API endpoint that allows users to check the current status
+    of a transaction associated with a particular listing and buyer. The function ensures that
+    proper authorization is enforced by validating the access token and only allowing users
+    who are either the listing owner or the buyer involved in the transaction to access the
+    information.
+
+    :param listingid: The unique identifier of the listing associated with the transaction.
+    :type listingid: int
+    :param buyerid: The ID of the buyer involved in the transaction.
+    :type buyerid: int
+    :param access_token: The access token used to authenticate the user's identity.
+    :type access_token: str
+    :param db: Dependency injection used to interact with the database.
+    :return: Returns the transaction status, whether confirmed by the buyer, and whether
+             confirmed by the seller if the transaction exists and is accessed by authorized users.
+             Returns -1 if the transaction does not exist but is accessed by authorized users.
+    :rtype: tuple[int, bool, bool] or int
+    :raises HTTPException: 401 if the access token is invalid.
+    :raises HTTPException: 404 if the listing is not found.
+    :raises HTTPException: 403 if the user is unauthorized to view the transaction.
+    """
+
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -1534,51 +1708,102 @@ async def get_transaction_status(listingid: int, buyerid: int, access_token: str
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
 
+    # ✅ CHECK AUTHORIZATION FIRST
+    # User making the request must be EITHER:
+    # 1. The listing owner (seller), OR
+    # 2. The buyer specified in the parameter
+    if listing.UserID != userid and buyerid != userid:
+        raise HTTPException(status_code=403, detail="Unauthorized to view this transaction")
+
+    # Now safe to check/create transaction
     transaction = get_transaction_by_listingid_and_userid(listingid, buyerid, db)
-    if transaction and transaction.BuyerID != userid and listing.UserID != userid:
-        raise HTTPException(status_code=403, detail="Unauthorized to view this transaction")
-    if not(transaction) and listing.UserID != userid:
-        raise HTTPException(status_code=403, detail="Unauthorized to view this transaction")
+    
     if not transaction:
-        return -1
+        return -1, False, False
     else:
-        return transaction.TransactionStatus
+        return transaction.TransactionStatus, transaction.ConfirmedByBuyer, transaction.ConfirmedBySeller
+
 
 @app.post("/api/confirm_transaction/", status_code=status.HTTP_200_OK, tags=["Handshakes"])
 async def confirm_transaction(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
-    transaction_status = await get_transaction_status(listingid, buyerid, access_token, db)
+    
     listing = get_listing_by_listingid(listingid, db)
-    if listing.UserID == buyerid:
-        raise HTTPException(status_code=400, detail="Cannot confirm transaction for your own listing")
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    # ✅ CHECK AUTHORIZATION FIRST
     if listing.UserID != userid and buyerid != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction")
-    if transaction_status == -1:
-        return post_new_transaction(listingid, buyerid, db)
-    elif transaction_status == 0:
-        return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, db)
-    elif transaction_status == 1:
-        raise HTTPException(status_code=400, detail="Transaction already confirmed")
+    
+    # Prevent seller from buying their own listing
+    if listing.UserID == buyerid:
+        raise HTTPException(status_code=400, detail="Cannot confirm transaction for your own listing")
+    
+    # Get current status
+    transaction_status, confirmedByBuyer, confirmedBySeller = await get_transaction_status(listingid, buyerid, access_token, db)
+    
+    # Determine who is confirming
+    if listing.UserID == userid and not confirmedBySeller:
+        # Seller confirming
+        if transaction_status == -1:
+            return post_new_transaction(listingid, buyerid, userid, True, db)
+        elif transaction_status == 0:
+            return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, True, db)
+        elif transaction_status == 1:
+            raise HTTPException(status_code=400, detail="Transaction already confirmed")
+    elif buyerid == userid and not confirmedByBuyer:
+        # Buyer confirming
+        if transaction_status == -1:
+            return post_new_transaction(listingid, buyerid, userid, False, db)
+        elif transaction_status == 0:
+            return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, userid, False, db)
+        elif transaction_status == 1:
+            raise HTTPException(status_code=400, detail="Transaction already confirmed")
+    else:
+        raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction or it is already confirmed from your side")
+
 
 @app.delete("/api/unconfirm_transaction/", status_code=status.HTTP_204_NO_CONTENT, tags=["Handshakes"])
 async def unconfirm_transaction(listingid: int, buyerid: int, access_token: str = Header(None), db = Depends(get_db)):
     userid = get_userid_by_access_token(access_token, db)
     if not userid:
         raise HTTPException(status_code=401, detail="Invalid access token")
-    transaction_status = await get_transaction_status(listingid, buyerid, access_token, db)
+    
     listing = get_listing_by_listingid(listingid, db)
-    if listing.UserID == buyerid:
-        raise HTTPException(status_code=400, detail="Cannot unconfirm transaction for your own listing")
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    # ✅ CHECK AUTHORIZATION FIRST
     if listing.UserID != userid and buyerid != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction")
+    
+    # Prevent seller from unconfirming their own listing as buyer
+    if listing.UserID == buyerid:
+        raise HTTPException(status_code=400, detail="Cannot unconfirm transaction for your own listing")
+    
+    transaction_status, confirmedByBuyer, confirmedBySeller = await get_transaction_status(listingid, buyerid, access_token, db)
+    
     if transaction_status == -1:
         raise HTTPException(status_code=400, detail="Transaction doesn't exist")
-    elif transaction_status == 0:
-        return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, db)
-    elif transaction_status == 1:
-        return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, db)
+    
+    if buyerid == userid and confirmedByBuyer:
+        # Buyer unconfirming
+        if transaction_status == 0:
+            return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, False, db)
+        elif transaction_status == 1:
+            return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, False, db)
+    elif listing.UserID == userid and confirmedBySeller:
+        # Seller unconfirming
+        if transaction_status == 0:
+            return delete_transaction_by_listingid_and_buyerid(listingid, buyerid, True, db)
+        elif transaction_status == 1:
+            return unconfirm_transaction_by_listingid_and_buyerid(listingid, buyerid, True, db)
+    else:
+        raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction or it is already unconfirmed from your side")
+    
     return False
 
 
@@ -1616,9 +1841,149 @@ async def get_transaction_history(access_token: str = Header(None), db=Depends(g
             Listing=listing,
             TransactionStatus=transaction.TransactionStatus,
             Buyer= await get_profile(transaction.BuyerID, access_token, db),
-            TransactionDate=transaction.TransactionDate
-        )
+            TransactionDate=transaction.TransactionDate,
+            ConfirmedByBuyer=transaction.ConfirmedByBuyer,
+            ConfirmedBySeller=transaction.ConfirmedBySeller
+        ),
         )
     return result
+            
+# ===================================================================================================================
+# PAGE ROUTES
+# ===================================================================================================================
+
+@app.get("/")
+async def get_home_page(request: Request):
+    """
+    Serves the home page.
+    """
+    return templates.TemplateResponse("home.html", {"request": request})
+
+@app.get("/header.html")
+async def get_header(request: Request):
+    """
+    Serves the header component.
+    """
+    return templates.TemplateResponse("header.html", {"request": request})
+
+@app.get("/footer.html")
+async def get_footer(request: Request):
+    """
+    Serves the footer component.
+    """
+    return templates.TemplateResponse("footer.html", {"request": request})
+
+@app.get("/login")
+async def get_login_page(request: Request):
+    """
+    Serves the login page.
+    """
+    return templates.TemplateResponse("Login.html", {"request": request})
+
+@app.get("/registration")
+async def get_registration_page(request: Request):
+    """
+    Serves the registration page.
+    """
+    return templates.TemplateResponse("registration.html", {"request": request})
+
+@app.get("/registration2")
+async def get_registration2_page(request: Request):
+    """
+    Serves the registration step 2 page.
+    """
+    return templates.TemplateResponse("registration2.html", {"request": request})
+
+@app.get("/registration3")
+async def get_registration3_page(request: Request):
+    """
+    Serves the registration step 3 page.
+    """
+    return templates.TemplateResponse("registration3.html", {"request": request})
+
+@app.get("/profile")
+async def get_profile_page(request: Request):
+    """
+    Serves the user's profile page.
+    """
+    return templates.TemplateResponse("profile.html", {"request": request})
+
+@app.get("/edit-profile")
+async def get_edit_profile_page(request: Request):
+    """
+    Serves the edit profile page.
+    """
+    return templates.TemplateResponse("editprofile.html", {"request": request})
+
+@app.get("/listing")
+async def get_listing_page(request: Request):
+    """
+    Serves the listing details page.
+    The listing_id parameter will be available to the frontend JavaScript.
+    """
+    return templates.TemplateResponse("listing.html", {"request": request})
+
+@app.get("/add-listing")
+async def get_add_listing_page(request: Request):
+    """
+    Serves the add listing page.
+    """
+    return templates.TemplateResponse("addlisting.html", {"request": request})
+
+@app.get("/edit-listing")
+async def get_edit_listing_page(request: Request):
+    """
+    Serves the edit listing page.
+    """
+    return templates.TemplateResponse("editlisting.html", {"request": request})
+
+@app.get("/favourites")
+async def get_favourites_page(request: Request):
+    """
+    Serves the user's favourites page.
+    """
+    return templates.TemplateResponse("favourites.html", {"request": request})
+
+@app.get("/messages")
+async def get_messages_page(request: Request):
+    """
+    Serves the user's messages page.
+    """
+    return templates.TemplateResponse("mymessages.html", {"request": request})
+
+@app.get("/chat/{user_id}/{listing_id}")
+async def get_chat_page(request: Request, user_id: int, listing_id: int):
+    """
+    Serves the chat page for a specific conversation.
+    """
+    return templates.TemplateResponse("messages.html", {"request": request})
+
+@app.get("/user")
+async def get_user_profile_page(request: Request):
+    """
+    Serves the foreign user profile page.
+    """
+    return templates.TemplateResponse("foreignprofile.html", {"request": request})
+
+@app.get("/preferences")
+async def get_preferences_page(request: Request):
+    """
+    Serves the user's preferences dashboard page.
+    """
+    return templates.TemplateResponse("preferencedashboard.html", {"request": request})
+
+@app.get("/transactions")
+async def get_transactions_page(request: Request):
+    """
+    Serves the transaction history page.
+    """
+    return templates.TemplateResponse("transactionhistory.html", {"request": request})
+
+@app.get("/announcements")
+async def get_announcements_page(request: Request):
+    """
+    Serves the announcements page.
+    """
+    return templates.TemplateResponse("Announcements.html", {"request": request})
 
 

@@ -1,13 +1,16 @@
 <header>
     <div class="logo">
         <div class="logo-icon" onclick="goToHome()" style="cursor: pointer;">
-            <img src="../static/resources/BookLogo.png" class="book-svg" alt="BookXchange Logo">
+            <img src="/static/resources/BookLogo.png" class="book-svg" alt="BookXchange Logo">
         </div>
     </div>
 
     <div class="search-bar">
         <input type="text" placeholder="Find books..." id="searchInput">
-        <i class="fas fa-search"></i>
+        <button class="filter-btn" id="filterBtn" aria-label="Filter search">
+            <i class="fas fa-sliders-h"></i>
+        </button>
+        <i class="fas fa-search search-icon"></i>
     </div>
 
     <div class="header-actions">

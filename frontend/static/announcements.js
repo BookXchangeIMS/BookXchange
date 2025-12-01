@@ -4,7 +4,7 @@ const USE_MOCK_DATA = false; // Set to false to use backend
 
 // Token Management
 function getAccessToken() {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('access-token');
 }
 
 // Helper function to extract year from date string
@@ -102,7 +102,7 @@ async function fetchListingsFromBackend() {
 
         if (response.status === 401) {
             showToast('Session expired. Please login again.', 'error');
-            setTimeout(() => window.location.href = 'login.html', 2000);
+            setTimeout(() => window.location.href = '/login', 2000);
             throw new Error('Session expired');
         }
 
@@ -120,6 +120,21 @@ async function fetchListingsFromBackend() {
             const authors = formatArray(listing.Book.Author);
             const genres = formatArray(listing.Book.Genre);
 
+            // Format price based on listing type
+            let price;
+            if (listing.Price !== null && listing.Price !== undefined) {
+                price = `€${parseFloat(listing.Price).toFixed(2)}`;
+            } else {
+                // No price - check listing type
+                if (listing.ListingType === 'Exchange') {
+                    price = 'XChange';
+                } else if (listing.ListingType === 'Donation') {
+                    price = 'Free';
+                } else {
+                    price = 'Free';
+                }
+            }
+
             return {
                 ListingID: listing.ListingID,
                 Name: listing.Book.Title,
@@ -127,7 +142,7 @@ async function fetchListingsFromBackend() {
                 PublicationDate: listing.Book.ReleaseDate,
                 Location: listing.Location.Address,
                 author: authors,
-                price: `$${parseFloat(listing.Price).toFixed(2)}`,
+                price: price,
                 condition: listing.BookCondition,
                 genres: genres,
                 description: listing.Description
@@ -245,6 +260,22 @@ function displayUserBooks(books) {
         const bookCard = createBookCard(book);
         userBooksGrid.appendChild(bookCard);
     });
+
+    // Add stagger animation to cards
+    const bookCards = userBooksGrid.querySelectorAll('.book-card:not(.add-book-card)');
+    bookCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+            // Remove inline styles after animation
+            setTimeout(() => {
+                card.style.opacity = '';
+                card.style.transform = '';
+            }, 500);
+        }, index * 100);
+    });
 }
 
 /**
@@ -280,7 +311,7 @@ function createBookCard(book) {
  */
 function editListing(listingId) {
     console.log('Editing listing:', listingId);
-    window.location.href = `editlisting.html?id=${listingId}`;
+    window.location.href = `/edit-listing?id=${listingId}`;
 }
 
 // Toast notification
@@ -305,26 +336,26 @@ function showToast(message, type = 'success') {
 
 // Navigation functions
 function goToHome() {
-    window.location.href = 'home.html';
+    window.location.href = '/';
 }
 
 function goToAnnouncements() {
-    window.location.href = 'announcements.html';
+    window.location.href = '/announcements';
 }
 
 function goToFavorites() {
-    window.location.href = 'favourites.html';
+    window.location.href = '/favourites';
 }
 
 function goToMessages() {
-    window.location.href = 'messages.html';
+    window.location.href = '/messages';
 }
 
 function goToProfile() {
-    window.location.href = 'profile.html';
+    window.location.href = '/profile';
 }
 
 function goToAddListing() {
     console.log('Navigate to add listing page');
-    window.location.href = 'addlisting.html';
+    window.location.href = '/add-listing';
 }

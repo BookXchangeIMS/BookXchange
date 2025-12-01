@@ -120,3 +120,27 @@ body {
 .next-btn:hover {
     background-color: #34495e;
 }
+
+.scrollable-grid {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px; /* To avoid content being hidden behind scrollbar */
+    
+}
+.scrollable-grid::-webkit-scrollbar {
+    width: 10px;
+}
+
+.scrollable-grid::-webkit-scrollbar-track {
+    background: #2C3E50;
+    border-radius: 999px;
+}
+
+.scrollable-grid::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #f97316, #facc15);
+    border-radius: 999px;
+}
+
+.scrollable-grid::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #fb923c, #fde047);
+}

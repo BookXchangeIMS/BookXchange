@@ -60,7 +60,7 @@ function saveBooksDatabase(books) {
 
 // Token Management
 function getAccessToken() {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('access-token');
 }
 
 function getRefreshToken() {
@@ -68,12 +68,12 @@ function getRefreshToken() {
 }
 
 function setTokens(accessToken, refreshToken) {
-    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('access-token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
 }
 
 function clearTokens() {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem('access-token');
     localStorage.removeItem('refresh_token');
 }
 
@@ -128,7 +128,8 @@ const api = {
                     ISBN: data.Book.ISBN || "",
                     Name: data.Book.Title,
                     author: Array.isArray(data.Book.Author) ? data.Book.Author.join(', ') : data.Book.Author,
-                    price: `$${parseFloat(data.Price).toFixed(2)}`,
+                    price: data.Price !== null ? `$${parseFloat(data.Price).toFixed(2)}` : '',
+                    ListingType: data.ListingType || 'Sale',
                     PublicationDate: extractYear(data.Book.ReleaseDate),
                     BookCondition: data.BookCondition,
                     Location: data.Location.Address,
@@ -253,7 +254,7 @@ const api = {
 
             if (!response.ok) {
                 clearTokens();
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 throw new Error('Session expired. Please login again.');
             }
 
@@ -263,7 +264,7 @@ const api = {
         } catch (error) {
             console.error('Token refresh failed:', error);
             clearTokens();
-            window.location.href = '/login.html';
+            window.location.href = '/login';
             throw error;
         }
     }
@@ -277,13 +278,14 @@ let book = null;
 let existingImages = []; // [{photoId, imagePath, isPrimary}]
 let newImages = []; // [{file, preview, tempId}]
 let deletedImageIds = [];
+let hasFormChanged = false; // Track if form has been modified
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to edit listing', 'error');
-        setTimeout(() => window.location.href = '/login.html', 2000);
+        setTimeout(() => window.location.href = '/login', 2000);
         return;
     }
 
@@ -293,7 +295,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     if (!listingId) {
         showToast('No listing ID provided', 'error');
-        setTimeout(() => window.location.href = '/announcements.html', 2000);
+        setTimeout(() => window.location.href = '/announcements', 2000);
         return;
     }
 
@@ -309,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (error) {
         console.error('Error loading listing:', error);
         showToast('Failed to load listing details', 'error');
-        setTimeout(() => window.location.href = 'announcements.html', 2000);
+        setTimeout(() => window.location.href = '/announcements', 2000);
     }
 });
 
@@ -435,7 +437,6 @@ async function fetchListingDetails(id) {
 
         loadListingDetailsIntoForm(book);
         renderImagePreviews();
-        showToast('Listing loaded successfully', 'success');
     } catch (error) {
         console.error('Failed to fetch listing details:', error);
         throw error;
@@ -453,7 +454,26 @@ function loadListingDetailsIntoForm(book) {
     }
     document.getElementById('bookAuthor').value = authorValue;
 
-    document.getElementById('bookPrice').value = book.price || '';
+    // Set listing type
+    const listingType = book.ListingType || 'Sale';
+    const listingTypeRadio = document.querySelector(`input[name="listingType"][value="${listingType}"]`);
+    if (listingTypeRadio) {
+        listingTypeRadio.checked = true;
+    }
+
+    // Handle price field visibility
+    const priceSection = document.getElementById('priceSection');
+    const priceInput = document.getElementById('bookPrice');
+
+    if (listingType === 'Sale') {
+        priceSection.classList.remove('hidden');
+        priceInput.required = true;
+        priceInput.value = book.price || '';
+    } else {
+        priceSection.classList.add('hidden');
+        priceInput.required = false;
+        priceInput.value = '';
+    }
 
     // Handle publication date - extract year only
     let year = book.PublicationDate || book.year || book.publication_year || book.releaseDate || '';
@@ -503,9 +523,46 @@ function setupEventListeners() {
     uploadZone.addEventListener('drop', handleDrop);
 
     // Form events
-    document.getElementById('bookDescription').addEventListener('input', updateCharacterCount);
+    document.getElementById('bookDescription').addEventListener('input', () => {
+        updateCharacterCount();
+        hasFormChanged = true;
+    });
     document.getElementById('bookPrice').addEventListener('blur', formatPrice);
     document.getElementById('editListingForm').addEventListener('submit', handleFormSubmit);
+
+    // Track changes on all form inputs
+    const formInputs = document.querySelectorAll('#editListingForm input, #editListingForm select, #editListingForm textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            hasFormChanged = true;
+        });
+    });
+
+    // Listing type event listeners
+    document.querySelectorAll('input[name="listingType"]').forEach(radio => {
+        radio.addEventListener('change', (event) => {
+            handleListingTypeChange(event);
+            hasFormChanged = true;
+        });
+    });
+}
+
+// Handle listing type change
+function handleListingTypeChange(event) {
+    const listingType = event.target.value;
+    const priceSection = document.getElementById('priceSection');
+    const priceInput = document.getElementById('bookPrice');
+
+    if (listingType === 'Sale') {
+        // Show price field for Sale
+        priceSection.classList.remove('hidden');
+        priceInput.required = true;
+    } else {
+        // Hide price field for Exchange and Donation
+        priceSection.classList.add('hidden');
+        priceInput.required = false;
+        priceInput.value = ''; // Clear price value
+    }
 }
 
 // Drag and drop handlers
@@ -727,9 +784,13 @@ function validateForm() {
     const author = document.getElementById('bookAuthor').value.trim();
     if (author.length < 2) errors.push('Author name must be at least 2 characters');
 
-    const price = document.getElementById('bookPrice').value.trim();
-    const priceValue = parseFloat(price.replace('$', ''));
-    if (isNaN(priceValue) || priceValue < 0) errors.push('Please enter a valid price');
+    // Only validate price for Sale listings
+    const listingType = document.querySelector('input[name="listingType"]:checked').value;
+    if (listingType === 'Sale') {
+        const price = document.getElementById('bookPrice').value.trim();
+        const priceValue = parseFloat(price.replace('$', ''));
+        if (isNaN(priceValue) || priceValue < 0) errors.push('Please enter a valid price');
+    }
 
     const condition = document.getElementById('bookCondition').value;
     if (!condition) errors.push('Please select a condition');
@@ -771,16 +832,25 @@ async function handleFormSubmit(event) {
         const author = document.getElementById('bookAuthor').value.trim();
         const authorsArray = toArray(author);
         const year = document.getElementById('bookYear').value.trim();
-        const priceValue = document.getElementById('bookPrice').value || '';
-        const priceNumber = parseFloat(priceValue.replace('$', '').trim()) || 0;
+
+        // Get selected listing type
+        const listingType = document.querySelector('input[name="listingType"]:checked').value;
+
+        // Get price (null for Exchange and Donation)
+        let price = null;
+        if (listingType === 'Sale') {
+            const priceValue = document.getElementById('bookPrice').value || '';
+            const priceNumber = parseFloat(priceValue.replace('$', '').trim());
+            price = !isNaN(priceNumber) && priceNumber >= 0 ? priceNumber : null;
+        }
 
         const updatedListingData = {
             ListingID: listingId,
             BookID: book.BookID,
-            ListingType: "Sale",
+            ListingType: listingType,
             Status: "Active",
             Description: document.getElementById('bookDescription').value.trim(),
-            Price: priceNumber,
+            Price: price,
             BookCondition: document.getElementById('bookCondition').value,
             LocationAddress: document.getElementById('bookLocation').value.trim(),
             Book: {
@@ -855,7 +925,7 @@ async function handleFormSubmit(event) {
         showToast('Listing updated successfully!', 'success');
 
         setTimeout(() => {
-            window.location.href = 'announcements.html';
+            window.location.href = '/announcements';
         }, 1500);
 
     } catch (error) {
@@ -866,21 +936,22 @@ async function handleFormSubmit(event) {
     }
 }
 
-// Confirm delete
-async function confirmDelete() {
-    console.log('confirmDelete called for listing:', listingId);
+// Delete modal functions
+function confirmDelete() {
+    const modal = document.getElementById('deleteModal');
+    modal.classList.add('active');
+}
 
-    const confirmation = confirm('Are you sure you want to delete this listing? This action cannot be undone.');
-    if (!confirmation) {
-        console.log('User cancelled first confirmation');
-        return;
-    }
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.classList.remove('active');
+}
 
-    const doubleCheck = confirm('This will permanently delete your listing. Are you absolutely sure?');
-    if (!doubleCheck) {
-        console.log('User cancelled second confirmation');
-        return;
-    }
+async function executeDelete() {
+    console.log('executeDelete called for listing:', listingId);
+
+    const modal = document.getElementById('deleteModal');
+    modal.classList.remove('active');
 
     try {
         console.log('Starting delete process...');
@@ -890,7 +961,7 @@ async function confirmDelete() {
 
         setTimeout(() => {
             console.log('Redirecting to announcements...');
-            window.location.href = 'announcements.html';
+            window.location.href = '/announcements';
         }, 1500);
     } catch (error) {
         console.error('Failed to delete listing:', error);
@@ -940,6 +1011,13 @@ document.head.appendChild(style);
 
 // Show cancel confirmation modal
 function showCancelModal() {
+    // If no changes were made, go directly back without showing modal
+    if (!hasFormChanged && newImages.length === 0 && deletedImageIds.length === 0) {
+        window.location.href = '/announcements';
+        return;
+    }
+
+    // Show modal if there are changes
     const modal = document.getElementById('cancelModal');
     modal.classList.add('active');
 }
@@ -952,5 +1030,5 @@ function closeCancelModal() {
 
 // Confirm cancel and redirect
 function confirmCancelEdit() {
-    window.location.href = 'announcements.html';
+    window.location.href = '/announcements';
 }

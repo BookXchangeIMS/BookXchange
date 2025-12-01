@@ -3,7 +3,7 @@
 // ============================================
 
 window.goBack = function () {
-    window.history.back();
+    window.location.href = 'home.html';
 };
 
 // ============================================
@@ -54,6 +54,15 @@ async function loadUserProfile() {
             aboutTextElement.textContent = profile.AboutMe || 'No information provided';
         }
 
+        // Load profile image if exists
+        if (profile.ProfileImagePath) {
+            const avatarElement = document.querySelector('.avatar');
+            if (avatarElement) {
+                const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${profile.UserID}&access_token=${token}`;
+                avatarElement.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+            }
+        }
+
         // Fetch and display preferences
         try {
             console.log('Fetching preferences...');
@@ -78,7 +87,7 @@ async function loadUserProfile() {
         // Commented out to debug
         // setTimeout(() => {
         //     clearTokens();
-        //     window.location.href = 'Login.html';
+        //     window.location.href = '/login';
         // }, 2000);
     }
 }
@@ -88,10 +97,7 @@ async function loadUserProfile() {
 // ============================================
 
 function editProfile() {
-    // In a real app, this would open an edit profile modal or page
-    console.log('Edit Profile clicked');
-    showToast('Edit Profile feature coming soon!', 'info');
-    // window.location.href = 'edit-profile.html';
+    window.location.href = '/edit-profile';
 }
 
 function viewTransactionHistory() {
@@ -100,32 +106,47 @@ function viewTransactionHistory() {
 
 // Add login check at page load
 if (!isLoggedIn()) {
-    window.location.href = 'Login.html';
+    window.location.href = '/login';
 }
 
 function handleLogout() {
-    const confirmLogout = confirm('Are you sure you want to log out?');
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
 
-    if (confirmLogout) {
-        const accessToken = getAccessToken();
-        const refreshToken = getRefreshToken();
+function closeLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
 
-        // Always clear tokens and redirect, even if API call fails
-        clearTokens();
+function confirmLogout() {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
 
-        // Try to call logout API (don't wait for it)
-        if (accessToken && refreshToken) {
-            logout(accessToken, refreshToken).catch(err => {
-                console.error('Logout API error:', err);
-            });
-        }
+    // Always clear tokens and redirect, even if API call fails
+    clearTokens();
 
         // Show toast and redirect
         showToast('Logged out successfully', 'success');
         setTimeout(() => {
-            window.location.href = 'Login.html';
+            window.location.href = '/login';
         }, 1000);
+    // Try to call logout API (don't wait for it)
+    if (accessToken && refreshToken) {
+        logout(accessToken, refreshToken).catch(err => {
+            console.error('Logout API error:', err);
+        });
     }
+
+    // Show toast and redirect
+    showToast('Logged out successfully', 'success');
+    setTimeout(() => {
+        window.location.href = 'Login.html';
+    }, 1000);
 }
 
 // ============================================
@@ -133,23 +154,23 @@ function handleLogout() {
 // ============================================
 
 function goToHome() {
-    window.location.href = 'home.html';
+    window.location.href = '/';
 }
 
 function goToAnnouncements() {
-    window.location.href = 'announcements.html';
+    window.location.href = '/announcements';
 }
 
 function goToFavorites() {
-    window.location.href = 'favourites.html';
+    window.location.href = '/favourites';
 }
 
 function goToProfile() {
-    window.location.href = 'profile.html';
+    window.location.href = '/profile';
 }
 
 function goToMessages() {
-    window.location.href = 'mymessages.html';
+    window.location.href = '/messages';
 }
 
 // ============================================

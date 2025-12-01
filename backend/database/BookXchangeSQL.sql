@@ -149,6 +149,8 @@ CREATE TABLE Transactions(
     BuyerID INT NOT NULL,
     TransactionDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     TransactionStatus BIT NOT NULL, -- TRUE if completed, FALSE if pending
+    ConfirmedByBuyer BIT NOT NULL DEFAULT 0,
+    ConfirmedBySeller BIT NOT NULL DEFAULT 0,
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE,
     FOREIGN KEY(BuyerID) REFERENCES Users(UserID) ON DELETE CASCADE,
 );

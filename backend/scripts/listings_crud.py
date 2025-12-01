@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, or_, and_, func
 
 from backend.models import *
 from backend.config.db import metadata
@@ -512,11 +512,21 @@ def delete_new_listing(listingid: int, db):
     :raises HTTPException: If an error occurs during the deletion process, raising an exception
         with HTTP status code 500 and a message detailing the failure.
     """
-    stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
+    # First, delete all associated images from ListingPhoto table
+    listingphoto = metadata.tables["ListingPhoto"]
+    img_stmt = listingphoto.delete().where(listingphoto.c.ListingID == listingid)
+    
+    # Then delete the listing itself
+    listing_stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
+    
     try:
-        db.execute(stmt)
+        # Delete images first (due to foreign key constraints)
+        db.execute(img_stmt)
+        # Then delete the listing
+        db.execute(listing_stmt)
         db.commit()
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail="Couldn't delete listing. Please try again later.")
 
 def get_listings_by_userid(user_id: int, db):
@@ -645,3 +655,96 @@ def delete_favorite_by_userid(userid: int, listing_id: int, db):
         db.commit()
     except Exception as e:
         raise HTTPException(status_code=500, detail="Couldn't delete favorite. Please try again later.")
+
+def get_all_listings(db):
+    """
+    Retrieves all listings from the database.
+    
+    This function queries the database to fetch all available listings regardless of the user.
+    This is useful for displaying all books/listings on the home page or marketplace view.
+    
+
+    :param db: The database connection object used to execute the SQL statement
+    :return: A list of all listing records from the database
+    :rtype: list
+    :raises HTTPException: If the database query fails for any reason
+    """
+    stmt = select(metadata.tables["Listings"])
+    try:
+        rows = db.execute(stmt).fetchall()
+        return rows
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Couldn't get listings. Please try again later.")
+
+def search_listings(query: str, db, genres: list = None, min_price: float = None, max_price: float = None, listing_types: list = None, lat: float = None, lon: float = None, radius: float = None):
+    """
+    Searches for listings based on a query string and optional filters, including location radius (km).
+    """
+    listings_t = metadata.tables["Listings"]
+    books_t = metadata.tables["Books"]
+    author_book_t = metadata.tables["AuthorBook"]
+    authors_t = metadata.tables["Authors"]
+    book_genre_t = metadata.tables["BookGenre"]
+    genres_t = metadata.tables["Genres"]
+    locations_t = metadata.tables["Locations"]
+    
+    stmt = select(listings_t).join(
+        books_t, listings_t.c.BookID == books_t.c.BookID
+    ).outerjoin(
+        author_book_t, books_t.c.BookID == author_book_t.c.BookID
+    ).outerjoin(
+        authors_t, author_book_t.c.AuthorID == authors_t.c.AuthorID
+    ).outerjoin(
+        locations_t, listings_t.c.LocationID == locations_t.c.LocationID
+    )
+
+    conditions = []
+    
+    # Text Search
+    if query:
+        conditions.append(or_(
+            books_t.c.Title.ilike(f"%{query}%"),
+            books_t.c.ISBN.ilike(f"%{query}%"),
+            authors_t.c.AuthorName.ilike(f"%{query}%")
+        ))
+        
+    # Price Filter
+    if min_price is not None:
+        conditions.append(listings_t.c.Price >= min_price)
+    if max_price is not None:
+        conditions.append(or_(listings_t.c.Price <= max_price, listings_t.c.Price == None))
+        
+    # Listing Type Filter
+    if listing_types:
+        conditions.append(listings_t.c.ListingType.in_(listing_types))
+        
+    # Genre Filter
+    if genres:
+        stmt = stmt.join(
+            book_genre_t, books_t.c.BookID == book_genre_t.c.BookID
+        ).join(
+            genres_t, book_genre_t.c.GenreID == genres_t.c.GenreID
+        )
+        conditions.append(genres_t.c.GenreName.in_(genres))
+
+    # Location Filter (Haversine Formula)
+    if lat is not None and lon is not None and radius is not None:
+        # 6371 km is Earth's radius
+        distance = func.acos(
+            func.sin(func.radians(lat)) * func.sin(func.radians(locations_t.c.Latitude)) +
+            func.cos(func.radians(lat)) * func.cos(func.radians(locations_t.c.Latitude)) *
+            func.cos(func.radians(locations_t.c.Longitude) - func.radians(lon))
+        ) * 6371
+        conditions.append(distance <= radius)
+
+    if conditions:
+        stmt = stmt.where(and_(*conditions))
+        
+    stmt = stmt.distinct()
+    
+    try:
+        rows = db.execute(stmt).fetchall()
+        return rows
+    except Exception as e:
+        print(f"Search Error: {e}")
+        raise HTTPException(status_code=500, detail="Couldn't search listings.")

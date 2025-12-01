@@ -50,8 +50,8 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 50px;
-    min-height: 240px;
+    margin-bottom: 60px;
+    min-height: 180px;
     width: 100%;
 }
 
@@ -249,26 +249,36 @@ main {
     margin-bottom: 20px;
 }
 
-/* Responsive */
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Large Tablets / Small Laptops (max-width: 1200px) */
+/* Transition from 4 to 3 columns */
 @media (max-width: 1200px) {
     .books-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 20px;
+        max-width: 900px;
+        /* Constrain width to keep cards looking good */
     }
 }
 
+/* Tablets (max-width: 1024px) */
 @media (max-width: 1024px) {
     .logo-img {
-        max-width: 50%;
+        max-width: 70%;
+        /* Increased from 50% to ensure it's not too small */
         height: auto;
     }
 }
 
+/* Mobile / Small Tablets (max-width: 768px) */
+/* Transition to 2 columns */
 @media (max-width: 768px) {
     .books-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 16px;
         padding: 0 8px;
+        max-width: 100%;
     }
 
     .book-image {
@@ -276,41 +286,212 @@ main {
     }
 
     .book-info {
-        padding: 16px;
+        padding: 12px;
+        /* Reduced padding */
+        gap: 4px;
     }
 
     .book-title {
-        font-size: 1rem;
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+        -webkit-line-clamp: 1;
+        /* Limit title to 1 line on mobile */
+        line-clamp: 1;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .book-author {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+
+    .book-location,
+    .book-date {
+        font-size: 0.75rem;
     }
 
     .book-price {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
+        margin: 4px 0 0;
     }
 
+    /* Mobile Card Optimization */
+    .book-card {
+        position: relative;
+        /* For absolute positioning of favorite btn */
+    }
+
+    /* Hide Contact Button */
     .contact-btn {
-        padding: 12px 16px;
-        font-size: 0.9rem;
+        display: none;
     }
 
+    /* Reposition Favorite Button to Top Right of Image */
     .favorite-btn {
-        width: 44px;
-        height: 44px;
+        position: absolute !important;
+        top: 8px !important;
+        right: 8px !important;
+        left: auto !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+        font-size: 1rem;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .favorite-btn:hover {
+        transform: scale(1.1);
+    }
+
+    /* Hide book actions container padding/margin since contact is gone and fav is moved */
+    .book-actions {
+        padding: 0;
+        margin: 0;
+        height: 0;
+    }
+
+    /* Ensure logo isn't too small on mobile */
+    .logo-img {
+        width: 80%;
+        max-width: 300px;
     }
 }
 
+/* Small Mobile (max-width: 480px) */
+/* Keep 2 columns but adjust sizing */
 @media (max-width: 480px) {
     .books-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-        max-width: 94vw;
-        margin: 0 auto;
+        grid-template-columns: repeat(2, 1fr);
+        /* Force 2 columns */
+        gap: 12px;
+        /* Smaller gap */
+        padding: 0 4px;
     }
 
     .book-image {
-        height: 280px;
+        height: 180px;
+        /* Smaller image height */
     }
 
-    .logo-img {
-        width: 140px;
+    .book-info {
+        padding: 10px;
     }
+
+    /* Ensure logo is still visible and good size */
+    .logo-img {
+        width: 90%;
+        max-width: 350px;
+    }
+    .logo-section {
+
+    margin-bottom: 50px;
+    min-height: 80px;
+
+}
+}
+
+/* Modal Styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-icon {
+    font-size: 48px;
+    color: #c84c3d;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.modal-message {
+    color: #666;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.cancel-btn {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.cancel-btn:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.confirm-btn {
+    background: #c84c3d;
+    color: white;
+    box-shadow: 0 4px 12px rgba(200, 76, 61, 0.2);
+}
+
+.confirm-btn:hover {
+    background: #b03a2e;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(200, 76, 61, 0.3);
 }

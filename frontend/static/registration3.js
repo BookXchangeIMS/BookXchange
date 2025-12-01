@@ -8,6 +8,7 @@ function handleRegistration3(event) {
     // Check if passwords match
     if (password !== confirmPassword) {
         errorMessage.textContent = 'Passwords do not match!';
+        errorMessage.style.color = '#e74c3c'; // RED
         document.getElementById('confirmPassword').focus();
         return;
     }
@@ -19,11 +20,11 @@ function handleRegistration3(event) {
     localStorage.setItem('reg_password', password);
 
     // Navigate to next page (preferences dashboard)
-    window.location.href = 'preferencedashboard.html';
+    window.location.href = '/preferences';
 }
 
 function goBack() {
-    window.location.href = 'registration2.html';
+    window.location.href = '/registration2';
 }
 
 // Real-time password matching validation
@@ -32,8 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmPassword = document.getElementById('confirmPassword');
     const errorMessage = document.getElementById('errorMessage');
 
-    // Check passwords match while typing
-    confirmPassword.addEventListener('input', () => {
+    function validatePasswords() {
         if (confirmPassword.value === '') {
             errorMessage.textContent = '';
         } else if (password.value !== confirmPassword.value) {
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.textContent = '✓ Passwords match';
             errorMessage.style.color = '#27ae60';
         }
-    });
+    };
 
     // Reset error color when typing again
     password.addEventListener('input', () => {

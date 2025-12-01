@@ -400,18 +400,29 @@ body {
 }
 
 .seller-avatar {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 10px rgba(200, 76, 61, 0.3);
+    box-shadow: 0 6px 20px rgba(200, 76, 61, 0.35),
+        0 0 0 3px rgba(255, 255, 255, 0.9),
+        0 0 0 5px rgba(200, 76, 61, 0.2);
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.seller-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .seller-avatar i {
-    font-size: 28px;
+    font-size: 32px;
     color: white;
 }
 
@@ -654,4 +665,16 @@ body {
         max-width: 95vw;
         max-height: 80vh;
     }
+}
+
+/* Map Container */
+.map-container {
+    width: 100%;
+    height: 300px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    z-index: 1;
+    /* Ensure it doesn't overlap with other fixed elements */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }

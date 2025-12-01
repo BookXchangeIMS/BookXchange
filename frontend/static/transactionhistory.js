@@ -213,3 +213,10 @@ function showError(message) {
         `;
     }
 }
+// Navigation functions (from include.js)
+function goBack() { window.location.href = '/profile'; }
+function goToHome() { window.location.href = '/'; }
+function goToAnnouncements() { window.location.href = '/announcements'; }
+function goToFavorites() { window.location.href = '/favourites'; }
+function goToProfile() { window.location.href = '/profile'; }
+function goToMessages() { window.location.href = '/messages'; }

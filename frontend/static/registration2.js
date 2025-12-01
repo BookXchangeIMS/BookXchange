@@ -4,16 +4,22 @@ function handleRegistration2(event) {
     const dob = event.target[0].value;
     const location = event.target[1].value.trim();
 
-    // Save to localStorage
+    if (!dob || !location) {
+        console.error('DOB or location missing');
+        alert('Please fill in your date of birth and address.');
+        return;
+    }
+
+    // Save to localStorage for later final submit
     localStorage.setItem('reg_dob', dob);
     localStorage.setItem('reg_location', location);
 
     // Navigate to registration3.html
-    window.location.href = 'registration3.html';
+    window.location.href = '/registration3';
 }
 
 function goBack() {
-    window.location.href = 'registration.html';
+    window.location.href = '/registration';
 }
 
 // Set max date to today (users must be born before today)

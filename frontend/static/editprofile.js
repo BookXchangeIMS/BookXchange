@@ -4,7 +4,7 @@
 
 // Require login
 if (!isLoggedIn()) {
-  window.location.href = 'Login.html';
+  window.location.href = '/login';
 }
 
 // All available genres
@@ -116,7 +116,7 @@ async function loadProfile() {
 
   if (!token) {
     setFormMessage("Not logged in. Redirecting...", "error");
-    setTimeout(() => window.location.href = 'Login.html', 1000);
+    setTimeout(() => window.location.href = '/login', 1000);
     return;
   }
 
@@ -130,10 +130,18 @@ async function loadProfile() {
     // Populate form fields
     document.getElementById("fullName").value = currentProfile.Name || "";
     document.getElementById("email").value = currentProfile.Email || "";
+    document.getElementById("location").value = currentProfile.Location?.Address || "";
     document.getElementById("aboutMe").value = currentProfile.AboutMe || "";
 
     // Email is read-only
     document.getElementById("email").readOnly = true;
+
+    // Set profile image if exists
+    if (currentProfile.ProfileImagePath) {
+      const avatarPreview = document.getElementById('avatarPreview');
+      const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${currentProfile.UserID}&access_token=${token}`;
+      avatarPreview.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\' /><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\' /></svg>'">`;
+    }
 
     // Fetch and load preferences
     try {
@@ -176,7 +184,7 @@ async function saveProfile(event) {
   const payload = {
     Name: formData.get("fullName").trim(),
     AboutMe: formData.get("aboutMe").trim() || "",
-    LocationAddress: currentProfile?.Location?.Address || "Unknown",
+    LocationAddress: formData.get("location").trim() || "Unknown",
     ProfileImagePath: currentProfile?.ProfileImagePath || ""
   };
 
@@ -222,7 +230,7 @@ async function saveProfile(event) {
     setFormMessage("✓ Profile updated successfully!", "success");
 
     // Redirect after success
-    setTimeout(() => window.location.href = 'profile.html', 1500);
+    setTimeout(() => window.location.href = '/profile', 1500);
   } catch (error) {
     console.error('Error saving profile:', error);
     setFormMessage("Error saving profile. Please try again.", "error");
@@ -295,7 +303,7 @@ async function executeDeleteAccount() {
     clearTokens();
     setFormMessage('✓ Account deleted. Redirecting...', 'success');
     setTimeout(() => {
-      window.location.href = 'Login.html';
+      window.location.href = '/login';
     }, 1500);
   } catch (error) {
     console.error('Error deleting account:', error);
@@ -319,27 +327,77 @@ function setFormMessage(message, type) {
 
 // Navigation functions
 function goToHome() {
-  window.location.href = "home.html";
+  window.location.href = "/";
 }
 
 function goToAnnouncements() {
-  window.location.href = "announcements.html";
+  window.location.href = "/announcements";
 }
 
 function goToFavorites() {
-  window.location.href = "favourites.html";
+  window.location.href = "/favourites";
 }
 
 function goToProfile() {
-  window.location.href = "profile.html";
+  window.location.href = "/profile";
 }
 
 function goToMessages() {
-  window.location.href = "messages.html";
+  window.location.href = "/messages";
 }
 
 function goBackToForeignProfile() {
-  window.location.href = "foreignprofile.html";
+  window.location.href = "/user/";
+}
+
+// ============================================
+// INITIALIZE
+// ============================================
+
+// Image Upload Setup
+function setupImageUpload() {
+  const fileInput = document.getElementById('profileImageInput');
+  const avatarPreview = document.getElementById('avatarPreview');
+
+  if (!fileInput || !avatarPreview) {
+    return;
+  }
+
+  fileInput.addEventListener('change', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      avatarPreview.innerHTML = `<img src="${readerEvent.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    };
+    reader.readAsDataURL(file);
+
+    // Upload immediately
+    try {
+      setFormMessage("Uploading image...", "");
+      const token = getAccessToken();
+
+      const result = await uploadProfileImage(file, token);
+
+      // Update current profile with new path
+      if (currentProfile) {
+        currentProfile.ProfileImagePath = result.path;
+      }
+
+      setFormMessage("✓ Image uploaded successfully", "success");
+      setTimeout(() => setFormMessage("", ""), 3000);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      setFormMessage("Image upload failed. Please try again.", "error");
+    }
+  });
 }
 
 // ============================================
@@ -348,7 +406,9 @@ function goBackToForeignProfile() {
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Edit Profile page loaded - REAL API MODE");
+
   loadProfile();
+  setupImageUpload();
 
   const form = document.getElementById("editProfileForm");
   form.addEventListener("submit", saveProfile);
