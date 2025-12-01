@@ -1,29 +1,34 @@
 document.addEventListener("DOMContentLoaded", () => {
     // GLOBAL NAVIGATION FUNCTIONS
-    window.goBack = function () { window.history.back(); };
-    window.goToHome = function () { window.location.href = 'home.html'; };
-    window.goToAnnouncements = function () { window.location.href = 'announcements.html'; };
+    window.goBack = function () {
+        window.history.back();
+    };
+
+    window.goToHome = function () {
+        window.location.href = '/';
+    };
+
+    window.goToAnnouncements = function () {
+        window.location.href = '/announcements';
+    };
 
     // Require login
     if (!isLoggedIn()) {
-        window.location.href = 'Login.html';
-        return;
+        window.location.href = '/login';
     }
 
-    const accessToken = getAccessToken();
+    // Navigation functions - MUST be in global scope for onclick to work
+    window.goToFavorites = function () {
+        window.location.href = '/favourites';
+    };
 
-    // Query params
-    const url = new URL(window.location.href);
-    const params = url.searchParams;
-    const listingId = params.get("listing_id");
-    const sellerIdParam = params.get("seller_id");
-    const otherUserIdParam = params.get("user_id");
-    const otherUserId = otherUserIdParam || sellerIdParam;
+    window.goToMessages = function () {
+        window.location.href = '/messages';
+    };
 
-    // Navigation shortcuts
-    window.goToFavorites = function () { window.location.href = 'favourites.html'; };
-    window.goToMessages = function () { window.location.href = 'mymessages.html'; };
-    window.goToProfile = function () { window.location.href = 'profile.html'; };
+    window.goToProfile = function () {
+        window.location.href = '/profile';
+    };
 
     // CHAT DOM
     const chatForm = document.getElementById("chatForm");

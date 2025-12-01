@@ -1,16 +1,16 @@
 const transactionsData = [
-    {id:1,type:'sold',bookTitle:'Harry Potter and the Sorcerer\'s Stone',author:'J.K. Rowling',buyer:'Maria Silva',price:'$18.25',date:'2025-11-20',location:'Lisbon, Portugal',status:'Completed',image:'../static/resources/harrypotter.png'},
-    {id:2,type:'bought',bookTitle:'The Lord of the Rings',author:'J.R.R. Tolkien',seller:'Carlos Mendes',price:'$45.00',date:'2025-11-18',location:'Porto, Portugal',status:'Completed',image:'../static/resources/lotr.png'},
-    {id:3,type:'sold',bookTitle:'1984',author:'George Orwell',buyer:'Ana Costa',price:'$10.99',date:'2025-11-15',location:'Lisbon, Portugal',status:'Completed',image:'../static/resources/1984.png'},
-    {id:4,type:'bought',bookTitle:'Sapiens',author:'Yuval Noah Harari',seller:'Pedro Oliveira',price:'$15.00',date:'2025-11-12',location:'Coimbra, Portugal',status:'Completed',image:'../static/resources/sapiens.png'},
-    {id:5,type:'sold',bookTitle:'To Kill a Mockingbird',author:'Harper Lee',buyer:'Sofia Rodrigues',price:'$14.50',date:'2025-11-08',location:'Lisbon, Portugal',status:'Completed',image:'../static/resources/mockingbird.png'},
-    {id:6,type:'bought',bookTitle:'The Great Gatsby',author:'F. Scott Fitzgerald',seller:'João Santos',price:'$12.99',date:'2025-11-05',location:'Lisbon, Portugal',status:'Completed',image:'../static/resources/gatsby.jpg'}
+    { id: 1, type: 'sold', bookTitle: 'Harry Potter and the Sorcerer\'s Stone', author: 'J.K. Rowling', buyer: 'Maria Silva', price: '$18.25', date: '2025-11-20', location: 'Lisbon, Portugal', status: 'Completed', image: '../static/resources/harrypotter.png' },
+    { id: 2, type: 'bought', bookTitle: 'The Lord of the Rings', author: 'J.R.R. Tolkien', seller: 'Carlos Mendes', price: '$45.00', date: '2025-11-18', location: 'Porto, Portugal', status: 'Completed', image: '../static/resources/lotr.png' },
+    { id: 3, type: 'sold', bookTitle: '1984', author: 'George Orwell', buyer: 'Ana Costa', price: '$10.99', date: '2025-11-15', location: 'Lisbon, Portugal', status: 'Completed', image: '../static/resources/1984.png' },
+    { id: 4, type: 'bought', bookTitle: 'Sapiens', author: 'Yuval Noah Harari', seller: 'Pedro Oliveira', price: '$15.00', date: '2025-11-12', location: 'Coimbra, Portugal', status: 'Completed', image: '../static/resources/sapiens.png' },
+    { id: 5, type: 'sold', bookTitle: 'To Kill a Mockingbird', author: 'Harper Lee', buyer: 'Sofia Rodrigues', price: '$14.50', date: '2025-11-08', location: 'Lisbon, Portugal', status: 'Completed', image: '../static/resources/mockingbird.png' },
+    { id: 6, type: 'bought', bookTitle: 'The Great Gatsby', author: 'F. Scott Fitzgerald', seller: 'João Santos', price: '$12.99', date: '2025-11-05', location: 'Lisbon, Portugal', status: 'Completed', image: '../static/resources/gatsby.jpg' }
 ];
 
 let currentFilter = 'all';
 
 // Wait for header/footer to load (SAME as home page)
-document.addEventListener('componentsLoaded', function() {
+document.addEventListener('componentsLoaded', function () {
     initializeTransactions();
 });
 
@@ -77,9 +77,9 @@ function viewTransactionDetails(transactionId) {
 }
 
 // Navigation functions (from include.js)
-function goBack() { window.location.href = 'profile.html'; }
-function goToHome() { window.location.href = 'home.html'; }
-function goToAnnouncements() { window.location.href = 'announcements.html'; }
-function goToFavorites() { window.location.href = 'favourites.html'; }
-function goToProfile() { window.location.href = 'profile.html'; }
-function goToMessages() { window.location.href = 'messages.html'; }
+function goBack() { window.location.href = '/profile'; }
+function goToHome() { window.location.href = '/'; }
+function goToAnnouncements() { window.location.href = '/announcements'; }
+function goToFavorites() { window.location.href = '/favourites'; }
+function goToProfile() { window.location.href = '/profile'; }
+function goToMessages() { window.location.href = '/messages'; }

@@ -1,6 +1,6 @@
 // Require login
 if (!isLoggedIn()) {
-    window.location.href = 'Login.html';
+    window.location.href = '/login';
 }
 
 // State
@@ -447,7 +447,7 @@ async function toggleFavorite(listingId) {
 // View book details
 function viewBookDetails(bookId) {
     console.log('Viewing details for book ID:', bookId);
-    window.location.href = `listing.html?id=${bookId}`;
+    window.location.href = `listing?id=${bookId}`;
 }
 
 // Show error message

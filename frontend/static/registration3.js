@@ -20,11 +20,11 @@ function handleRegistration3(event) {
     localStorage.setItem('reg_password', password);
 
     // Navigate to next page (preferences dashboard)
-    window.location.href = 'preferencedashboard.html';
+    window.location.href = '/preferences';
 }
 
 function goBack() {
-    window.location.href = 'registration2.html';
+    window.location.href = '/registration2';
 }
 
 // Real-time password matching validation
