@@ -312,8 +312,8 @@ body {
 }
 
 .deal-btn.deal-confirmed {
-  background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
-  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .handshake-img {
@@ -328,4 +328,199 @@ body {
 
 .deal-btn:hover {
   transform: scale(1.05);
+}
+
+/* ===================================================
+   DEAL PROPOSAL & TRANSACTION STATUS MESSAGES
+   =================================================== */
+
+/* Pulse animation for pending deal button */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Slide in animation for received proposals */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Deal proposal messages */
+.message.deal-proposal {
+    text-align: center;
+    margin: 20px 0;
+    max-width: 100%;
+    align-self: center;
+}
+
+.deal-proposal-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    max-width: 85%;
+    box-shadow: var(--shadow-soft);
+}
+
+.sent-proposal {
+    background: linear-gradient(135deg, #e8f0fe 0%, #d2e3fc 100%);
+    border-left: 4px solid #4285f4;
+}
+
+.received-proposal {
+    background: linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%);
+    border-left: 4px solid var(--color-primary);
+    animation: slideIn 0.3s ease-out;
+}
+
+.deal-icon {
+    font-size: 32px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.deal-text {
+    flex: 1;
+    text-align: left;
+}
+
+.deal-text strong {
+    display: block;
+    color: var(--color-text-dark);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.deal-text p {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: 13px;
+}
+
+/* Transaction status messages */
+.message.transaction-status {
+    text-align: center;
+    margin: 20px 0;
+    max-width: 100%;
+    align-self: center;
+}
+
+.status-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    max-width: 85%;
+    box-shadow: var(--shadow-soft);
+}
+
+.deal-closed {
+    background: linear-gradient(135deg, #e6f4ea 0%, #ceead6 100%);
+    border-left: 4px solid #34a853;
+}
+
+.partial-confirm {
+    background: linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%);
+    border-left: 4px solid #ff9800;
+}
+
+.status-icon {
+    font-size: 32px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.status-text {
+    flex: 1;
+    text-align: left;
+}
+
+.status-text strong {
+    display: block;
+    color: var(--color-text-dark);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.status-text p {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: 13px;
+}
+
+.confirmation-status {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.confirmation-status span {
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.confirmed {
+    color: #34a853;
+    font-weight: 600;
+}
+
+.unconfirmed {
+    color: #80868b;
+}
+
+.action-hint {
+    margin-top: 8px !important;
+    font-weight: 600;
+    color: #ff9800 !important;
+}
+
+/* Message time styling for special messages */
+.deal-proposal-content .message-time,
+.status-content .message-time {
+    font-size: 11px;
+    color: #80868b;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .deal-proposal-content,
+    .status-content {
+        max-width: 95%;
+        padding: 12px 16px;
+    }
+    
+    .deal-icon,
+    .status-icon {
+        font-size: 28px;
+    }
+    
+    .deal-text strong,
+    .status-text strong {
+        font-size: 14px;
+    }
+    
+    .deal-text p,
+    .status-text p {
+        font-size: 12px;
+    }
 }

@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const listingPriceEl = document.getElementById("listingPrice");
 
     let currentUserId = null;
+    let otherUserName = "the other party";
     let socket = null;
     let reconnectInterval = 3000;
 
@@ -94,16 +95,97 @@ document.addEventListener("DOMContentLoaded", () => {
         if (listingPriceEl) listingPriceEl.textContent = mapped.price;
     }
 
-    function addSystemMessage(htmlText) {
+    function addDealProposalMessage(fromMe) {
         if (!chatMessages) return;
         const wrapper = document.createElement('div');
-        wrapper.className = 'message system';
-        wrapper.innerHTML = `
-            <div class="message-content">
-                <p>${htmlText}</p>
-                <span class="message-time">${formatTime(new Date())}</span>
-            </div>
-        `;
+        wrapper.className = 'message deal-proposal';
+        
+        if (fromMe) {
+            wrapper.innerHTML = `
+                <div class="deal-proposal-content sent-proposal">
+                    <div class="deal-icon">🤝</div>
+                    <div class="deal-text">
+                        <strong>You proposed a deal</strong>
+                        <p>Waiting for ${otherUserName} to confirm</p>
+                    </div>
+                    <span class="message-time">${formatTime(new Date())}</span>
+                </div>
+            `;
+        } else {
+            wrapper.innerHTML = `
+                <div class="deal-proposal-content received-proposal">
+                    <div class="deal-icon">🤝</div>
+                    <div class="deal-text">
+                        <strong>${otherUserName} proposed a deal!</strong>
+                        <p>Click the handshake button to confirm</p>
+                    </div>
+                    <span class="message-time">${formatTime(new Date())}</span>
+                </div>
+            `;
+        }
+        
+        chatMessages.appendChild(wrapper);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function addTransactionStatusMessage(status, confirmedByBuyer, confirmedBySeller) {
+        if (!chatMessages) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message transaction-status';
+        
+        const iAmBuyer = !iAmSeller;
+        const iConfirmed = iAmSeller ? confirmedBySeller : confirmedByBuyer;
+        const otherConfirmed = iAmSeller ? confirmedByBuyer : confirmedBySeller;
+        
+        let content = '';
+        
+        if (status === 1) {
+            // Both confirmed - Deal closed!
+            content = `
+                <div class="status-content deal-closed">
+                    <div class="status-icon">✅</div>
+                    <div class="status-text">
+                        <strong>Deal Closed!</strong>
+                        <p>Both parties have confirmed the transaction</p>
+                    </div>
+                    <span class="message-time">${formatTime(new Date())}</span>
+                </div>
+            `;
+        } else if (status === 0) {
+            // One party confirmed
+            if (iConfirmed && !otherConfirmed) {
+                content = `
+                    <div class="status-content partial-confirm">
+                        <div class="status-icon">⏳</div>
+                        <div class="status-text">
+                            <strong>Deal Status</strong>
+                            <div class="confirmation-status">
+                                <span class="confirmed">✓ You: Confirmed</span>
+                                <span class="unconfirmed">○ ${otherUserName}: Pending</span>
+                            </div>
+                        </div>
+                        <span class="message-time">${formatTime(new Date())}</span>
+                    </div>
+                `;
+            } else if (!iConfirmed && otherConfirmed) {
+                content = `
+                    <div class="status-content partial-confirm">
+                        <div class="status-icon">🤝</div>
+                        <div class="status-text">
+                            <strong>Deal Status</strong>
+                            <div class="confirmation-status">
+                                <span class="confirmed">✓ ${otherUserName}: Confirmed</span>
+                                <span class="unconfirmed">○ You: Pending</span>
+                            </div>
+                            <p class="action-hint">Click the handshake to confirm!</p>
+                        </div>
+                        <span class="message-time">${formatTime(new Date())}</span>
+                    </div>
+                `;
+            }
+        }
+        
+        wrapper.innerHTML = content;
         chatMessages.appendChild(wrapper);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -113,10 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function connectWebSocket() {
         if (!accessToken) return;
 
-        // Determine URL: Force 127.0.0.1
         let wsBaseUrl = API_BASE_URL.replace(/^http/, 'ws').replace('localhost', '127.0.0.1');
-        
-        // Clean token
         const cleanToken = accessToken.replace(/['"]+/g, '');
         const wsUrl = `${wsBaseUrl}/ws?token=${encodeURIComponent(cleanToken)}`;
         
@@ -135,16 +214,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (data.type === 'message' && data.message) {
                     const msg = data.message;
-                    
-                    // Convert all IDs to strings for safe comparison
                     const msgListingId = String(msg.ListingID);
                     const msgSenderId = String(msg.SenderID);
                     const currentListingId = String(listingId);
                     const otherUserStr = String(otherUserId);
 
-                    // Only display if it belongs to THIS conversation
                     if (msgListingId === currentListingId) {
-                        // If the sender is the person we are talking to, show it
                         if (msgSenderId === otherUserStr) {
                             appendMessage(msg.Content, 'received', msg.SentDate);
                         }
@@ -181,7 +256,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 const otherProfile = await getUserProfile(otherUserId, accessToken);
-                if (profileNameEl && otherProfile) profileNameEl.textContent = otherProfile.Name;
+                if (otherProfile) {
+                    otherUserName = otherProfile.Name;
+                    if (profileNameEl) profileNameEl.textContent = otherProfile.Name;
+                }
             } catch (e) {
                 console.error("Error fetching other user profile:", e);
             }
@@ -221,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ==== Handshakes ====
     const dealButton = document.getElementById('dealButton');
-    let transactionStatus = -1;   // -1 none, 0 one party, 1 both
+    let transactionStatus = -1;
     let confirmedByBuyer = false;
     let confirmedBySeller = false;
     let listingOwnerId = null;
@@ -231,7 +309,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateDealButtonUI() {
         if (!dealButton) return;
         
-        // Determine button state based on current user and confirmations
         const myConfirmationStatus = iAmSeller ? confirmedBySeller : confirmedByBuyer;
         const otherConfirmationStatus = iAmSeller ? confirmedByBuyer : confirmedBySeller;
         
@@ -265,7 +342,10 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const result = await getTransactionStatus(listingId, buyerId, accessToken);
             
-            // Extract values from response
+            const oldStatus = transactionStatus;
+            const oldBuyer = confirmedByBuyer;
+            const oldSeller = confirmedBySeller;
+            
             transactionStatus = Number(result.status);
             confirmedByBuyer = Boolean(result.confirmedByBuyer);
             confirmedBySeller = Boolean(result.confirmedBySeller);
@@ -283,18 +363,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!showMessage) return;
             
-            // Show appropriate system message
-            if (transactionStatus === 0) {
+            // Show message based on status change
+            if (transactionStatus === 1 && oldStatus !== 1) {
+                // Just reached full confirmation
+                addTransactionStatusMessage(1, confirmedByBuyer, confirmedBySeller);
+            } else if (transactionStatus === 0) {
+                // One party confirmed
                 const myConfirmation = iAmSeller ? confirmedBySeller : confirmedByBuyer;
                 const otherConfirmation = iAmSeller ? confirmedByBuyer : confirmedBySeller;
                 
-                if (myConfirmation && !otherConfirmation) {
-                    addSystemMessage("<strong>🤝 Deal proposal sent.</strong><br>Waiting for the other party to confirm.");
-                } else if (!myConfirmation && otherConfirmation) {
-                    addSystemMessage("<strong>🤝 Deal proposal received!</strong><br>The other party wants to close the deal. Click the handshake to confirm.");
+                // Check if this is a new proposal or status change
+                if (oldStatus === -1 || oldStatus !== transactionStatus || oldBuyer !== confirmedByBuyer || oldSeller !== confirmedBySeller) {
+                    addTransactionStatusMessage(0, confirmedByBuyer, confirmedBySeller);
                 }
-            } else if (transactionStatus === 1) {
-                addSystemMessage("<strong>✅ Deal Closed!</strong><br>Both parties have confirmed the transaction.");
             }
         } catch (e) {
             console.error('Error refreshing transaction status:', e);
@@ -333,6 +414,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     // User wants to confirm
                     if (!confirm("Do you want to confirm this deal?")) return;
                     
+                    const wasNoTransaction = (transactionStatus === -1);
+                    
                     try {
                         await confirmTransaction(listingId, buyerId, accessToken);
                         console.log('[Transaction] Confirmed successfully');
@@ -345,25 +428,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Refresh status
                     await refreshTransactionStatusAndUI(false);
                     
-                    // Send message about deal proposal
-                    const dealMsg = "I would like to close the deal. Do you agree?";
-                    if (socket && socket.readyState === WebSocket.OPEN) {
-                        socket.send(JSON.stringify({
-                            receiverid: parseInt(otherUserId),
-                            listingid: parseInt(listingId),
-                            content: dealMsg
-                        }));
-                        appendMessage(dealMsg, "sent");
-                    } else {
-                        await sendMessageApi(otherUserId, listingId, dealMsg, accessToken);
-                        appendMessage(dealMsg, "sent");
-                    }
-                    
                     // Show appropriate message
-                    if (transactionStatus === 1) {
-                        addSystemMessage("<strong>✅ Deal Closed!</strong><br>Both parties have confirmed the transaction.");
+                    if (wasNoTransaction) {
+                        // First person to propose
+                        addDealProposalMessage(true);
                     } else {
-                        addSystemMessage("<strong>🤝 Deal proposal sent.</strong><br>Waiting for the other party to confirm.");
+                        // Second person confirming
+                        addTransactionStatusMessage(transactionStatus, confirmedByBuyer, confirmedBySeller);
                     }
                 } else {
                     // User wants to undo confirmation
@@ -379,7 +450,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     
                     await refreshTransactionStatusAndUI(false);
-                    addSystemMessage("<strong>↩️ Deal confirmation undone.</strong>");
+                    
+                    // Show updated status
+                    if (transactionStatus === 0) {
+                        addTransactionStatusMessage(0, confirmedByBuyer, confirmedBySeller);
+                    }
                 }
             } catch (error) {
                 console.error('Transaction error:', error);
