@@ -43,59 +43,29 @@
             <img src="/static/resources/your_messages.png" class="logo-img" alt="My Messages">
         </div>
 
-        <section class="message-section">
-            <div class="message-list" id="messageList">
-                <!-- Message Card 1 -->
-                <div class="message-card">
-                    <img src="/static/resources/harrypotter.png" alt="Harry Potter Book Cover" class="book-cover">
-                    <div class="message-content">
-                        <h3>Harry Potter and the Sorcerer's Stone</h3>
-                        <p>Hi! Is the copy still available?</p>
-                    </div>
-                    <div class="message-meta">
-                        <span class="date">Nov 22</span>
-                        <span class="time">10:30 AM</span>
-                    </div>
-                </div>
+        <!-- Tab Buttons -->
+        <div class="tab-container">
+            <button class="tab-btn active" data-tab="myListings" onclick="switchTab('myListings')">
+                <i class="fas fa-box"></i>
+                <span>My Listings</span>
+            </button>
+            <button class="tab-btn" data-tab="interested" onclick="switchTab('interested')">
+                <i class="fas fa-heart"></i>
+                <span>Interested In</span>
+            </button>
+        </div>
 
-                <!-- Message Card 2 -->
-                <div class="message-card">
-                    <img src="/static/resources/lotr.png" alt="LOTR Book Cover" class="book-cover">
-                    <div class="message-content">
-                        <h3>The Lord of the Rings</h3>
-                        <p>Yes, it is! I can meet you tomorrow.</p>
-                    </div>
-                    <div class="message-meta">
-                        <span class="date">Nov 21</span>
-                        <span class="time">3:45 PM</span>
-                    </div>
-                </div>
+        <!-- My Listings Section -->
+        <section class="message-section active" id="myListingsSection">
+            <div class="message-list" id="myListingsList">
+                <!-- Populated by JS -->
+            </div>
+        </section>
 
-                <!-- Message Card 3 -->
-                <div class="message-card">
-                    <img src="/static/resources/sapiens.png" alt="Sapiens Book Cover" class="book-cover">
-                    <div class="message-content">
-                        <h3>Sapiens: A Brief History of Humankind</h3>
-                        <p>Great! 5,00 $ right?</p>
-                    </div>
-                    <div class="message-meta">
-                        <span class="date">Nov 20</span>
-                        <span class="time">9:15 AM</span>
-                    </div>
-                </div>
-
-                <!-- Message Card 4 -->
-                <div class="message-card">
-                    <img src="/static/resources/gatsby.jpg" alt="Gatsby Book Cover" class="book-cover">
-                    <div class="message-content">
-                        <h3>The Great Gatsby</h3>
-                        <p>Is it still in good condition?</p>
-                    </div>
-                    <div class="message-meta">
-                        <span class="date">Nov 19</span>
-                        <span class="time">2:20 PM</span>
-                    </div>
-                </div>
+        <!-- Interested In Section -->
+        <section class="message-section" id="interestedSection">
+            <div class="message-list" id="interestedList">
+                <!-- Populated by JS -->
             </div>
         </section>
     </main>
