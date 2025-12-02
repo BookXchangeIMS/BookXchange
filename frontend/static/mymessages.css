@@ -31,16 +31,9 @@ body {
   padding-bottom: 20px;
 }
 
-/* Main Content  */
-main {
-  flex: 1;
-  padding: 0px 20px 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Animations */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -57,7 +50,20 @@ main {
   animation: fadeIn 0.8s ease-out forwards;
 }
 
-/* Back Button - Fixed top-left below header */
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+main {
+  flex: 1;
+  padding: 0px 20px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
 .back-btn {
   position: fixed;
   top: 100px;
@@ -93,7 +99,9 @@ main {
   transition: color 0.3s ease;
 }
 
-/* Logo Section  */
+/* ============================================
+   LOGO SECTION
+   ============================================ */
 .logo-section {
   display: flex;
   justify-content: center;
@@ -109,15 +117,83 @@ main {
   height: auto;
   display: block;
   margin: 0 auto;
+  content: url('../static/resources/your_messages.png');
 }
 
-/* Message Section */
+/* ============================================
+   TAB CONTAINER
+   ============================================ */
+.tab-container {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem auto 2rem;
+  max-width: 600px;
+  padding: 0 1rem;
+}
+
+.tab-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2px solid transparent;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn i {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
+  color: white;
+  border-color: #c84c3d;
+  box-shadow: 0 4px 15px rgba(200, 76, 61, 0.3);
+}
+
+.tab-btn.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(200, 76, 61, 0.4);
+}
+
+.tab-btn.active i {
+  transform: scale(1.1);
+}
+
+/* ============================================
+   MESSAGE SECTIONS
+   ============================================ */
 .message-section {
   padding: 0;
   margin: 0;
+  display: none;
 }
 
-/* Message List - ORIGINAL DESIGN (flex column on mobile, grid on desktop) */
+.message-section.active {
+  display: block;
+}
+
+/* ============================================
+   MESSAGE LIST & CARDS
+   ============================================ */
 .message-list {
   display: flex;
   flex-direction: column;
@@ -126,7 +202,6 @@ main {
   margin: 0 auto;
 }
 
-/* Message Card - ORIGINAL HORIZONTAL DESIGN */
 .message-card {
   background-color: rgba(245, 237, 227, 0.95);
   border-radius: 20px;
@@ -145,7 +220,6 @@ main {
   transform: translateY(-5px);
 }
 
-/* Book cover - small, on the left */
 .book-cover {
   width: 60px;
   height: 85px;
@@ -155,11 +229,9 @@ main {
   flex-shrink: 0;
 }
 
-/* Message content - in the middle, grows to fill space */
 .message-content {
   flex: 1;
   min-width: 0;
-  /* For text truncation */
 }
 
 .message-content h3 {
@@ -180,7 +252,6 @@ main {
   text-overflow: ellipsis;
 }
 
-/* Message meta - on the right */
 .message-meta {
   text-align: right;
   flex-shrink: 0;
@@ -200,31 +271,67 @@ main {
   color: var(--color-text-dark);
 }
 
-/* Responsive Design */
-@media (min-width: 1200px) {
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Desktop Grid Layout (600px and up) */
+@media (min-width: 600px) {
   .message-list {
-    grid-template-columns: repeat(2, minmax(320px, 1fr));
-    gap: 24px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+    justify-content: center;
+    justify-items: center;
+  }
+
+  .message-card {
+    width: 100%;
+    height: 100%;
   }
 }
 
+/* Tablets (768px - 1024px) */
 @media (max-width: 1024px) {
   .logo-img {
     max-width: 85%;
-    height: auto;
   }
 }
 
+/* Mobile (up to 768px) */
 @media (max-width: 768px) {
+  .logo-img {
+    content: url('../static/resources/your_messages_phone.png');
+    width: 280px;
+    max-width: 90%;
+  }
+
   .message-list {
     padding: 0 16px;
     gap: 18px;
   }
+
+  .tab-container {
+    padding: 0 0.5rem;
+  }
+
+  .tab-btn {
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
+  }
 }
 
+/* Small Mobile (up to 480px) */
 @media (max-width: 480px) {
+  .logo-section {
+    min-height: 160px;
+    margin-bottom: 1rem;
+  }
+
   .logo-img {
-    width: 140px;
+    width: 240px;
   }
 
   .message-list {
@@ -246,22 +353,15 @@ main {
   .message-content p {
     font-size: 0.8rem;
   }
-}
 
-/* Desktop Grid Layout */
-@media (min-width: 600px) {
-  .message-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-    gap: 1.5rem;
-    max-width: 900px;
-    margin: 0 auto;
-    justify-content: center;
-    justify-items: center;
+  .tab-btn {
+    padding: 0.75rem 0.75rem;
+    font-size: 0.85rem;
   }
 
-  .message-card {
-    width: 100%;
-    height: 100%;
+
+
+  .tab-btn i {
+    font-size: 1.2rem;
   }
 }
