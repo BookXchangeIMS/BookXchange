@@ -1951,12 +1951,15 @@ async def get_messages_page(request: Request):
     """
     return templates.TemplateResponse("mymessages.html", {"request": request})
 
-@app.get("/chat/{user_id}/{listing_id}")
+@app.get("/mymessages")
 async def get_chat_page(request: Request, user_id: int, listing_id: int):
     """
     Serves the chat page for a specific conversation.
     """
-    return templates.TemplateResponse("messages.html", {"request": request})
+    return templates.TemplateResponse(
+    "messages.html",
+    {"request": request, "listingId": listing_id, "userId": user_id}
+    )
 
 @app.get("/user")
 async def get_user_profile_page(request: Request):

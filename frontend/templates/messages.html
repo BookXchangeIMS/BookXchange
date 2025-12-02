@@ -9,16 +9,12 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap"
-        rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
     <!-- Font Awesome -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="/static/header.css">
@@ -30,6 +26,12 @@
     <!-- Scripts -->
     <script src="/static/include.js"></script>
     <script src="/static/api.js"></script>
+    <script>
+        // Make backend variables available to messages.js
+        const listingId = {{ listingId }};
+        const otherUserId = {{ userId }};
+        const accessToken = getAccessToken();
+    </script>
     <script src="/static/messages.js"></script>
 </head>
 
@@ -46,15 +48,10 @@
             <aside class="profile-section">
                 <div class="profile-header">
                     <div class="avatar-large" id="profileAvatar">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             viewBox="0 0 24 24"
-                             fill="none"
-                             stroke="white"
-                             stroke-width="1.5"
-                             stroke-linecap="round"
-                             stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            ircle cx="12" cy="7" r="4"></circle>
+                            <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </div>
                     <h1 class="profile-name" id="profileName">John Doe</h1>
@@ -63,11 +60,8 @@
 
                 <!-- Listing card WITHOUT favourites button -->
                 <div class="book-card conversation-book-card">
-                    <img id="listingImage"
-                         src="../static/resources/placeholder.jpg"
-                         alt="Book cover"
-                         class="book-image"
-                         onerror="this.src='../static/resources/placeholder.jpg'">
+                    <img id="listingImage" src="../static/resources/placeholder.jpg" alt="Book cover" class="book-image"
+                        onerror="this.src='../static/resources/placeholder.jpg'">
                     <div class="book-info">
                         <div class="book-title" id="listingTitle">Book title</div>
                         <div class="book-author" id="listingAuthor">by Author</div>
@@ -88,33 +82,13 @@
                         <button type="button" class="attach-btn deal-btn" id="dealButton" aria-label="Close Deal">
                             <img src="/static/resources/handshake.png" width="40" height="40" alt="Handshake"
                                 class="handshake-img">
-                        <button type="button"
-                                class="attach-btn deal-btn"
-                                id="dealButton"
-                                aria-label="Close Deal">
-                            <img src="../static/resources/handshake.png"
-                                 width="40"
-                                 height="40"
-                                 alt="Handshake"
-                                 class="handshake-img">
                         </button>
 
-                        <input type="text"
-                               id="messageInput"
-                               placeholder="Type a message..."
-                               autocomplete="off">
-                        <button type="submit"
-                                class="send-btn"
-                                aria-label="Send message">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 width="20"
-                                 height="20"
-                                 viewBox="0 0 24 24"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 stroke-width="2"
-                                 stroke-linecap="round"
-                                 stroke-linejoin="round">
+                        <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+                        <button type="submit" class="send-btn" aria-label="Send message">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
