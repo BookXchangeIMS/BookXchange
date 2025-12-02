@@ -123,7 +123,7 @@ body {
   color: var(--color-text-light);
 }
 
-/* Listing card: base layout from home.css, just constrain width */
+/* Listing card */
 .book-card.conversation-book-card {
   margin-top: 0.5rem;
   width: 100%;
@@ -159,26 +159,33 @@ body {
   gap: 1rem;
 }
 
+/* Message + delete button */
 .message {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   max-width: 80%;
+  position: relative;
+  gap: 8px;              /* space between bubble and icon */
+}
+
+/* Align whole row left/right */
+.message.sent {
+  align-self: flex-end;
+  justify-content: flex-end;
 }
 
 .message.received {
   align-self: flex-start;
+  justify-content: flex-start;
 }
 
-.message.sent {
-  align-self: flex-end;
-}
-
+/* Bubble itself */
 .message-content {
   padding: 0.8rem 1.2rem;
   border-radius: 18px;
-  position: relative;
   font-size: 0.95rem;
   line-height: 1.4;
+  position: relative;
 }
 
 .message.received .message-content {
@@ -203,6 +210,57 @@ body {
   text-align: right;
 }
 
+/* Delete button: sits in the row, hidden until row is hovered */
+.message-delete-btn {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: none;                 /* hidden normally */
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.08);
+  color: #555;
+  font-size: 12px;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+/* Show whenever the whole row is hovered (bubble or icon) */
+.message:hover .message-delete-btn {
+  display: flex;
+}
+
+.message-delete-btn:hover {
+  background-color: #e74c3c;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.message.received .message-content {
+  background-color: var(--color-white);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  color: var(--color-text-dark);
+}
+
+.message.sent .message-content {
+  background-color: var(--color-primary);
+  color: white;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 2px 8px rgba(184, 75, 67, 0.2);
+}
+
+.message-time {
+  font-size: 0.65rem;
+  margin-top: 4px;
+  display: block;
+  opacity: 0.7;
+  text-align: right;
+}
+
+/* Input area */
 .chat-input-area {
   padding: 0.8rem;
   background-color: rgba(255, 255, 255, 0.8);
@@ -330,11 +388,7 @@ body {
   transform: scale(1.05);
 }
 
-/* ===================================================
-   DEAL PROPOSAL & TRANSACTION STATUS MESSAGES
-   =================================================== */
-
-/* Pulse animation for pending deal button */
+/* Deal proposal & transaction status messages (unchanged) */
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
@@ -346,7 +400,6 @@ body {
     }
 }
 
-/* Slide in animation for received proposals */
 @keyframes slideIn {
     from {
         opacity: 0;
@@ -358,7 +411,6 @@ body {
     }
 }
 
-/* Deal proposal messages */
 .message.deal-proposal {
     text-align: center;
     margin: 20px 0;
@@ -412,7 +464,6 @@ body {
     font-size: 13px;
 }
 
-/* Transaction status messages */
 .message.transaction-status {
     text-align: center;
     margin: 20px 0;
@@ -492,7 +543,6 @@ body {
     color: #ff9800 !important;
 }
 
-/* Message time styling for special messages */
 .deal-proposal-content .message-time,
 .status-content .message-time {
     font-size: 11px;
@@ -501,7 +551,6 @@ body {
     flex-shrink: 0;
 }
 
-/* Responsive adjustments */
 @media (max-width: 767px) {
     .deal-proposal-content,
     .status-content {
