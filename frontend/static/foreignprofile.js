@@ -1,6 +1,6 @@
 // Require login
 if (!isLoggedIn()) {
-  window.location.href = 'Login.html';
+  window.location.href = '/login';
 }
 
 // State
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   if (!userId) {
     console.error('No user ID provided');
-    window.location.href = 'home.html';
+    window.location.href = '/';
     return;
   }
 
@@ -258,27 +258,27 @@ async function toggleFavorite(listingId, button) {
 // ============================================
 
 function goToListing(listingId) {
-  window.location.href = `listing.html?id=${listingId}`;
+  window.location.href = `/listing?id=${listingId}`;
 }
 
 function goToHome() {
-  window.location.href = 'home.html';
+  window.location.href = '/';
 }
 
 function goToAnnouncements() {
-  window.location.href = 'announcements.html';
+  window.location.href = '/announcements';
 }
 
 function goToFavorites() {
-  window.location.href = 'favourites.html';
+  window.location.href = '/favourites';
 }
 
 function goToProfile() {
-  window.location.href = 'profile.html';
+  window.location.href = '/profile';
 }
 
 function goToMessages() {
-  window.location.href = 'messages.html';
+  window.location.href = '/messages';
 }
 
 // ============================================
@@ -292,7 +292,7 @@ function showError(message) {
             <div style="text-align: center; padding: 60px 20px;">
                 <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #c84c3d; margin-bottom: 20px;"></i>
                 <p style="color: #666; font-size: 18px;">${message}</p>
-                <button onclick="window.location.href='home.html'" style="margin-top: 20px; padding: 12px 30px; background: #c84c3d; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-family: 'Segoe UI', sans-serif;">
+                <button onclick="window.location.href='/'" style="margin-top: 20px; padding: 12px 30px; background: #c84c3d; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-family: 'Segoe UI', sans-serif;">
                     Go to Home
                 </button>
             </div>

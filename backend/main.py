@@ -1,12 +1,12 @@
 import asyncio
-from http import HTTPStatus
-import zipfile
 
-from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status, Query
+from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status, Query, Request
 from collections import defaultdict
 from typing import Annotated, Dict, Set
 
 from starlette.responses import FileResponse, Response
+from starlette.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from backend.scripts.auth import *
 from backend.scripts.chat_crud import *
@@ -72,12 +72,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files and templates
-from fastapi.staticfiles import StaticFiles
-
+# Static files configuration
 app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
-app.mount("/templates", StaticFiles(directory="frontend/templates", html=True), name="templates")
 
+# Templates configuration
+templates = Jinja2Templates(directory="frontend/templates")
 
 
 #==============================================================================================================
@@ -1848,5 +1847,143 @@ async def get_transaction_history(access_token: str = Header(None), db=Depends(g
         ),
         )
     return result
+            
+# ===================================================================================================================
+# PAGE ROUTES
+# ===================================================================================================================
+
+@app.get("/")
+async def get_home_page(request: Request):
+    """
+    Serves the home page.
+    """
+    return templates.TemplateResponse("home.html", {"request": request})
+
+@app.get("/header.html")
+async def get_header(request: Request):
+    """
+    Serves the header component.
+    """
+    return templates.TemplateResponse("header.html", {"request": request})
+
+@app.get("/footer.html")
+async def get_footer(request: Request):
+    """
+    Serves the footer component.
+    """
+    return templates.TemplateResponse("footer.html", {"request": request})
+
+@app.get("/login")
+async def get_login_page(request: Request):
+    """
+    Serves the login page.
+    """
+    return templates.TemplateResponse("Login.html", {"request": request})
+
+@app.get("/registration")
+async def get_registration_page(request: Request):
+    """
+    Serves the registration page.
+    """
+    return templates.TemplateResponse("registration.html", {"request": request})
+
+@app.get("/registration2")
+async def get_registration2_page(request: Request):
+    """
+    Serves the registration step 2 page.
+    """
+    return templates.TemplateResponse("registration2.html", {"request": request})
+
+@app.get("/registration3")
+async def get_registration3_page(request: Request):
+    """
+    Serves the registration step 3 page.
+    """
+    return templates.TemplateResponse("registration3.html", {"request": request})
+
+@app.get("/profile")
+async def get_profile_page(request: Request):
+    """
+    Serves the user's profile page.
+    """
+    return templates.TemplateResponse("profile.html", {"request": request})
+
+@app.get("/edit-profile")
+async def get_edit_profile_page(request: Request):
+    """
+    Serves the edit profile page.
+    """
+    return templates.TemplateResponse("editprofile.html", {"request": request})
+
+@app.get("/listing")
+async def get_listing_page(request: Request):
+    """
+    Serves the listing details page.
+    The listing_id parameter will be available to the frontend JavaScript.
+    """
+    return templates.TemplateResponse("listing.html", {"request": request})
+
+@app.get("/add-listing")
+async def get_add_listing_page(request: Request):
+    """
+    Serves the add listing page.
+    """
+    return templates.TemplateResponse("addlisting.html", {"request": request})
+
+@app.get("/edit-listing")
+async def get_edit_listing_page(request: Request):
+    """
+    Serves the edit listing page.
+    """
+    return templates.TemplateResponse("editlisting.html", {"request": request})
+
+@app.get("/favourites")
+async def get_favourites_page(request: Request):
+    """
+    Serves the user's favourites page.
+    """
+    return templates.TemplateResponse("favourites.html", {"request": request})
+
+@app.get("/messages")
+async def get_messages_page(request: Request):
+    """
+    Serves the user's messages page.
+    """
+    return templates.TemplateResponse("mymessages.html", {"request": request})
+
+@app.get("/chat/{user_id}/{listing_id}")
+async def get_chat_page(request: Request, user_id: int, listing_id: int):
+    """
+    Serves the chat page for a specific conversation.
+    """
+    return templates.TemplateResponse("messages.html", {"request": request})
+
+@app.get("/user")
+async def get_user_profile_page(request: Request):
+    """
+    Serves the foreign user profile page.
+    """
+    return templates.TemplateResponse("foreignprofile.html", {"request": request})
+
+@app.get("/preferences")
+async def get_preferences_page(request: Request):
+    """
+    Serves the user's preferences dashboard page.
+    """
+    return templates.TemplateResponse("preferencedashboard.html", {"request": request})
+
+@app.get("/transactions")
+async def get_transactions_page(request: Request):
+    """
+    Serves the transaction history page.
+    """
+    return templates.TemplateResponse("transactionhistory.html", {"request": request})
+
+@app.get("/announcements")
+async def get_announcements_page(request: Request):
+    """
+    Serves the announcements page.
+    """
+    return templates.TemplateResponse("Announcements.html", {"request": request})
 
 

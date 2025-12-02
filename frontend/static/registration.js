@@ -25,7 +25,7 @@ async function handleRegistration(event) {
         localStorage.setItem('reg_email', email);
 
         // Navigate to next step
-        window.location.href = 'registration2.html';
+        window.location.href = '/registration2';
     } catch (error) {
         console.error('Registration error:', error);
         alert('Error checking email. Please try again.');
@@ -35,7 +35,7 @@ async function handleRegistration(event) {
 }
 
 function goToLogin() {
-    window.location.href = 'Login.html';
+    window.location.href = '/login';
 }
 
 // Add subtle animation on page load

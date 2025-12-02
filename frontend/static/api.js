@@ -1,6 +1,7 @@
 // API Client for Login/Logout - BookXchange
 const API_BASE_URL = 'http://localhost:8000';
 
+
 // ============================================
 // LOGIN
 // ============================================
@@ -22,6 +23,7 @@ async function signIn(email, password) {
     return await response.json();
 }
 
+
 // ============================================
 // LOGOUT
 // ============================================
@@ -39,6 +41,7 @@ async function logout(accessToken, refreshToken) {
     }
 }
 
+
 // ============================================
 // TOKEN MANAGEMENT
 // ============================================
@@ -47,22 +50,27 @@ function saveTokens(accessToken, refreshToken) {
     localStorage.setItem('refresh_token', refreshToken);
 }
 
+
 function getAccessToken() {
     return localStorage.getItem('access-token');
 }
 
+
 function getRefreshToken() {
     return localStorage.getItem('refresh_token');
 }
+
 
 function clearTokens() {
     localStorage.removeItem('access-token');
     localStorage.removeItem('refresh_token');
 }
 
+
 function isLoggedIn() {
     return !!getAccessToken();
 }
+
 
 // ============================================
 // REGISTRATION
@@ -149,6 +157,7 @@ async function deleteAccount(accessToken, refreshToken) {
 
     return { success: true };
 }
+
 
 // ============================================
 // PROFILE
@@ -274,6 +283,25 @@ async function getPreferences(accessToken) {
     return await response.json();
 }
 
+
+// ============================================
+// TRANSACTIONS
+// ============================================
+
+/**
+ * Get transaction history for authenticated user
+ */
+/**
+ * Get transaction history for authenticated user
+ */
+/**
+ * Get transaction history for authenticated user
+ */
+async function getTransactionHistory(accessToken) {
+    const response = await fetch(`${API_BASE_URL}/api/get_transaction_history/`, {
+        method: 'GET',
+        headers: {
+            'access-token': accessToken
 /**
  * Get user's favorite listings
  */
@@ -670,8 +698,11 @@ async function getTransactionHistory(accessToken) {
             return [];
         }
         
-        throw new Error(`Failed to get transaction history: ${response.status}`);
+        const error = await response.json();
+        console.error('Transaction History API Error:', error);
+        throw new Error(JSON.stringify(error.detail || error));
     }
 
     return await response.json();
 }
+

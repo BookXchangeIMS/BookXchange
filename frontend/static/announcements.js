@@ -102,7 +102,7 @@ async function fetchListingsFromBackend() {
 
         if (response.status === 401) {
             showToast('Session expired. Please login again.', 'error');
-            setTimeout(() => window.location.href = 'login.html', 2000);
+            setTimeout(() => window.location.href = '/login', 2000);
             throw new Error('Session expired');
         }
 
@@ -311,7 +311,7 @@ function createBookCard(book) {
  */
 function editListing(listingId) {
     console.log('Editing listing:', listingId);
-    window.location.href = `editlisting.html?id=${listingId}`;
+    window.location.href = `/edit-listing?id=${listingId}`;
 }
 
 // Toast notification
@@ -336,26 +336,26 @@ function showToast(message, type = 'success') {
 
 // Navigation functions
 function goToHome() {
-    window.location.href = 'home.html';
+    window.location.href = '/';
 }
 
 function goToAnnouncements() {
-    window.location.href = 'announcements.html';
+    window.location.href = '/announcements';
 }
 
 function goToFavorites() {
-    window.location.href = 'favourites.html';
+    window.location.href = '/favourites';
 }
 
 function goToMessages() {
-    window.location.href = 'messages.html';
+    window.location.href = '/messages';
 }
 
 function goToProfile() {
-    window.location.href = 'profile.html';
+    window.location.href = '/profile';
 }
 
 function goToAddListing() {
     console.log('Navigate to add listing page');
-    window.location.href = 'addlisting.html';
+    window.location.href = '/add-listing';
 }

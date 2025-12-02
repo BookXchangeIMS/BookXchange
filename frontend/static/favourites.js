@@ -1,6 +1,6 @@
 // Require login
 if (!isLoggedIn()) {
-    window.location.href = 'Login.html';
+    window.location.href = '/login';
 }
 
 // State
@@ -145,7 +145,7 @@ function createBookCard(book) {
 
 // View listing details
 function viewListing(bookId) {
-    window.location.href = `listing.html?id=${bookId}`;
+    window.location.href = `/listing?id=${bookId}`;
 }
 
 // Modal Functions
@@ -187,7 +187,7 @@ async function confirmRemoveFavorite() {
 
 // Navigation functions
 function goToHome() {
-    window.location.href = 'home.html';
+    window.location.href = '/';
 }
 
 // Show error message

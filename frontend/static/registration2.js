@@ -15,11 +15,11 @@ function handleRegistration2(event) {
     localStorage.setItem('reg_location', location);
 
     // Navigate to registration3.html
-    window.location.href = 'registration3.html';
+    window.location.href = '/registration3';
 }
 
 function goBack() {
-    window.location.href = 'registration.html';
+    window.location.href = '/registration';
 }
 
 // Set max date to today (users must be born before today)

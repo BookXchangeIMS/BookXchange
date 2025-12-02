@@ -20,11 +20,11 @@ function handleRegistration3(event) {
     localStorage.setItem('reg_password', password);
 
     // Navigate to next page (preferences dashboard)
-    window.location.href = 'preferencedashboard.html';
+    window.location.href = '/preferences';
 }
 
 function goBack() {
-    window.location.href = 'registration2.html';
+    window.location.href = '/registration2';
 }
 
 // Real-time password matching validation
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.textContent = '✓ Passwords match';
             errorMessage.style.color = '#27ae60';
         }
-    });
+    };
 
     // Reset error color when typing again
     password.addEventListener('input', () => {
