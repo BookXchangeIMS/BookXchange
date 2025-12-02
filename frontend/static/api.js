@@ -289,20 +289,6 @@ async function getPreferences(accessToken) {
 // ============================================
 
 /**
- * Get transaction history for authenticated user
- */
-/**
- * Get transaction history for authenticated user
- */
-/**
- * Get transaction history for authenticated user
- */
-async function getTransactionHistory(accessToken) {
-    const response = await fetch(`${API_BASE_URL}/api/get_transaction_history/`, {
-        method: 'GET',
-        headers: {
-            'access-token': accessToken
-/**
  * Get user's favorite listings
  */
 async function getMyFavorites(accessToken) {
@@ -588,20 +574,20 @@ async function getTransactionStatus(listingId, buyerId, accessToken) {
     if (!response.ok) {
         const errorText = await response.text();
         console.error('GetTransactionStatus API error:', response.status, errorText);
-        
+
         // Return default values if unauthorized or not found
         if (response.status === 403 || response.status === 401) {
             return { status: -1, confirmedByBuyer: false, confirmedBySeller: false };
         }
-        
+
         throw new Error(`Failed to get transaction status: ${response.status}`);
     }
 
     // Backend returns array: [status, confirmedByBuyer, confirmedBySeller]
     const result = await response.json();
-    
+
     console.log('[GetTransactionStatus] Raw response:', result);
-    
+
     // Handle tuple response from backend
     if (Array.isArray(result)) {
         return {
@@ -610,7 +596,7 @@ async function getTransactionStatus(listingId, buyerId, accessToken) {
             confirmedBySeller: result[2]
         };
     }
-    
+
     // Fallback if backend returns object directly
     return result;
 }
@@ -632,7 +618,7 @@ async function confirmTransaction(listingId, buyerId, accessToken) {
     if (!response.ok) {
         const errorText = await response.text();
         console.error('ConfirmTransaction API error:', response.status, errorText);
-        
+
         // Parse error detail if available
         try {
             const errorJson = JSON.parse(errorText);
@@ -661,7 +647,7 @@ async function unconfirmTransaction(listingId, buyerId, accessToken) {
     if (!response.ok) {
         const errorText = await response.text();
         console.error('UnconfirmTransaction API error:', response.status, errorText);
-        
+
         // Parse error detail if available
         try {
             const errorJson = JSON.parse(errorText);
@@ -692,12 +678,12 @@ async function getTransactionHistory(accessToken) {
     if (!response.ok) {
         const errorText = await response.text();
         console.error('GetTransactionHistory API error:', response.status, errorText);
-        
+
         // Return empty array if no transactions found (404)
         if (response.status === 404) {
             return [];
         }
-        
+
         const error = await response.json();
         console.error('Transaction History API Error:', error);
         throw new Error(JSON.stringify(error.detail || error));

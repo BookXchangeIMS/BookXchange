@@ -3,7 +3,7 @@
 // ============================================
 
 window.goBack = function () {
-    window.location.href = 'home.html';
+    window.location.href = '/';
 };
 
 // ============================================
@@ -101,7 +101,7 @@ function editProfile() {
 }
 
 function viewTransactionHistory() {
-    window.location.href = 'transactionhistory.html';
+    window.location.href = '/transactions';
 }
 
 // Add login check at page load
@@ -127,25 +127,20 @@ function confirmLogout() {
     const accessToken = getAccessToken();
     const refreshToken = getRefreshToken();
 
-    // Always clear tokens and redirect, even if API call fails
-    clearTokens();
-
-        // Show toast and redirect
-        showToast('Logged out successfully', 'success');
-        setTimeout(() => {
-            window.location.href = '/login';
-        }, 1000);
-    // Try to call logout API (don't wait for it)
+    // Try to call logout API first (but don't wait for it)
     if (accessToken && refreshToken) {
         logout(accessToken, refreshToken).catch(err => {
             console.error('Logout API error:', err);
         });
     }
 
+    // Always clear tokens and redirect, even if API call fails
+    clearTokens();
+
     // Show toast and redirect
     showToast('Logged out successfully', 'success');
     setTimeout(() => {
-        window.location.href = 'Login.html';
+        window.location.href = '/login';
     }, 1000);
 }
 
