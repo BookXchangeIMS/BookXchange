@@ -25,7 +25,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: backend/Dockerfile
+          file:  ./backend/Dockerfile
           push: true
           tags: ghcr.io/bookxchangeims/backend:${{ github.sha }}
 
