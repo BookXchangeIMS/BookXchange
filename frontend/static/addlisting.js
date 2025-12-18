@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000';  // Changed from localhost to 127.0.0.1
+const API_BASE_URL = (typeof ENV !== 'undefined' && ENV.API_BASE_URL) || 'http://localhost:8000';
 
 const USE_MOCK_DATA = false; // Set to true for testing without backend
 const MAX_IMAGES = 10;

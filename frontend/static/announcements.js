@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = (typeof ENV !== 'undefined' && ENV.API_BASE_URL) || 'http://localhost:8000';
 const USE_MOCK_DATA = false; // Set to false to use backend
 
 // Token Management
