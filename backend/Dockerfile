@@ -54,4 +54,4 @@ RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 EXPOSE 8000
 
 # Set the default command to Uvicorn
-CMD ["uvicorn", "backend.main:app", "--port", "8000", "-- host", "0.0.0.0"]
+CMD ["uvicorn", "backend.main:app", "--port", "8000", "--host", "0.0.0.0"]
