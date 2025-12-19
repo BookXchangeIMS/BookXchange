@@ -29,6 +29,8 @@ jobs:
           context: ./backend
           file:  ./backend/Dockerfile
           push: true
-          tags: ghcr.io/bookxchangeims/backend:${{ github.sha }}
+          tags: |
+            ghcr.io/bookxchangeims/backend:${{ github.sha }}
+            ghcr.io/bookxchangeims/backend:latest
 
       
