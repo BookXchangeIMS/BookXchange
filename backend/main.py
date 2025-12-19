@@ -73,10 +73,12 @@ app.add_middleware(
 )
 
 # Static files configuration
-app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+# NOTE: Commented for Azure deployment - frontend is served separately
+# app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 
-# Templates configuration
-templates = Jinja2Templates(directory="frontend/templates")
+# Templates configuration  
+# NOTE: Commented for Azure deployment - backend is API-only
+# templates = Jinja2Templates(directory="frontend/templates")
 
 
 #==============================================================================================================
