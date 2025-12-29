@@ -148,7 +148,7 @@ function goToFavorites() {
 }
 
 function goToMessages() {
-    window.location.href = '../templates/messages.html';
+    window.location.href = '../templates/mymessages.html';
 }
 
 function goToProfile() {

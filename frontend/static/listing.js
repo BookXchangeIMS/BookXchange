@@ -349,7 +349,7 @@ function sendMessage() {
     // Navigate to messages page (could pass seller ID as parameter)
     const listingId = currentListing.ListingID;
     const sellerId = currentListing.User.UserID;
-    window.location.href = `mymessages?listing_id=${listingId}&user_id=${sellerId}`;
+    window.location.href = `messages.html?listing_id=${listingId}&user_id=${sellerId}`;
 }
 window.sendMessage = sendMessage;
 
