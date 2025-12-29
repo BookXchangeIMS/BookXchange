@@ -145,7 +145,7 @@ function createBookCard(book) {
 
 // View listing details
 function viewListing(bookId) {
-    window.location.href = `/listing?id=${bookId}`;
+    window.location.href = `listing.html?id=${bookId}`;
 }
 
 // Modal Functions

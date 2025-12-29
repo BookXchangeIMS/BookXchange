@@ -311,7 +311,7 @@ function createBookCard(book) {
  */
 function editListing(listingId) {
     console.log('Editing listing:', listingId);
-    window.location.href = `/edit-listing?id=${listingId}`;
+    window.location.href = `editlisting.html?id=${listingId}`;
 }
 
 // Toast notification

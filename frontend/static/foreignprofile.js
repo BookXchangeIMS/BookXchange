@@ -258,7 +258,7 @@ async function toggleFavorite(listingId, button) {
 // ============================================
 
 function goToListing(listingId) {
-  window.location.href = `/listing?id=${listingId}`;
+  window.location.href = `listing.html?id=${listingId}`;
 }
 
 function goToHome() {
