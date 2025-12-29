@@ -25,7 +25,7 @@ async function handleRegistration(event) {
         localStorage.setItem('reg_email', email);
 
         // Navigate to next step
-        window.location.href = '/registration2';
+        window.location.href = 'registration2.html';
     } catch (error) {
         console.error('Registration error:', error);
         alert('Error checking email. Please try again.');

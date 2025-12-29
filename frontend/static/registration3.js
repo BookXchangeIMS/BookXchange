@@ -24,7 +24,7 @@ function handleRegistration3(event) {
 }
 
 function goBack() {
-    window.location.href = '/registration2';
+    window.location.href = 'registration2.html';
 }
 
 // Real-time password matching validation

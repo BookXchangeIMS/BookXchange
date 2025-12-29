@@ -15,7 +15,7 @@ function handleRegistration2(event) {
     localStorage.setItem('reg_location', location);
 
     // Navigate to registration3.html
-    window.location.href = '/registration3';
+    window.location.href = 'registration3.html';
 }
 
 function goBack() {
