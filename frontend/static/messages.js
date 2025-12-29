@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const listingId = urlParams.get('listing_id');
     const otherUserId = urlParams.get('user_id');
 
+    const accessToken = getAccessToken();
     console.log('[Messages] URL params:', { listingId, otherUserId });
 
     // GLOBAL NAVIGATION FUNCTIONS
