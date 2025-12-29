@@ -29,6 +29,10 @@ RUN apt-get update && ACCEPT_EULA=Y apt-get install -y \
     libstdc++6 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Verify ODBC installation and list installed files
+RUN echo "ODBC Driver 18 installed files:" && \
+    ls -la /opt/microsoft/msodbcsql18/lib64/ || echo "Directory not found"
+
 RUN printf "%s\n" \
 "[ODBC Driver 18 for SQL Server]" \
 "Description=Microsoft ODBC Driver 18 for SQL Server" \
