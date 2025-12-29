@@ -341,7 +341,7 @@ window.toggleFavorite = toggleFavorite;
 function goToSellerProfile() {
     if (!currentListing) return;
     const sellerId = currentListing.User.UserID;
-    window.location.href = `/user?id=${sellerId}`;
+    window.location.href = `foreignprofile.html?id=${sellerId}`;
 }
 
 function sendMessage() {
