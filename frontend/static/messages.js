@@ -1,4 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Read URL parameters to get listing and user IDs
+    const urlParams = new URLSearchParams(window.location.search);
+    const listingId = urlParams.get('listing_id');
+    const otherUserId = urlParams.get('user_id');
+
+    console.log('[Messages] URL params:', { listingId, otherUserId });
+
     // GLOBAL NAVIGATION FUNCTIONS
     window.goBack = function () {
         window.history.back();
