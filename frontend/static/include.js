@@ -140,7 +140,7 @@ function goToHome() {
 }
 
 function goToAnnouncements() {
-    window.location.href = '../templates/announcements.html';
+    window.location.href = '../templates/Announcements.html';
 }
 
 function goToFavorites() {
@@ -156,7 +156,7 @@ function goToProfile() {
 }
 
 function goToLogin() {
-    window.location.href = '../templates/login.html';
+    window.location.href = '../templates/Login.html';
 }
 
 // Expose functions to window object to ensure they are callable from HTML
