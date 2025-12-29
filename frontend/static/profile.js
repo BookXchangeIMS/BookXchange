@@ -97,11 +97,11 @@ async function loadUserProfile() {
 // ============================================
 
 function editProfile() {
-    window.location.href = '/edit-profile';
+    window.location.href = 'editprofile.html';
 }
 
 function viewTransactionHistory() {
-    window.location.href = '/transactions';
+    window.location.href = 'transactionhistory.html';
 }
 
 // Add login check at page load
@@ -153,19 +153,19 @@ function goToHome() {
 }
 
 function goToAnnouncements() {
-    window.location.href = '/announcements';
+    window.location.href = 'Announcements.html';
 }
 
 function goToFavorites() {
-    window.location.href = '/favourites';
+    window.location.href = 'favourites.html';
 }
 
 function goToProfile() {
-    window.location.href = '/profile';
+    window.location.href = 'profile.html';
 }
 
 function goToMessages() {
-    window.location.href = '/messages';
+    window.location.href = 'messages.html';
 }
 
 // ============================================
