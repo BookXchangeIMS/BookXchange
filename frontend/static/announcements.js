@@ -102,7 +102,7 @@ async function fetchListingsFromBackend() {
 
         if (response.status === 401) {
             showToast('Session expired. Please login again.', 'error');
-            setTimeout(() => window.location.href = '/login', 2000);
+            setTimeout(() => window.location.href = '../templates/Login.html', 2000);
             throw new Error('Session expired');
         }
 

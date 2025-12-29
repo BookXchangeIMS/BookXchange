@@ -87,7 +87,7 @@ async function loadUserProfile() {
         // Commented out to debug
         // setTimeout(() => {
         //     clearTokens();
-        //     window.location.href = '/login';
+        //     window.location.href = '../templates/Login.html';
         // }, 2000);
     }
 }
@@ -106,7 +106,7 @@ function viewTransactionHistory() {
 
 // Add login check at page load
 if (!isLoggedIn()) {
-    window.location.href = '/login';
+    window.location.href = '../templates/Login.html';
 }
 
 function handleLogout() {
@@ -140,7 +140,7 @@ function confirmLogout() {
     // Show toast and redirect
     showToast('Logged out successfully', 'success');
     setTimeout(() => {
-        window.location.href = '/login';
+        window.location.href = '../templates/Login.html';
     }, 1000);
 }
 

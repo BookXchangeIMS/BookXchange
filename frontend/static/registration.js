@@ -35,7 +35,7 @@ async function handleRegistration(event) {
 }
 
 function goToLogin() {
-    window.location.href = '/login';
+    window.location.href = '../templates/Login.html';
 }
 
 // Add subtle animation on page load

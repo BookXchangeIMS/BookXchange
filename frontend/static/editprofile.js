@@ -4,7 +4,7 @@
 
 // Require login
 if (!isLoggedIn()) {
-  window.location.href = '/login';
+  window.location.href = '../templates/Login.html';
 }
 
 // All available genres
@@ -116,7 +116,7 @@ async function loadProfile() {
 
   if (!token) {
     setFormMessage("Not logged in. Redirecting...", "error");
-    setTimeout(() => window.location.href = '/login', 1000);
+    setTimeout(() => window.location.href = '../templates/Login.html', 1000);
     return;
   }
 
@@ -303,7 +303,7 @@ async function executeDeleteAccount() {
     clearTokens();
     setFormMessage('✓ Account deleted. Redirecting...', 'success');
     setTimeout(() => {
-      window.location.href = '/login';
+      window.location.href = '../templates/Login.html';
     }, 1500);
   } catch (error) {
     console.error('Error deleting account:', error);

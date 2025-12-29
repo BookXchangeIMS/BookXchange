@@ -254,7 +254,7 @@ const api = {
 
             if (!response.ok) {
                 clearTokens();
-                window.location.href = '/login';
+                window.location.href = '../templates/Login.html';
                 throw new Error('Session expired. Please login again.');
             }
 
@@ -264,7 +264,7 @@ const api = {
         } catch (error) {
             console.error('Token refresh failed:', error);
             clearTokens();
-            window.location.href = '/login';
+            window.location.href = '../templates/Login.html';
             throw error;
         }
     }
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to edit listing', 'error');
-        setTimeout(() => window.location.href = '/login', 2000);
+        setTimeout(() => window.location.href = '../templates/Login.html', 2000);
         return;
     }
 

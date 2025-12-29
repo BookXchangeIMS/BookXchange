@@ -1,6 +1,6 @@
 // Require login
 if (!isLoggedIn()) {
-    window.location.href = '/login';
+    window.location.href = '../templates/Login.html';
 }
 
 // State

@@ -1,6 +1,6 @@
 // Require login
 if (!isLoggedIn()) {
-  window.location.href = '/login';
+  window.location.href = '../templates/Login.html';
 }
 
 // Navigation functions - MUST be in global scope for onclick to work
