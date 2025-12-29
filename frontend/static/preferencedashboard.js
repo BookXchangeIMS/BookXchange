@@ -73,7 +73,7 @@ async function createAccount(withPreferences) {
         // Validate all data is present
         if (!userData.name || !userData.email || !userData.password || !userData.dob || !userData.location) {
             alert('Registration data is incomplete. Please start over.');
-            window.location.href = '/registration';
+            window.location.href = '../templates/registration.html';
             return;
         }
 
