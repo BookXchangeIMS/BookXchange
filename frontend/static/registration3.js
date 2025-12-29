@@ -20,7 +20,7 @@ function handleRegistration3(event) {
     localStorage.setItem('reg_password', password);
 
     // Navigate to next page (preferences dashboard)
-    window.location.href = '/preferences';
+    window.location.href = 'preferencedashboard.html';
 }
 
 function goBack() {
