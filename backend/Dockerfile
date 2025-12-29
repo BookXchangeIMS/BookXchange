@@ -36,7 +36,7 @@ RUN echo "ODBC Driver 18 installed files:" && \
 RUN printf "%s\n" \
 "[ODBC Driver 18 for SQL Server]" \
 "Description=Microsoft ODBC Driver 18 for SQL Server" \
-"Driver=/opt/microsoft/msodbcsql18/lib64/libmsodbcsql-18.5.so.1.1" \
+"Driver=/opt/microsoft/msodbcsql18/lib64/libmsodbcsql-18.6.so.1.1" \
 "UsageCount=1" \
 | tee /etc/odbcinst.ini
 
