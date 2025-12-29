@@ -136,7 +136,7 @@ window.SearchManager = SearchManager;
 
 // Global Navigation Functions
 function goToHome() {
-    window.location.href = '/';
+    window.location.href = '../templates/home.html';
 }
 
 function goToAnnouncements() {

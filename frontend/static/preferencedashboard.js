@@ -108,7 +108,7 @@ async function createAccount(withPreferences) {
         localStorage.removeItem('reg_location');
 
         // Redirect to home
-        window.location.href = '/';
+        window.location.href = '../templates/home.html';
 
     } catch (error) {
         console.error('Registration error:', error);

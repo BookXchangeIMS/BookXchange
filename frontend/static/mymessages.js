@@ -9,7 +9,7 @@ window.goBack = function () {
 };
 
 window.goToHome = function () {
-  window.location.href = '/';
+  window.location.href = '../templates/home.html';
 };
 
 window.goToAnnouncements = function () {

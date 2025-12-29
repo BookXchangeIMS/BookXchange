@@ -187,7 +187,7 @@ async function confirmRemoveFavorite() {
 
 // Navigation functions
 function goToHome() {
-    window.location.href = '/';
+    window.location.href = '../templates/home.html';
 }
 
 // Show error message

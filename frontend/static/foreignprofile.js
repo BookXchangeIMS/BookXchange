@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   if (!userId) {
     console.error('No user ID provided');
-    window.location.href = '/';
+    window.location.href = '../templates/home.html';
     return;
   }
 
@@ -262,7 +262,7 @@ function goToListing(listingId) {
 }
 
 function goToHome() {
-  window.location.href = '/';
+  window.location.href = '../templates/home.html';
 }
 
 function goToAnnouncements() {

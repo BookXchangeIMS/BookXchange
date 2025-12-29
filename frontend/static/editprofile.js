@@ -327,23 +327,23 @@ function setFormMessage(message, type) {
 
 // Navigation functions
 function goToHome() {
-  window.location.href = "/";
+  window.location.href = "../templates/home.html";
 }
 
 function goToAnnouncements() {
-  window.location.href = "/announcements";
+  window.location.href = "../templates/Announcements.html";
 }
 
 function goToFavorites() {
-  window.location.href = "/favourites";
+  window.location.href = "../templates/favourites.html";
 }
 
 function goToProfile() {
-  window.location.href = "/profile";
+  window.location.href = "../templates/profile.html";
 }
 
 function goToMessages() {
-  window.location.href = "/messages";
+  window.location.href = "../templates/messages.html";
 }
 
 function goBackToForeignProfile() {

@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     if (!listingId) {
         console.error('No listing ID provided');
-        window.location.href = '/';
+        window.location.href = '../templates/home.html';
         return;
     }
 

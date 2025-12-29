@@ -3,7 +3,7 @@
 // ============================================
 
 window.goBack = function () {
-    window.location.href = '/';
+    window.location.href = '../templates/home.html';
 };
 
 // ============================================
@@ -149,7 +149,7 @@ function confirmLogout() {
 // ============================================
 
 function goToHome() {
-    window.location.href = '/';
+    window.location.href = '../templates/home.html';
 }
 
 function goToAnnouncements() {

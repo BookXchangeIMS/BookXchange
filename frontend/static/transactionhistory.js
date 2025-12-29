@@ -215,7 +215,7 @@ function showError(message) {
 }
 // Navigation functions (from include.js)
 function goBack() { window.location.href = '/profile'; }
-function goToHome() { window.location.href = '/'; }
+function goToHome() { window.location.href = '../templates/home.html'; }
 function goToAnnouncements() { window.location.href = '/announcements'; }
 function goToFavorites() { window.location.href = '/favourites'; }
 function goToProfile() { window.location.href = '/profile'; }

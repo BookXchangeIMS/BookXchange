@@ -336,7 +336,7 @@ function showToast(message, type = 'success') {
 
 // Navigation functions
 function goToHome() {
-    window.location.href = '/';
+    window.location.href = '../templates/home.html';
 }
 
 function goToAnnouncements() {
