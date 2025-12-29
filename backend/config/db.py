@@ -14,9 +14,7 @@ engine = create_engine(DATABASE_URL)
 
 # Fetching schema from the db
 metadata = MetaData()
-# Note: metadata.reflect() is commented to prevent DB connection during import
-# If you need to reflect tables, do it in a startup event or first request
-# metadata.reflect(bind=engine)
+metadata.reflect(bind=engine)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
