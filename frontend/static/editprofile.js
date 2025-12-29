@@ -230,7 +230,7 @@ async function saveProfile(event) {
     setFormMessage("✓ Profile updated successfully!", "success");
 
     // Redirect after success
-    setTimeout(() => window.location.href = '/profile', 1500);
+    setTimeout(() => window.location.href = 'profile.html', 1500);
   } catch (error) {
     console.error('Error saving profile:', error);
     setFormMessage("Error saving profile. Please try again.", "error");
@@ -347,7 +347,7 @@ function goToMessages() {
 }
 
 function goBackToForeignProfile() {
-  window.location.href = "/user/";
+  window.location.href = "foreignprofile.html";
 }
 
 // ============================================

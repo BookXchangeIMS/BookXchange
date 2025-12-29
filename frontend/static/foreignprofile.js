@@ -266,19 +266,19 @@ function goToHome() {
 }
 
 function goToAnnouncements() {
-  window.location.href = '/announcements';
+  window.location.href = 'Announcements.html';
 }
 
 function goToFavorites() {
-  window.location.href = '/favourites';
+  window.location.href = 'favourites.html';
 }
 
 function goToProfile() {
-  window.location.href = '/profile';
+  window.location.href = 'profile.html';
 }
 
 function goToMessages() {
-  window.location.href = '/messages';
+  window.location.href = 'messages.html';
 }
 
 // ============================================

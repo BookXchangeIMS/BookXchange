@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     window.goToAnnouncements = function () {
-        window.location.href = '/announcements';
+        window.location.href = 'Announcements.html';
     };
 
     // Require login
@@ -19,15 +19,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Navigation functions - MUST be in global scope for onclick to work
     window.goToFavorites = function () {
-        window.location.href = '/favourites';
+        window.location.href = 'favourites.html';
     };
 
     window.goToMessages = function () {
-        window.location.href = '/messages';
+        window.location.href = 'messages.html';
     };
 
     window.goToProfile = function () {
-        window.location.href = '/profile';
+        window.location.href = 'profile.html';
     };
 
     // CHAT DOM

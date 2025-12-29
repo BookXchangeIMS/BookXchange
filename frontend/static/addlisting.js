@@ -705,7 +705,7 @@ async function handleFormSubmit(event) {
         // Always redirect after a short delay
         console.log('🔄 Redirecting to announcements page...');
         setTimeout(() => {
-            window.location.href = '/announcements';
+            window.location.href = 'Announcements.html';
         }, 1000);
 
     } catch (error) {
@@ -800,7 +800,7 @@ async function handleScanBook(event) {
 function showCancelModal() {
     // If no changes were made, go directly back without showing modal
     if (!hasFormChanged && newImages.length === 0) {
-        window.location.href = '/announcements';
+        window.location.href = 'Announcements.html';
         return;
     }
 
@@ -817,7 +817,7 @@ function closeCancelModal() {
 
 // Confirm cancel and redirect
 function confirmCancel() {
-    window.location.href = '/announcements';
+    window.location.href = 'Announcements.html';
 }
 
 

@@ -340,22 +340,22 @@ function goToHome() {
 }
 
 function goToAnnouncements() {
-    window.location.href = '/announcements';
+    window.location.href = 'Announcements.html';
 }
 
 function goToFavorites() {
-    window.location.href = '/favourites';
+    window.location.href = 'favourites.html';
 }
 
 function goToMessages() {
-    window.location.href = '/messages';
+    window.location.href = 'messages.html';
 }
 
 function goToProfile() {
-    window.location.href = '/profile';
+    window.location.href = 'profile.html';
 }
 
 function goToAddListing() {
     console.log('Navigate to add listing page');
-    window.location.href = '/add-listing';
+    window.location.href = 'addlisting.html';
 }

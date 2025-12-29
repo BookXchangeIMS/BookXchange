@@ -214,9 +214,9 @@ function showError(message) {
     }
 }
 // Navigation functions (from include.js)
-function goBack() { window.location.href = '/profile'; }
+function goBack() { window.location.href = 'profile.html'; }
 function goToHome() { window.location.href = '../templates/home.html'; }
-function goToAnnouncements() { window.location.href = '/announcements'; }
-function goToFavorites() { window.location.href = '/favourites'; }
-function goToProfile() { window.location.href = '/profile'; }
-function goToMessages() { window.location.href = '/messages'; }
+function goToAnnouncements() { window.location.href = 'Announcements.html'; }
+function goToFavorites() { window.location.href = 'favourites.html'; }
+function goToProfile() { window.location.href = 'profile.html'; }
+function goToMessages() { window.location.href = 'messages.html'; }
