@@ -72,6 +72,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize Azure Blob Storage containers on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize Azure Blob Storage containers on application startup"""
+    try:
+        from backend.config.azure_storage import ensure_containers_exist
+        ensure_containers_exist()
+        print("✅ Azure Blob Storage containers initialized")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not initialize Azure Blob Storage: {e}")
+        print("   Make sure AZURE_STORAGE_CONNECTION_STRING is configured")
+
+
 # Static files configuration
 # NOTE: Commented for Azure deployment - frontend is served separately
 # app.mount("/static", StaticFiles(directory="frontend/static"), name="static")

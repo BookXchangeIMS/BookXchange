@@ -100,12 +100,11 @@ def validate_image_extension(image_file: UploadFile):
 def insert_profile_picture(image_file: UploadFile):
     """
     Validates and processes the uploaded image file, ensuring it meets specific profile picture
-    requirements such as extension, resolution, and ratio, before saving it to a specific
-    location in the backend directory.
+    requirements such as extension, resolution, and ratio, before uploading it to Azure Blob Storage.
 
     :param image_file: The uploaded file containing the profile picture to be processed.
     :type image_file: UploadFile
-    :return: The file path of the saved profile picture.
+    :return: The blob URL of the saved profile picture.
     :rtype: str
     """
     if not validate_image_extension(image_file):
@@ -116,37 +115,62 @@ def insert_profile_picture(image_file: UploadFile):
     if not validate_profile_picture_ratio(image):
         raise HTTPException(status_code=400, detail="Image ratio is too small or too big")
     
-    image_name = uuid4()
+    image_name = str(uuid4())
+    
     # Convert to RGB if necessary (JPEG doesn't support transparency)
     if image.mode in ('RGBA', 'LA', 'P'):
         rgb_image = Image.new('RGB', image.size, 'WHITE')
         rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
         image = rgb_image
     
-    # Ensure directory exists
-    import os
-    os.makedirs(profile_pictures_path, exist_ok=True)
-    
-    # Save file
-    file_path = f"{profile_pictures_path}{image_name}.jpg"
-    with open(file_path, 'wb') as output:
-        image.save(output, 'JPEG')
+    # Upload to Azure Blob Storage
+    try:
+        from backend.config.azure_storage import get_blob_service_client, PROFILE_PICTURES_CONTAINER
+        from io import BytesIO
+        from azure.storage.blob import ContentSettings
         
-    return file_path
+        blob_service_client = get_blob_service_client()
+        blob_name = f"{image_name}.jpg"
+        blob_client = blob_service_client.get_blob_client(
+            container=PROFILE_PICTURES_CONTAINER,
+            blob=blob_name
+        )
+        
+        # Convert image to bytes
+        img_byte_arr = BytesIO()
+        image.save(img_byte_arr, format='JPEG', quality=85)
+        img_byte_arr.seek(0)
+        
+        # Upload with content type
+        content_settings = ContentSettings(content_type='image/jpeg')
+        blob_client.upload_blob(
+            img_byte_arr,
+            overwrite=True,
+            content_settings=content_settings
+        )
+        
+        # Return blob URL
+        return blob_client.url
+        
+    except Exception as e:
+        print(f"Error uploading to Azure Blob Storage: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+
 
 listing_pictures_path = "backend/images/listing_pictures/"
 
 def insert_listing_picture(image_file: UploadFile):
     """
     Inserts a listing picture after validating the image file format and resolution.
+    Uploads the image to Azure Blob Storage.
 
     This function checks if the uploaded image file has a valid extension and
-    acceptable dimensions. If the validations pass, the image is saved into a
-    specified directory, and the path to the saved image is returned.
+    acceptable dimensions. If the validations pass, the image is uploaded to
+    Azure Blob Storage, and the blob URL is returned.
 
     :param image_file: Uploaded image file to be processed
     :type image_file: UploadFile
-    :return: Path to the saved image file
+    :return: URL to the blob in Azure Storage
     :rtype: str
     :raises HTTPException: If the image type is invalid or if its resolution does
         not meet the required constraints
@@ -156,16 +180,48 @@ def insert_listing_picture(image_file: UploadFile):
     image = Image.open(image_file.file)
     if not validate_listing_picture_resolution(image):
         raise HTTPException(status_code=400, detail="Image resolution is too small or too big")
-    image_name = uuid4()
+    
+    image_name = str(uuid4())
+    
     # Convert to RGB if necessary (JPEG doesn't support transparency)
     if image.mode in ('RGBA', 'LA', 'P'):
         rgb_image = Image.new('RGB', image.size, 'WHITE')
         rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
         image = rgb_image
-    path = listing_pictures_path + str(image_name) + ".jpg"
-    with open(f'backend/images/listing_pictures/{image_name}.jpg', 'wb') as output:
-        image.save(output, 'JPEG')
-    return path
+    
+    # Upload to Azure Blob Storage
+    try:
+        from backend.config.azure_storage import get_blob_service_client, LISTING_IMAGES_CONTAINER
+        from io import BytesIO
+        from azure.storage.blob import ContentSettings
+        
+        blob_service_client = get_blob_service_client()
+        blob_name = f"{image_name}.jpg"
+        blob_client = blob_service_client.get_blob_client(
+            container=LISTING_IMAGES_CONTAINER,
+            blob=blob_name
+        )
+        
+        # Convert image to bytes
+        img_byte_arr = BytesIO()
+        image.save(img_byte_arr, format='JPEG', quality=85)
+        img_byte_arr.seek(0)
+        
+        # Upload with content type
+        content_settings = ContentSettings(content_type='image/jpeg')
+        blob_client.upload_blob(
+            img_byte_arr,
+            overwrite=True,
+            content_settings=content_settings
+        )
+        
+        # Return blob URL
+        return blob_client.url
+        
+    except Exception as e:
+        print(f"Error uploading to Azure Blob Storage: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+
 
 def insert_profile_image_path(userid: int, image_path: str, db):
     """
