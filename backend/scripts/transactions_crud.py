@@ -20,7 +20,9 @@ def post_new_transaction(listingid: int, buyerid: int, sellerid: int, BySeller: 
         db.commit()
         return True
     except Exception as e:
-        raise HTTPException(status_code=409, detail="Couldn't add transaction")
+        print(f"[ERROR] Failed to add transaction: {type(e).__name__}: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=409, detail=f"Couldn't add transaction: {str(e)}")
 
 def confirm_transaction_by_listingid_and_buyeid(listingid: int, buyerid: int, BySeller: bool, db):
     transactions = metadata.tables["Transactions"]
