@@ -1125,11 +1125,18 @@ async def get_listing_primary_image(listingid: int, access_token: str, db=Depend
     # Return the first image if file exists
     first_image_path = image_paths[0].ImagePath
     
-    # Check if file actually exists
-    if not os.path.exists(first_image_path):
-        raise HTTPException(status_code=404, detail="Image file not found on server")
-    
-    return FileResponse(path=first_image_path, media_type="image/jpeg")
+    # Check if this is a Blob Storage URL (new format) or local path (legacy)
+    if first_image_path.startswith('http'):
+        # New Blob Storage format - redirect to blob URL
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url=first_image_path)
+    else:
+        # Legacy local file format - serve from filesystem
+        import os
+        if not os.path.exists(first_image_path):
+            raise HTTPException(status_code=404, detail="Image file not found on server")
+        return FileResponse(path=first_image_path, media_type="image/jpeg")
+
 
 @app.get("/api/get_listing_images_urls", status_code=status.HTTP_200_OK, tags=["Images"])
 async def get_listing_images_urls(listingid: int, access_token: str, db=Depends(get_db)):
