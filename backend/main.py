@@ -1796,7 +1796,7 @@ async def confirm_transaction(listingid: int, buyerid: int, access_token: str = 
         if transaction_status == -1:
             return post_new_transaction(listingid, buyerid, userid, False, db)
         elif transaction_status == 0:
-            return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, userid, False, db)
+            return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, False, db)
         elif transaction_status == 1:
             raise HTTPException(status_code=400, detail="Transaction already confirmed")
     else:
