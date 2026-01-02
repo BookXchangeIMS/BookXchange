@@ -1047,7 +1047,16 @@ async def get_users_profile_picture(userid: int, access_token: str, db= Depends(
     user = get_user_by_id(userid, db)
     if not user.ProfileImagePath:
         raise HTTPException(status_code=404, detail="User has no profile picture")
-    return FileResponse(path=user.ProfileImagePath)
+    
+    # Check if this is a Blob Storage URL (new format) or local path (legacy)
+    if user.ProfileImagePath.startswith('http'):
+        # New Blob Storage format - redirect to blob URL
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url=user.ProfileImagePath)
+    else:
+        # Legacy local file format - serve from filesystem
+        return FileResponse(path=user.ProfileImagePath)
+
 
 
 @app.get("/api/get_listings_pictures",
@@ -1182,12 +1191,18 @@ async def get_listing_image_by_photo_id(photo_id: int, access_token: str, db=Dep
     
     image_path = result.ImagePath
     
-    # Check if file actually exists
-    import os
-    if not os.path.exists(image_path):
-        raise HTTPException(status_code=404, detail="Image file not found on server")
-    
-    return FileResponse(path=image_path, media_type="image/jpeg")
+    # Check if this is a Blob Storage URL (new format) or local path (legacy)
+    if image_path.startswith('http'):
+        # New Blob Storage format - redirect to blob URL
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url=image_path)
+    else:
+        # Legacy local file format - serve from filesystem
+        import os
+        if not os.path.exists(image_path):
+            raise HTTPException(status_code=404, detail="Image file not found on server")
+        return FileResponse(path=image_path, media_type="image/jpeg")
+
 
 
 @app.post("/api/post_listings_picture", status_code=status.HTTP_200_OK, tags=["Images"])
