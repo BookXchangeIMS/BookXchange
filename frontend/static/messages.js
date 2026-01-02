@@ -417,8 +417,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (dealButton) {
-        dealButton.addEventListener('click', async function () {
+        dealButton.addEventListener('click', async function (event) {
+            event.preventDefault(); // Prevent form submission
             if (!listingId || !buyerId) return;
+
 
             const myConfirmation = iAmSeller ? confirmedBySeller : confirmedByBuyer;
 
