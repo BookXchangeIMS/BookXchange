@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     window.goToMessages = function () {
-        window.location.href = 'messages.html';
+        window.location.href = 'mymessages.html';
     };
 
     window.goToProfile = function () {

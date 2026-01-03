@@ -22,7 +22,7 @@ window.goToFavorites = function () {
 
 // Inbox page
 window.goToMessages = function () {
-  window.location.href = 'messages.html';
+  window.location.href = 'mymessages.html';
 };
 
 window.goToProfile = function () {
