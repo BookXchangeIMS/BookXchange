@@ -79,8 +79,15 @@ def unconfirm_transaction_by_listingid_and_buyerid(listingid: int, buyerid: int,
 def get_transactions_by_userid(userid: int, db):
     transactions = metadata.tables["Transactions"]
     listings = metadata.tables["Listings"]
-    stmt = select(transactions).where(
-        or_(transactions.c.BuyerID == userid,
-            and_(transactions.c.ListingID == listings.c.ListingID, listings.c.UserID == userid))
+    
+    # JOIN with Listings to get seller's UserID
+    stmt = select(transactions).select_from(
+        transactions.join(listings, transactions.c.ListingID == listings.c.ListingID)
+    ).where(
+        or_(
+            transactions.c.BuyerID == userid,  # User is buyer
+            listings.c.UserID == userid        # User is seller (listing owner)
+        )
     )
+    
     return db.execute(stmt).fetchall()
