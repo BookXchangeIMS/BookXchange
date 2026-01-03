@@ -272,6 +272,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (otherProfile) {
                     otherUserName = otherProfile.Name;
                     if (profileNameEl) profileNameEl.textContent = otherProfile.Name;
+
+                    // Load profile picture if exists
+                    if (otherProfile.ProfileImagePath) {
+                        const profileAvatarEl = document.getElementById('profileAvatar');
+                        if (profileAvatarEl) {
+                            const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${otherUserId}&access_token=${accessToken}`;
+                            profileAvatarEl.innerHTML = `<img src="${imageUrl}" alt="${otherProfile.Name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'white\\' stroke-width=\\'1.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'></path><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'></circle></svg>'">`;
+                        }
+                    }
                 }
             } catch (e) {
                 console.error("Error fetching other user profile:", e);
