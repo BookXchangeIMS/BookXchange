@@ -196,15 +196,26 @@ async function loadDialogues() {
       const isMyListing = listing.User?.UserID === myUserId;
 
       // Get the other user's name
-      const otherUserName = listing.User?.Name || 'Unknown User';
+      let otherUserName = 'Unknown User';
 
       if (isMyListing) {
+        // This is MY listing - get the name of who is interested (dialogue.UserID)
+        try {
+          const interestedUserProfile = await getUserProfile(dialogue.UserID, accessToken);
+          otherUserName = interestedUserProfile?.Name || 'Unknown User';
+        } catch (e) {
+          console.warn('Failed to load interested user profile', e);
+        }
+
         // This is my listing - show in "My Listings" tab
         const card = createMyListingCard(dialogue, listingInfo, otherUserName);
         myListingsCards.push(card);
         myListingsList.appendChild(card);
       } else {
-        // This is someone else's listing - show in "Interested In" tab
+        // This is someone else's listing - show listing owner's name
+        otherUserName = listing.User?.Name || 'Unknown User';
+
+        // Show in "Interested In" tab
         const card = createInterestedCard(dialogue, listingInfo, otherUserName);
         interestedCards.push(card);
         interestedList.appendChild(card);
