@@ -137,7 +137,7 @@ function createInterestedCard(dialogue, listingInfo, userName) {
   card.addEventListener('click', () => {
     const listingId = card.dataset.listingId;
     const userId = card.dataset.userId;
-    window.location.href = `/mymessages?listing_id=${listingId}&user_id=${userId}`;
+    window.location.href = `messages.html?listing_id=${listingId}&user_id=${userId}`;
   });
 
   return card;
