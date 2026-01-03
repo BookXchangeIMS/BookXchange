@@ -129,7 +129,7 @@ function createTransactionCard(transaction, type) {
 
     // Image path
     const accessToken = getAccessToken();
-    const imagePath = `http://localhost:8000/api/get_listing_primary_image?listingid=${transaction.Listing.ListingID}&access_token=${accessToken}`;
+    const imagePath = `${API_BASE_URL}/api/get_listing_primary_image?listingid=${transaction.Listing.ListingID}&access_token=${accessToken}`;
 
     card.innerHTML = `
         <div class="transaction-status-badge ${statusInfo.class}">
