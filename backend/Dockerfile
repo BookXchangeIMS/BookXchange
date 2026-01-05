@@ -29,10 +29,14 @@ RUN apt-get update && ACCEPT_EULA=Y apt-get install -y \
     libstdc++6 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Verify ODBC installation and list installed files
+RUN echo "ODBC Driver 18 installed files:" && \
+    ls -la /opt/microsoft/msodbcsql18/lib64/ || echo "Directory not found"
+
 RUN printf "%s\n" \
 "[ODBC Driver 18 for SQL Server]" \
 "Description=Microsoft ODBC Driver 18 for SQL Server" \
-"Driver=/opt/microsoft/msodbcsql18/lib64/libmsodbcsql-18.5.so.1.1" \
+"Driver=/opt/microsoft/msodbcsql18/lib64/libmsodbcsql-18.6.so.1.1" \
 "UsageCount=1" \
 | tee /etc/odbcinst.ini
 
@@ -44,14 +48,14 @@ ENV PYTHONUNBUFFERED 1
 # Create and set the app directory
 WORKDIR /app
 
-# Copy the application files
-COPY . /app
+# Copy the application files preserving backend/ structure
+COPY . /app/backend
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
 # Expose the port that the application will run on
 EXPOSE 8000
 
 # Set the default command to Uvicorn
-#CMD ["uvicorn", "backend.main:app", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["uvicorn", "backend.main:app", "--port", "8000", "--host", "0.0.0.0"]

@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     if (!listingId) {
         console.error('No listing ID provided');
-        window.location.href = '/';
+        window.location.href = '../templates/home.html';
         return;
     }
 
@@ -159,7 +159,7 @@ function populateBookDetails(listing) {
     if (sellerAvatar && listing.User.UserID) {
         if (listing.User.ProfileImagePath) {
             const accessToken = getAccessToken();
-            const imageUrl = `http://localhost:8000/api/get_users_profile_picture?userid=${listing.User.UserID}&access_token=${accessToken}`;
+            const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${listing.User.UserID}&access_token=${accessToken}`;
             sellerAvatar.innerHTML = `<img src="${imageUrl}" alt="${listing.User.Name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<i class=&quot;fas fa-user&quot;></i>'">`;
         } else {
             // Keep default icon if no profile picture
@@ -183,7 +183,7 @@ function populateBookDetails(listing) {
 async function loadImages(listingId, accessToken) {
     try {
         // Fetch image URLs from backend
-        const response = await fetch(`http://localhost:8000/api/get_listing_images_urls?listingid=${listingId}&access_token=${accessToken}`);
+        const response = await fetch(`${API_BASE_URL}/api/get_listing_images_urls?listingid=${listingId}&access_token=${accessToken}`);
 
         if (response.ok) {
             const images = await response.json();
@@ -191,7 +191,7 @@ async function loadImages(listingId, accessToken) {
             if (images && images.length > 0) {
                 // Build image URLs
                 currentImages = images.map(img =>
-                    `http://localhost:8000/api/get_listing_image/${img.photoId}?access_token=${accessToken}`
+                    `${API_BASE_URL}/api/get_listing_image/${img.photoId}?access_token=${accessToken}`
                 );
                 loadImageGallery(currentImages);
             } else {
@@ -341,7 +341,7 @@ window.toggleFavorite = toggleFavorite;
 function goToSellerProfile() {
     if (!currentListing) return;
     const sellerId = currentListing.User.UserID;
-    window.location.href = `/user?id=${sellerId}`;
+    window.location.href = `foreignprofile.html?id=${sellerId}`;
 }
 
 function sendMessage() {
@@ -349,7 +349,7 @@ function sendMessage() {
     // Navigate to messages page (could pass seller ID as parameter)
     const listingId = currentListing.ListingID;
     const sellerId = currentListing.User.UserID;
-    window.location.href = `mymessages?listing_id=${listingId}&user_id=${sellerId}`;
+    window.location.href = `messages.html?listing_id=${listingId}&user_id=${sellerId}`;
 }
 window.sendMessage = sendMessage;
 

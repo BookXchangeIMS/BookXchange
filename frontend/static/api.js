@@ -1,5 +1,7 @@
 // API Client for Login/Logout - BookXchange
-const API_BASE_URL = 'http://localhost:8000';
+// Use centralized config (falls back to localhost if config.js not loaded)
+const API_BASE_URL = (typeof ENV !== 'undefined' && ENV.API_BASE_URL) || 'http://localhost:8000';
+
 
 
 // ============================================

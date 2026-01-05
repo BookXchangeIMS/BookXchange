@@ -3,7 +3,7 @@
 // ============================================
 
 window.goBack = function () {
-    window.location.href = '/';
+    window.location.href = '../templates/home.html';
 };
 
 // ============================================
@@ -87,7 +87,7 @@ async function loadUserProfile() {
         // Commented out to debug
         // setTimeout(() => {
         //     clearTokens();
-        //     window.location.href = '/login';
+        //     window.location.href = '../templates/Login.html';
         // }, 2000);
     }
 }
@@ -97,16 +97,16 @@ async function loadUserProfile() {
 // ============================================
 
 function editProfile() {
-    window.location.href = '/edit-profile';
+    window.location.href = 'editprofile.html';
 }
 
 function viewTransactionHistory() {
-    window.location.href = '/transactions';
+    window.location.href = 'transactionhistory.html';
 }
 
 // Add login check at page load
 if (!isLoggedIn()) {
-    window.location.href = '/login';
+    window.location.href = '../templates/Login.html';
 }
 
 function handleLogout() {
@@ -140,7 +140,7 @@ function confirmLogout() {
     // Show toast and redirect
     showToast('Logged out successfully', 'success');
     setTimeout(() => {
-        window.location.href = '/login';
+        window.location.href = '../templates/Login.html';
     }, 1000);
 }
 
@@ -149,23 +149,23 @@ function confirmLogout() {
 // ============================================
 
 function goToHome() {
-    window.location.href = '/';
+    window.location.href = '../templates/home.html';
 }
 
 function goToAnnouncements() {
-    window.location.href = '/announcements';
+    window.location.href = 'Announcements.html';
 }
 
 function goToFavorites() {
-    window.location.href = '/favourites';
+    window.location.href = 'favourites.html';
 }
 
 function goToProfile() {
-    window.location.href = '/profile';
+    window.location.href = 'profile.html';
 }
 
 function goToMessages() {
-    window.location.href = '/messages';
+    window.location.href = 'mymessages.html';
 }
 
 // ============================================

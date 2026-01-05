@@ -1,5 +1,5 @@
-// API Configuration
-const API_BASE_URL = 'http://localhost:8000';
+// API Configuration  
+const API_BASE_URL = (typeof ENV !== 'undefined' && ENV.API_BASE_URL) || 'http://localhost:8000';
 const USE_MOCK_DATA = false; // Change to false for backend
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -254,7 +254,7 @@ const api = {
 
             if (!response.ok) {
                 clearTokens();
-                window.location.href = '/login';
+                window.location.href = '../templates/Login.html';
                 throw new Error('Session expired. Please login again.');
             }
 
@@ -264,7 +264,7 @@ const api = {
         } catch (error) {
             console.error('Token refresh failed:', error);
             clearTokens();
-            window.location.href = '/login';
+            window.location.href = '../templates/Login.html';
             throw error;
         }
     }
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to edit listing', 'error');
-        setTimeout(() => window.location.href = '/login', 2000);
+        setTimeout(() => window.location.href = '../templates/Login.html', 2000);
         return;
     }
 
@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     if (!listingId) {
         showToast('No listing ID provided', 'error');
-        setTimeout(() => window.location.href = '/announcements', 2000);
+        setTimeout(() => window.location.href = 'Announcements.html', 2000);
         return;
     }
 
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (error) {
         console.error('Error loading listing:', error);
         showToast('Failed to load listing details', 'error');
-        setTimeout(() => window.location.href = '/announcements', 2000);
+        setTimeout(() => window.location.href = 'Announcements.html', 2000);
     }
 });
 
@@ -925,7 +925,7 @@ async function handleFormSubmit(event) {
         showToast('Listing updated successfully!', 'success');
 
         setTimeout(() => {
-            window.location.href = '/announcements';
+            window.location.href = 'Announcements.html';
         }, 1500);
 
     } catch (error) {
@@ -961,7 +961,7 @@ async function executeDelete() {
 
         setTimeout(() => {
             console.log('Redirecting to announcements...');
-            window.location.href = '/announcements';
+            window.location.href = 'Announcements.html';
         }, 1500);
     } catch (error) {
         console.error('Failed to delete listing:', error);
@@ -1013,7 +1013,7 @@ document.head.appendChild(style);
 function showCancelModal() {
     // If no changes were made, go directly back without showing modal
     if (!hasFormChanged && newImages.length === 0 && deletedImageIds.length === 0) {
-        window.location.href = '/announcements';
+        window.location.href = 'Announcements.html';
         return;
     }
 
@@ -1030,5 +1030,5 @@ function closeCancelModal() {
 
 // Confirm cancel and redirect
 function confirmCancelEdit() {
-    window.location.href = '/announcements';
+    window.location.href = 'Announcements.html';
 }
