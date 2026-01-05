@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- CSS -->
+    <link rel="stylesheet" href="../static/common.css">
     <link rel="stylesheet" href="../static/registration.css">
 </head>
 
@@ -24,28 +25,91 @@
         <!-- Title -->
         <h1 class="title">Registration</h1>
 
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Account</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Details</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Password</div>
+            </div>
+        </div>
+
         <!-- Form -->
-        <form class="form-group" onsubmit="handleRegistration(event)">
-            <div class="input-group">
-                <label class="input-label">Write your name:</label>
-                <input type="text" class="input-field" placeholder="Full Name" required>
+        <form class="form-group" id="registrationForm">
+            <!-- Step 1: Name and Email -->
+            <div class="form-step active" data-step="1">
+                <div class="input-group">
+                    <label class="input-label">Write your name:</label>
+                    <input type="text" id="name" class="input-field" placeholder="Full Name" required>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Your best Email:</label>
+                    <input type="email" id="email" class="input-field" placeholder="Email" required>
+                </div>
             </div>
 
-            <div class="input-group">
-                <label class="input-label">Your best Email:</label>
-                <input type="email" class="input-field" placeholder="Email" required>
+            <!-- Step 2: DOB and Address -->
+            <div class="form-step" data-step="2">
+                <div class="input-group">
+                    <label class="input-label">Date of Birth:</label>
+                    <input type="date" id="dob" class="input-field date-input" required max="">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Your Address:</label>
+                    <input type="text" id="address" class="input-field" placeholder="Address" required>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms" class="terms-label">By continuing, I confirm I am a legal adult (18+)</label>
+                </div>
             </div>
 
+            <!-- Step 3: Password -->
+            <div class="form-step" data-step="3">
+                <div class="input-group">
+                    <label class="input-label">Create a Password:</label>
+                    <input type="password" id="password" class="input-field" placeholder="Password" required
+                        minlength="8">
+                    <span class="password-hint">Minimum 8 characters</span>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Confirm Password:</label>
+                    <input type="password" id="confirmPassword" class="input-field" placeholder="Confirm Password"
+                        required>
+                    <span class="error-message" id="errorMessage"></span>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
             <div class="button-container">
-                <button type="button" class="nav-btn" onclick="goToLogin()">Back</button>
-                <button type="submit" class="submit-btn">
+                <button type="button" class="nav-btn" id="backBtn">Back</button>
+                <button type="button" class="submit-btn" id="nextBtn">
                     <span class="arrow">→</span>
                 </button>
             </div>
         </form>
+
+        <!-- Login Link -->
+        <div class="login-link">
+            Already have an account? <a href="Login.html" class="login-link-text">Back to Login</a>
+        </div>
     </div>
 
     <script src="../static/config.js"></script>
+    <script src="../static/utils.js"></script>
     <script src="../static/api.js"></script>
     <script src="../static/registration.js"></script>
 </body>
