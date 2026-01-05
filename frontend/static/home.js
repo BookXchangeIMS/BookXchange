@@ -260,155 +260,30 @@ function hideSkeletonAndShowBooks() {
     }
 }
 
-// ---- PAGINATION LOGIC ----
+// Load books with pagination using shared UI components
 function loadBooks(books) {
     if (!booksGrid) return;
-    booksGrid.innerHTML = '';
 
-    // Pagination
-    const totalPages = Math.ceil(books.length / PAGE_SIZE) || 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-
-    const start = (currentPage - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-    const pageBooks = books.slice(start, end);
-
-    if (pageBooks.length === 0) {
-        booksGrid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                <i class="fas fa-book-open" style="font-size: 48px; color: #c84c3d; margin-bottom: 20px;"></i>
-                <p style="color: #666; font-size: 18px;">No books available at the moment.</p>
-                <small style="color: #999;">Check back later for new listings!</small>
-            </div>
-        `;
-    } else {
-        pageBooks.forEach(book => {
-            const bookCard = createBookCard(book);
-            booksGrid.appendChild(bookCard);
-        });
-    }
-
-    renderPaginationControls(totalPages);
-}
-
-function renderPaginationControls(totalPages) {
-    const container = document.getElementById('paginationControls');
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (totalPages < 2) return;
-
-    // Prev
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = 'Previous';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => { currentPage--; loadBooks(allListings); };
-    container.appendChild(prevBtn);
-
-    // Page numbers (up to 5, with ... for gaps)
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, currentPage + 2);
-    if (currentPage === 1) endPage = Math.min(totalPages, 5);
-    if (currentPage === totalPages) startPage = Math.max(1, totalPages - 4);
-
-    if (startPage > 1) {
-        container.appendChild(makePageButton(1));
-        if (startPage > 2) {
-            container.appendChild(document.createTextNode('...'));
-        }
-    }
-    for (let i = startPage; i <= endPage; i++) {
-        container.appendChild(makePageButton(i));
-    }
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-            container.appendChild(document.createTextNode('...'));
-        }
-        container.appendChild(makePageButton(totalPages));
-    }
-
-    // Next
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Next';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => { currentPage++; loadBooks(allListings); };
-    container.appendChild(nextBtn);
-
-    // Quick styling
-    container.querySelectorAll('button').forEach(btn => {
-        btn.style.margin = '0 5px';
-        btn.style.padding = '6px 12px';
-        btn.style.borderRadius = '7px';
-        btn.style.border = 'none';
-        btn.style.background = '#c84c3d';
-        btn.style.color = '#fff';
-        btn.style.fontWeight = '600';
-        btn.style.cursor = btn.disabled ? 'not-allowed' : 'pointer';
-    });
-}
-
-function makePageButton(pageNum) {
-    const btn = document.createElement('button');
-    btn.textContent = pageNum;
-    btn.disabled = currentPage === pageNum;
-    btn.onclick = () => { currentPage = pageNum; loadBooks(allListings); };
-    if (btn.disabled) btn.style.background = '#d6d6d6';
-    return btn;
-}
-// ---- End pagination logic ----
-
-// Create a book card element
-function createBookCard(book) {
-    const card = document.createElement('div');
-    card.className = 'book-card';
-
-    card.innerHTML = `
-        <img src="${book.imagePath}"
-             alt="${book.title}"
-             class="book-image"
-             onerror="this.src='../static/resources/placeholder.jpg'"
-             loading="lazy">
-        <div class="book-info">
-            <div class="book-title">${book.title}</div>
-            <div class="book-author">by ${book.author}</div>
-            <div class="book-location">${book.location}</div>
-            <div class="book-date">${book.date}</div>
-            <div class="book-price">${book.price}</div>
-            <div class="book-actions">
-                <button class="contact-btn">
-                    Contact Seller
-                </button>
-                <button class="favorite-btn ${book.isFavorite ? 'active' : ''}">
-                    <i class="fas fa-heart"></i>
-                </button>
-            </div>
-        </div>
-    `;
-
-    // Setup event listeners
-    const contactBtn = card.querySelector('.contact-btn');
-    const favoriteBtn = card.querySelector('.favorite-btn');
-
-    // Contact button click
-    contactBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        viewBookDetails(book.id);
-    });
-
-    // Favorite button click
-    favoriteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleFavorite(book.id);
-    });
-
-    // Make card clickable
-    card.addEventListener('click', (e) => {
-        if (!e.target.closest('.contact-btn') && !e.target.closest('.favorite-btn')) {
-            viewBookDetails(book.id);
+    displayBooks(books, booksGrid, {
+        currentPage: currentPage,
+        pageSize: PAGE_SIZE,
+        onPageChange: (page) => {
+            currentPage = page;
+            loadBooks(allListings);
+        },
+        cardOptions: {
+            showFavoriteButton: true,
+            showContactButton: true,
+            onCardClick: viewBookDetails,
+            onFavoriteClick: toggleFavorite,
+            onContactClick: viewBookDetails
+        },
+        emptyState: {
+            icon: 'fa-book-open',
+            message: 'No books available at the moment.',
+            subMessage: 'Check back later for new listings!'
         }
     });
-
-    return card;
 }
 
 // Toggle favorite status
@@ -449,77 +324,3 @@ function viewBookDetails(bookId) {
     console.log('Viewing details for book ID:', bookId);
     window.location.href = `listing?id=${bookId}`;
 }
-
-// Show error message
-function showError(message) {
-    if (skeletonGrid) {
-        skeletonGrid.style.display = 'none';
-    }
-
-    if (!booksGrid) return;
-
-    booksGrid.style.display = 'grid';
-    booksGrid.innerHTML = `
-        <div class="error-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-            <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #c84c3d; margin-bottom: 20px;"></i>
-            <p style="color: #666; font-size: 18px;">${message}</p>
-            <button onclick="loadAllListings()" style="margin-top: 20px; padding: 12px 30px; background: #c84c3d; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-family: 'Segoe UI', sans-serif;">
-                Try Again
-            </button>
-        </div>
-    `;
-}
-
-// Toast notification
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 100px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${type === 'success' ? '#27ae60' : '#c84c3d'};
-        color: white;
-        padding: 15px 25px;
-        border-radius: 25px;
-        font-weight: 600;
-        z-index: 10000;
-        animation: slideUp 0.3s ease;
-        font-family: 'Segoe UI', sans-serif;
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideDown 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Add CSS for toast animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideUp {
-        from {
-            transform: translate(-50%, 20px);
-            opacity: 0;
-        }
-        to {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-    }
-    @keyframes slideDown {
-        from {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-        to {
-            transform: translate(-50%, 20px);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
