@@ -12,3 +12,27 @@ services:
     volumes:
       - ./database:/database
     entrypoint: ["/bin/bash", "/database/entrypoint.sh"]
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P $SA_PASSWORD -C -No -Q 'SELECT 1' || exit 1" ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: python_backend
+    environment:
+      - DATABASE_URL=mssql+pyodbc://sa:${SA_PASSWORD:?errSA}@sqlserver2022:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no
+    ports:
+      - "8000:8000"
+    volumes:
+      - ..:/app
+    working_dir: /app
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    #command: [ "sh", "-c", "sleep infinity" ]
+    command: ["uvicorn", "backend.main:app", "--port", "8000", "--host", "0.0.0.0"]
+

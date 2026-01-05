@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookXchange - My Messages</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../static/mymessages.css">
+    <link rel="stylesheet" href="../static/header.css">
+
+    <!-- Script to load header -->
+    <script src="../static/config.js"></script>
+    <script src="../static/include.js?v=2"></script>
+    <script src="../static/config.js"></script>
+    <script src="../static/api.js"></script>
+
+    <!-- Page JavaScript - Load BEFORE body for onclick to work -->
+    <script src="../static/config.js"></script>
+    <script src="../static/mymessages.js"></script>
+</head>
+
+<body>
+    <!-- Header -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Back Button -->
+        <button class="back-btn" onclick="goBack()" aria-label="Go back">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+
+        <!-- Logo Section -->
+        <div class="logo-section fade-in">
+            <img src="../static/resources/your_messages.png" class="logo-img" alt="My Messages">
+        </div>
+
+        <!-- Tab Buttons -->
+        <div class="tab-container">
+            <button class="tab-btn active" data-tab="myListings" onclick="switchTab('myListings')">
+                <i class="fas fa-box"></i>
+                <span>My Listings</span>
+            </button>
+            <button class="tab-btn" data-tab="interested" onclick="switchTab('interested')">
+                <i class="fas fa-heart"></i>
+                <span>Interested In</span>
+            </button>
+        </div>
+
+        <!-- My Listings Section -->
+        <section class="message-section active" id="myListingsSection">
+            <div class="message-list" id="myListingsList">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Interested In Section -->
+        <section class="message-section" id="interestedSection">
+            <div class="message-list" id="interestedList">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+    </main>
+
+</body>
+
+</html>

@@ -1,0 +1,367 @@
+/* Reset & Variables */
+:root {
+  --color-bg: #FFF1D8;
+  --color-primary: #c84c3d;
+  --color-accent: #c84c3d;
+  --color-text-dark: #1a1a1a;
+  --color-text-light: #ffffff;
+  --color-card-bg: #fdfbf7;
+  --color-border: #e8e1c0;
+  --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  background-image: url('../static/resources/backgroundopacity2.png');
+  background-color: var(--color-bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  padding-bottom: 20px;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+main {
+  flex: 1;
+  padding: 0px 20px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+.back-btn {
+  position: fixed;
+  top: 100px;
+  left: 20px;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 50;
+}
+
+.back-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  background-color: #c84c3d;
+}
+
+.back-btn:hover i {
+  color: white;
+}
+
+.back-btn i {
+  font-size: 20px;
+  color: #1a1a2e;
+  transition: color 0.3s ease;
+}
+
+/* ============================================
+   LOGO SECTION
+   ============================================ */
+.logo-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0px;
+  min-height: 240px;
+  width: 100%;
+}
+
+.logo-img {
+  width: 720px;
+  max-width: 80%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  content: url('../static/resources/your_messages.png');
+}
+
+/* ============================================
+   TAB CONTAINER
+   ============================================ */
+.tab-container {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem auto 2rem;
+  max-width: 600px;
+  padding: 0 1rem;
+}
+
+.tab-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2px solid transparent;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn i {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
+  color: white;
+  border-color: #c84c3d;
+  box-shadow: 0 4px 15px rgba(200, 76, 61, 0.3);
+}
+
+.tab-btn.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(200, 76, 61, 0.4);
+}
+
+.tab-btn.active i {
+  transform: scale(1.1);
+}
+
+/* ============================================
+   MESSAGE SECTIONS
+   ============================================ */
+.message-section {
+  padding: 0;
+  margin: 0;
+  display: none;
+}
+
+.message-section.active {
+  display: block;
+}
+
+/* ============================================
+   MESSAGE LIST & CARDS
+   ============================================ */
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.message-card {
+  background-color: rgba(245, 237, 227, 0.95);
+  border-radius: 20px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgba(232, 225, 192, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.message-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+}
+
+.book-cover {
+  width: 60px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.message-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.message-content h3 {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-content p {
+  font-size: 0.875rem;
+  color: var(--color-text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-meta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.message-meta .date {
+  display: block;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin-bottom: 0.1rem;
+  color: #666;
+}
+
+.message-meta .time {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-text-dark);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Desktop Grid Layout (600px and up) */
+@media (min-width: 600px) {
+  .message-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+    justify-content: center;
+    justify-items: center;
+  }
+
+  .message-card {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* Tablets (768px - 1024px) */
+@media (max-width: 1024px) {
+  .logo-img {
+    max-width: 85%;
+  }
+}
+
+/* Mobile (up to 768px) */
+@media (max-width: 768px) {
+  .logo-img {
+    content: url('../static/resources/your_messages_phone.png');
+    width: 280px;
+    max-width: 90%;
+  }
+
+  .message-list {
+    padding: 0 16px;
+    gap: 18px;
+  }
+
+  .tab-container {
+    padding: 0 0.5rem;
+  }
+
+  .tab-btn {
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Small Mobile (up to 480px) */
+@media (max-width: 480px) {
+  .logo-section {
+    min-height: 160px;
+    margin-bottom: 1rem;
+  }
+
+  .logo-img {
+    width: 240px;
+  }
+
+  .message-list {
+    gap: 14px;
+    max-width: 92vw;
+    margin: 0 auto;
+    padding: 0 8px;
+  }
+
+  .book-cover {
+    width: 50px;
+    height: 70px;
+  }
+
+  .message-content h3 {
+    font-size: 0.9rem;
+  }
+
+  .message-content p {
+    font-size: 0.8rem;
+  }
+
+  .tab-btn {
+    padding: 0.75rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+
+
+  .tab-btn i {
+    font-size: 1.2rem;
+  }
+}

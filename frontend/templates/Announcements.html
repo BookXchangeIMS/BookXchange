@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookXchange - Your Books</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../static/announcements.css">
+    <link rel="stylesheet" href="../static/header.css">
+    <link rel="stylesheet" href="../static/footer.css">
+
+    <!-- Script to load header and footer -->
+    <script src="../static/config.js"></script>
+    <script src="../static/include.js?v=2"></script>
+</head>
+
+<body>
+    <!-- Header will be loaded here -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Logo Section (same as home page) -->
+        <div class="logo-section fade-in">
+            <img src="../static/resources/your_books.png" class="logo-img" alt="BookXchange Logo">
+            <img src="../static/resources/your_books_phone.png" class="logo-img-mobile" alt="BookXchange Logo">
+        </div>
+
+        <!-- Your Books Grid -->
+        <section class="books-section">
+            <div class="books-grid" id="userBooksGrid">
+                <!-- Add Book Card (First item in grid) -->
+                <div class="book-card add-book-card" onclick="goToAddListing()">
+                    <div class="add-book-content">
+                        <i class="fas fa-plus"></i>
+                        <p>Add a Book</p>
+                    </div>
+                </div>
+                <!-- User's books will be loaded here dynamically -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer will be loaded here -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Page JavaScript -->
+    <script src="../static/utils.js"></script>
+    <script src="../static/ui-components.js"></script>
+    <script src="../static/announcements.js"></script>
+</body>
+
+</html>

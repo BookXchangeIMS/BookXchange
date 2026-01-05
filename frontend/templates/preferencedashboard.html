@@ -19,7 +19,7 @@
 
         <h1 class="title">Preferences</h1>
 
-        <div class="grid">
+        <div class="grid scrollable-grid">
             <div class="pref-card" onclick="togglePreference(this)">
                 <img src="../static/resources/romancepreference.png">
                 <span>Romance</span>
@@ -39,6 +39,25 @@
                 <img src="../static/resources/sci-fipreference.png">
                 <span>Sci-Fi</span>
             </div>
+            <div class="pref-card" onclick="togglePreference(this)">
+                <img src="../static/resources/historical_fiction.png" alt="Historical Fiction">
+                <span>Historical Fiction</span>
+            </div>
+
+            <div class="pref-card" onclick="togglePreference(this)">
+                <img src="../static/resources/horror.jpg" alt="Horror">
+                <span>Horror</span>
+            </div>
+
+            <div class="pref-card" onclick="togglePreference(this)">
+                <img src="../static/resources/mystery.jpg" alt="Mystery / Thriller">
+                <span>Mystery</span>
+            </div>
+
+            <div class="pref-card" onclick="togglePreference(this)">
+                <img src="../static/resources/personal_development.jpg" alt="Personal Development">
+                <span>Personal Development</span>
+            </div>
         </div>
 
         <div class="button-container">
@@ -48,7 +67,10 @@
 
     </div>
 
+    <!-- Scripts -->
+    <script src="../static/config.js"></script>
+    <script src="../static/api.js"></script>
+    <script src="../static/config.js"></script>
     <script src="../static/preferencedashboard.js"></script>
 </body>
-
 </html>

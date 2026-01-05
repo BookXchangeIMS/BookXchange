@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookXchange - User Profile</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../static/foreignprofile.css">
+    <link rel="stylesheet" href="../static/header.css">
+    <link rel="stylesheet" href="../static/footer.css">
+
+    <!-- Script to load header -->
+    <script src="../static/config.js"></script>
+    <script src="../static/include.js"></script>
+    <script src="../static/api.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Top Navbar -->
+        <!-- Header Section -->
+        <div id="header-placeholder"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Profile Section -->
+            <section class="profile-section">
+                <div class="profile-header">
+                    <div class="avatar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </div>
+                    <div class="profile-info">
+                        <h1>Loading...</h1>
+                    </div>
+                </div>
+
+                <div class="info-bubble about-me">
+                    <h3>About me:</h3>
+                    <p>Loading user bio...</p>
+                </div>
+
+                <div class="info-bubble interests">
+                    <h3>My interests:</h3>
+                    <p class="tags">Loading...</p>
+                </div>
+            </section>
+
+            <!-- Listings Section -->
+            <section class="listings-section">
+                <h2>User's Listings</h2>
+                <div id="listings-grid" class="listings-grid">
+                    <!-- Listings will be injected here by JavaScript -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Floating Notch Navbar -->
+        <div id="footer-placeholder"></div>
+    </div>
+
+
+
+    <script src="../static/foreignprofile.js"></script>
+</body>
+
+</html>

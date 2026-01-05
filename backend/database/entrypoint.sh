@@ -4,7 +4,15 @@ echo "Starting SQL Server..."
 /opt/mssql/bin/sqlservr &
 
 # Wait until SQL Server is ready
-sleep 15
+sleep 15s
+
+RUN apt-get update && \
+    apt-get install -y curl gnupg && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev && \
+    apt-get clean -y
 
 # Function to run SQL in bash
 run_sql() {
@@ -21,6 +29,8 @@ if [ "$RESET_DB" = "true" ] ; then
   # Run DDL file
   run_sql /database/BookXchangeSQL.sql
 fi
+
+sleep 5s
 
 if [ "$TEST_POPULATE" = "true" ] ; then
   echo "TEST_POPULATE = true detected. Populating the database..."

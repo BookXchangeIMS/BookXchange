@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookXchange - Edit Profile</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="../static/editprofile.css">
+  <link rel="stylesheet" href="../static/header.css">
+
+  <!-- Script to load header -->
+  <script src="../static/config.js"></script>
+  <script src="../static/include.js"></script>
+  <script src="../static/config.js"></script>
+  <script src="../static/api.js"></script>
+</head>
+
+<body>
+  <div class="app-container">
+
+    <!-- Back Button -->
+    <button class="back-btn" onclick="window.history.back()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <main class="main-content">
+      <section class="edit-profile-section">
+        <h1>Edit profile</h1>
+
+        <form id="editProfileForm">
+          <div class="avatar-edit-wrapper">
+            <div style="position: relative; display: inline-block;">
+              <div class="avatar-preview" id="avatarPreview">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <button type="button" class="avatar-upload-btn"
+                onclick="document.getElementById('profileImageInput').click()">
+                <i class="fas fa-camera"></i>
+              </button>
+              <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="fullName">Name</label>
+              <input type="text" id="fullName" name="fullName" required>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" required readonly>
+            </div>
+
+            <div class="form-group">
+              <label for="location">Location</label>
+              <input type="text" id="location" name="location" placeholder="City, Country">
+            </div>
+
+            <div class="form-group form-group-full">
+              <label for="aboutMe">About me</label>
+              <textarea id="aboutMe" name="aboutMe" rows="4"></textarea>
+            </div>
+
+            <div class="form-group form-group-full">
+              <label>Preferred Genres</label>
+
+              <!-- Selected genres display -->
+              <div id="selectedGenres" class="selected-genres"></div>
+
+              <!-- Available genres to choose from -->
+              <div class="genre-selection">
+                <label class="subtitle-label">Available genres:</label>
+                <div id="availableGenres" class="genre-checkboxes"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="secondary-btn delete-btn" onclick="confirmDeleteAccount()">Delete
+              Account</button>
+            <button type="submit" class="primary-btn">Save Changes</button>
+          </div>
+
+          <p id="formMessage" class="form-message"></p>
+        </form>
+      </section>
+    </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay">
+      <div class="modal-container">
+        <div class="modal-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2 class="modal-title" id="modalTitle">Delete Account?</h2>
+        <p class="modal-message" id="modalMessage">
+          This action will permanently delete:<br><br>
+          • Your profile and all personal information<br>
+          • All your listings<br>
+          • All your messages<br>
+          • All your preferences<br><br>
+          <strong>This action CANNOT be undone!</strong>
+        </p>
+        <div class="modal-actions">
+          <button class="modal-btn cancel-modal-btn" onclick="closeDeleteModal()">Cancel</button>
+          <button class="modal-btn confirm-modal-btn" onclick="proceedDeleteAccount()">Delete Account</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../static/config.js"></script>
+  <script src="../static/editprofile.js"></script>
+</body>
+
+</html>
