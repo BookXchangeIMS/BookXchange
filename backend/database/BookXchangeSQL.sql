@@ -3,6 +3,7 @@ GO
 USE BookXchange;
 GO
 
+
 CREATE TABLE Locations(
     LocationID INT IDENTITY(1,1) PRIMARY KEY,
     Longitude FLOAT NOT NULL,
@@ -11,6 +12,7 @@ CREATE TABLE Locations(
     [Description] NVARCHAR(512) NOT NULL
 );
 GO
+
 
 CREATE TABLE Users(
     UserID INT IDENTITY PRIMARY KEY,
@@ -26,6 +28,7 @@ CREATE TABLE Users(
     FOREIGN KEY(LocationID) REFERENCES Locations(LocationID)
 );
 
+
 CREATE TABLE Books(
     BookID INT IDENTITY PRIMARY KEY,
     Title NVARCHAR(256) NOT NULL,
@@ -37,10 +40,12 @@ CREATE TABLE Books(
 );
 
 
+
 CREATE TABLE Authors(
     AuthorID INT IDENTITY PRIMARY KEY,
     AuthorName NVARCHAR(256) NOT NULL
 );
+
 
 CREATE TABLE AuthorBook(
     AuthorID INT NOT NULL,
@@ -50,10 +55,12 @@ CREATE TABLE AuthorBook(
     FOREIGN KEY(BookID) REFERENCES Books(BookID) ON DELETE CASCADE
 );
 
+
 CREATE TABLE Genres(
     GenreID INT IDENTITY PRIMARY KEY,
     GenreName NVARCHAR(256) NOT NULL
 );
+
 
 CREATE TABLE BookGenre(
     BookID INT NOT NULL,
@@ -63,6 +70,7 @@ CREATE TABLE BookGenre(
     FOREIGN KEY(GenreID) REFERENCES Genres(GenreID) ON DELETE CASCADE
 );
 
+
 CREATE TABLE Preferences(
     UserID INT NOT NULL,
     GenreID INT NOT NULL,
@@ -70,6 +78,7 @@ CREATE TABLE Preferences(
     FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
     FOREIGN KEY(GenreID) REFERENCES Genres(GenreID) ON DELETE CASCADE
 );
+
 
 CREATE TABLE Listings(
     ListingID INT IDENTITY PRIMARY KEY,
@@ -87,12 +96,14 @@ CREATE TABLE Listings(
     FOREIGN KEY(LocationID) REFERENCES Locations(LocationID)
 );
 
+
 CREATE TABLE ListingPhoto(
     PhotoID INT IDENTITY PRIMARY KEY,
     ListingID INT NOT NULL,
     ImagePath NVARCHAR(512) NOT NULL,
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE
 );
+
 
 CREATE TABLE Favorites(
     ListingID INT NOT NULL,
@@ -101,6 +112,7 @@ CREATE TABLE Favorites(
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE,
     FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE
 );
+
 
 CREATE TABLE Reports(
     ReportID INT IDENTITY PRIMARY KEY,
@@ -113,6 +125,7 @@ CREATE TABLE Reports(
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID)
 );
 
+
 CREATE TABLE Notification(
     NotificationID INT IDENTITY PRIMARY KEY,
     NotificationType NVARCHAR(64) NOT NULL,
@@ -123,6 +136,7 @@ CREATE TABLE Notification(
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID)
 );
 
+
 CREATE TABLE UserNotification(
     UserID INT NOT NULL,
     NotificationID INT NOT NULL,
@@ -130,6 +144,7 @@ CREATE TABLE UserNotification(
     FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
     FOREIGN KEY(NotificationID) REFERENCES Notification(NotificationID) ON DELETE CASCADE
 );
+
 
 CREATE TABLE Messages(
     MessageID INT IDENTITY PRIMARY KEY,
@@ -143,6 +158,7 @@ CREATE TABLE Messages(
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE NO ACTION
 );
 
+
 CREATE TABLE Transactions(
     TransactionID INT IDENTITY PRIMARY KEY,
     ListingID INT NOT NULL,
@@ -152,8 +168,9 @@ CREATE TABLE Transactions(
     ConfirmedByBuyer BIT NOT NULL DEFAULT 0,
     ConfirmedBySeller BIT NOT NULL DEFAULT 0,
     FOREIGN KEY(ListingID) REFERENCES Listings(ListingID) ON DELETE CASCADE,
-    FOREIGN KEY(BuyerID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY(BuyerID) REFERENCES Users(UserID) ON DELETE CASCADE
 );
+
 
 CREATE TABLE RefreshTokens(
     TokenID INT IDENTITY PRIMARY KEY,
@@ -164,6 +181,16 @@ CREATE TABLE RefreshTokens(
     FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE
 );
 
+-- Minimal gamification: keep per-user points and level
+CREATE TABLE UserPoints(
+    UserID INT PRIMARY KEY,
+    TotalPoints INT NOT NULL DEFAULT 0,
+    Level INT NOT NULL DEFAULT 1,
+    LastUpdated DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    FOREIGN KEY(UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+
 CREATE INDEX IX_Listings_UserID ON Listings(UserID);
 CREATE INDEX IX_Listings_BookID ON Listings(BookID);
 CREATE INDEX IX_ListingPhoto_ListingID ON ListingPhoto(ListingID);
@@ -172,4 +199,5 @@ CREATE INDEX IX_Reports_UserID ON Reports(UserID);
 CREATE INDEX IX_UserNotification_UserID ON UserNotification(UserID);
 CREATE INDEX IX_Notification_ListingID ON Notification(ListingID);
 
-Go
+
+GO

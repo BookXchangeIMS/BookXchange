@@ -9,6 +9,7 @@ import os
 from backend.config.config import Settings
 from backend.models import *
 from backend.config.db import metadata
+from backend.scripts.gamification import award_points
 
 # Fetching Config file
 SECRET_KEY = Settings().SECRET_KEY
@@ -129,9 +130,15 @@ def sign_user_up(data: SignUp, locationid: int, db):
     try:
         db.execute(stmt)
         db.commit()
+        userid = get_userid_by_credentials(
+            SignIn(Email=data.Email, PasswordHash=data.PasswordHash), db
+        )
+        # Award sign-up bonus
+        award_points(userid, "SIGN_UP", db)
     except Exception as e:
-        print("ho nooo")
+        print(f"Error in sign_user_up: {e}")
         raise HTTPException(status_code=500, detail="Couldn't create new account. Please try again later.")
+    
 
 def get_user_by_id(userid: int, db):
     """

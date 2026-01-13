@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, and_, or_, func, case
 
 from backend.config.db import metadata
+from backend.scripts.gamification import award_points
 
 
 def get_transaction_by_listingid_and_userid(listingid: int, buyerid: int, db):
@@ -27,22 +28,70 @@ def post_new_transaction(listingid: int, buyerid: int, sellerid: int, BySeller: 
 def confirm_transaction_by_listingid_and_buyeid(listingid: int, buyerid: int, BySeller: bool, db):
     transactions = metadata.tables["Transactions"]
     listings = metadata.tables["Listings"]
+
+    # First, update the side that is confirming now
     if BySeller:
-        stmt = transactions.update().where(and_(transactions.c.ListingID == listingid, transactions.c.BuyerID == buyerid)).values(TransactionStatus=1, ConfirmedBySeller=True)
+        stmt = transactions.update().where(
+            and_(transactions.c.ListingID == listingid,
+                 transactions.c.BuyerID == buyerid)
+        ).values(ConfirmedBySeller=True)
     else:
-        stmt = transactions.update().where(and_(transactions.c.ListingID == listingid, transactions.c.BuyerID == buyerid)).values(TransactionStatus=1, ConfirmedByBuyer=True)
+        stmt = transactions.update().where(
+            and_(transactions.c.ListingID == listingid,
+                 transactions.c.BuyerID == buyerid)
+        ).values(ConfirmedByBuyer=True)
+
     try:
         db.execute(stmt)
         db.commit()
     except Exception as e:
         raise HTTPException(status_code=409, detail="Couldn't confirm transaction")
-    stmt2 = listings.update().where(listings.c.ListingID == listingid).values(ListingState="Closed")
-    try:
-        db.execute(stmt2)
-        db.commit()
-        return True
-    except Exception as e:
-        raise HTTPException(status_code=409, detail="Couldn't close listing")
+
+    # Reload transaction to see current state
+    tx = get_transaction_by_listingid_and_userid(listingid, buyerid, db)
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    # If BOTH sides are now confirmed, close listing and award points
+    if tx.ConfirmedByBuyer and tx.ConfirmedBySeller:
+        # Mark transaction as completed
+        stmt_tx_done = transactions.update().where(
+            and_(transactions.c.ListingID == listingid,
+                 transactions.c.BuyerID == buyerid)
+        ).values(TransactionStatus=1)
+        # Close listing
+        stmt_listing = listings.update().where(
+            listings.c.ListingID == listingid
+        ).values(ListingState="Closed")
+
+        try:
+            db.execute(stmt_tx_done)
+            db.execute(stmt_listing)
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise HTTPException(status_code=409, detail="Couldn't close listing")
+
+        # Award points to both buyer and seller
+        try:
+            # Seller is the listing owner
+            sellerid = listings.select().where(
+                listings.c.ListingID == listingid
+            )
+            # Fetch seller id
+            seller_row = db.execute(
+                select(listings.c.UserID).where(listings.c.ListingID == listingid)
+            ).fetchone()
+            if seller_row:
+                seller_id = seller_row.UserID
+                award_points(buyerid, "COMPLETE_TRANSACTION", db)
+                award_points(seller_id, "COMPLETE_TRANSACTION", db)
+        except Exception:
+            # Do not break transaction if points fail
+            pass
+
+    return True
+
 
 def delete_transaction_by_listingid_and_buyerid(listingid: int, buyerid: int, BySeller: bool, db):
     transactions = metadata.tables["Transactions"]

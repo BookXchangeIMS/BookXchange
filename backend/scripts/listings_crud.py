@@ -3,6 +3,7 @@ from sqlalchemy import select, or_, and_, func
 
 from backend.models import *
 from backend.config.db import metadata
+from backend.scripts.gamification import award_points
 
 def get_authorids_by_names(author_names: str, db):
     """
@@ -478,6 +479,11 @@ def post_new_listing(listing: PostListing, userid, new_locationid, new_bookid, d
     try:
         db.execute(stmt)
         db.commit()
+        try:
+            db.commit()
+            award_points(userid, "CREATE_LISTING", db)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Couldn't create new listing. Please try again later.")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Couldn't create new listing. Please try again later.")
 

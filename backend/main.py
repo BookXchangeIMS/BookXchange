@@ -18,6 +18,7 @@ from backend.scripts.listings_crud import *
 from backend.scripts.ai_service import analyze_book_image
 from fastapi import UploadFile, File
 from backend.scripts.transactions_crud import *
+from backend.scripts.gamification import award_points
 
 from datetime import datetime
 
@@ -170,6 +171,10 @@ async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
         if not store_refresh_token(refresh_token, userid, db):
             raise HTTPException(status_code=500, detail="Error storing refresh token")
         return Tokens(access_token=access_token, refresh_token=refresh_token)
+        try:
+            award_points(userid, "SIGN_IN", db)
+        except:
+            pass  # Don't fail login if points fail
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
