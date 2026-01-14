@@ -3,7 +3,7 @@ name: Build and Deploy Docker to Azure Web App via GHCR
 on:
   push:
     branches:
-      - putting_things_online
+      - dev
   workflow_dispatch:
 
 jobs:
