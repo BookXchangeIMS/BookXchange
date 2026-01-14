@@ -2,6 +2,18 @@
 const API_BASE_URL = (typeof ENV !== 'undefined' && ENV.API_BASE_URL) || 'http://localhost:8000';
 const USE_MOCK_DATA = false; // Set to false to use backend
 
+// ============================================
+// AUTHENTICATION UTILITIES (self-contained)
+// ============================================
+
+function getAccessToken() {
+    return localStorage.getItem('access-token');
+}
+
+function isLoggedIn() {
+    return !!getAccessToken();
+}
+
 // Initialize books in localStorage on first load (for mock mode only)
 function initializeBooksStorage() {
     if (!localStorage.getItem('MOCK_USER_BOOKS')) {
