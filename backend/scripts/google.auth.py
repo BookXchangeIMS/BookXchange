@@ -9,7 +9,7 @@ GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
 GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
 GOOGLE_REDIRECT_URI = os.environ["GOOGLE_REDIRECT_URI"]
 
-router = APIRouter(prefix="/auth/google", tags=["Google Auth"])
+router = APIRouter(prefix="/auth/google", tags=["Authentication"])
 
 
 @router.get("/login")
