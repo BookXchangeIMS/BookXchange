@@ -1,5 +1,10 @@
 import asyncio
 
+# Load environment variables from .env file (for local development)
+# In production (Azure), environment variables are set in App Service Configuration
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status, Query, Request
 from collections import defaultdict
 from typing import Annotated, Dict, Set
