@@ -18,7 +18,8 @@ from backend.scripts.auth import (
 )
 from backend.config.db import get_db
 from backend.config.config import Settings
-from backend.scripts.location import post_location
+from backend.scripts.location_scripts import post_location, address_to_coordinates
+from backend.models import Location
 
 # Use .get() to provide fallback and prevent KeyError during import
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
@@ -221,8 +222,23 @@ def complete_google_profile(
     if check_if_email_exists(email, db):
         raise HTTPException(status_code=409, detail="Account already exists")
     
-    # Create location
-    location_id = post_location(location_address, "", db)
+    # Geocode the address to get coordinates
+    coords = address_to_coordinates(location_address)
+    if not coords:
+        raise HTTPException(status_code=400, detail="Could not geocode the provided address")
+    
+    latitude, longitude = coords
+    
+    # Create location object
+    location_data = Location(
+        Latitude=latitude,
+        Longitude=longitude,
+        Address=location_address,
+        Description=""
+    )
+    
+    # Create location in database
+    location_id = post_location(location_data, db)
     
     # Create fake SignUp object for compatibility with existing function
     from backend.models import SignUp
