@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - OAuth
   workflow_dispatch:
 
 jobs:
