@@ -1,5 +1,6 @@
 // Configuration for different environments
 
+/*
 const ENV = {
     // Automatically detect environment
     API_BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -11,6 +12,8 @@ const ENV = {
         return this.API_BASE_URL.replace(/^http/, 'ws');
     }
 };
+
+*/
 
 // Make it available globally
 window.ENV = ENV;

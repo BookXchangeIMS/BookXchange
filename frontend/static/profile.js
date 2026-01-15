@@ -22,9 +22,7 @@ async function loadUserProfile() {
     const token = getAccessToken();
 
     console.log('Loading profile... Token:', token ? 'exists' : 'missing');
-    console.log('Token value:', token); // Show actual token
 
-    // Already checked by login protection at top of file
     if (!token) {
         console.error('No token found');
         return;
@@ -79,18 +77,56 @@ async function loadUserProfile() {
                 interestsTextElement.textContent = 'Unable to load interests';
             }
         }
+
+        // ===================== NEW: load gamification points =====================
+        try {
+            console.log('Fetching user points...');
+            const response = await fetch(`${API_BASE_URL}/api/get_user_points`, {
+                method: 'GET',
+                headers: {
+                    'access-token': token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch points');
+            }
+
+            const points = await response.json();
+            console.log('Points loaded:', points);
+
+            const pointsElement = document.getElementById('userPoints');
+            const levelElement = document.getElementById('userLevel');
+            const progressElement = document.getElementById('levelProgress');
+
+            if (pointsElement) {
+                pointsElement.textContent = `${points.TotalPoints} pts`;
+            }
+
+            if (levelElement) {
+                levelElement.textContent = `Level ${points.Level}`;
+            }
+
+            if (progressElement) {
+                const POINTS_PER_LEVEL = 500;
+                const currentLevelPoints = (points.Level - 1) * POINTS_PER_LEVEL;
+                const progressPercent =
+                    ((points.TotalPoints - currentLevelPoints) / POINTS_PER_LEVEL) * 100;
+                progressElement.style.width = `${Math.min(Math.max(progressPercent, 0), 100)}%`;
+            }
+        } catch (error) {
+            console.error('Error loading points:', error);
+        }
+        // ===================== END NEW BLOCK =====================
+
     } catch (error) {
         console.error('Error loading profile:', error);
         console.error('Error details:', error.message);
         showToast('Failed to load profile: ' + error.message, 'error');
-
-        // Commented out to debug
-        // setTimeout(() => {
-        //     clearTokens();
-        //     window.location.href = '../templates/Login.html';
-        // }, 2000);
     }
 }
+
 
 // ============================================
 // PROFILE ACTIONS
@@ -130,7 +166,7 @@ function confirmLogout() {
     // Try to call logout API first (but don't wait for it)
     if (accessToken && refreshToken) {
         logout(accessToken, refreshToken).catch(err => {
-            console.error('Logout API error:', err);
+            console.error('Logout API error:', err);    
         });
     }
 
