@@ -85,11 +85,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static files configuration
-app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+# Initialize Azure Blob Storage containers on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize Azure Blob Storage containers on application startup"""
+    try:
+        from backend.config.azure_storage import ensure_containers_exist
+        ensure_containers_exist()
+        print("✅ Azure Blob Storage containers initialized")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not initialize Azure Blob Storage: {e}")
+        print("   Make sure AZURE_STORAGE_CONNECTION_STRING is configured")
 
-# Templates configuration
-templates = Jinja2Templates(directory="frontend/templates")
+
+# Static files configuration
+# NOTE: Commented for Azure deployment - frontend is served separately
+# app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+
+# Templates configuration  
+# NOTE: Commented for Azure deployment - backend is API-only
+# templates = Jinja2Templates(directory="frontend/templates")
 
 
 #==============================================================================================================
@@ -1045,7 +1060,16 @@ async def get_users_profile_picture(userid: int, access_token: str, db= Depends(
     user = get_user_by_id(userid, db)
     if not user.ProfileImagePath:
         raise HTTPException(status_code=404, detail="User has no profile picture")
-    return FileResponse(path=user.ProfileImagePath)
+    
+    # Check if this is a Blob Storage URL (new format) or local path (legacy)
+    if user.ProfileImagePath.startswith('http'):
+        # New Blob Storage format - redirect to blob URL
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url=user.ProfileImagePath)
+    else:
+        # Legacy local file format - serve from filesystem
+        return FileResponse(path=user.ProfileImagePath)
+
 
 
 @app.get("/api/get_listings_pictures",
@@ -1114,11 +1138,18 @@ async def get_listing_primary_image(listingid: int, access_token: str, db=Depend
     # Return the first image if file exists
     first_image_path = image_paths[0].ImagePath
     
-    # Check if file actually exists
-    if not os.path.exists(first_image_path):
-        raise HTTPException(status_code=404, detail="Image file not found on server")
-    
-    return FileResponse(path=first_image_path, media_type="image/jpeg")
+    # Check if this is a Blob Storage URL (new format) or local path (legacy)
+    if first_image_path.startswith('http'):
+        # New Blob Storage format - redirect to blob URL
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url=first_image_path)
+    else:
+        # Legacy local file format - serve from filesystem
+        import os
+        if not os.path.exists(first_image_path):
+            raise HTTPException(status_code=404, detail="Image file not found on server")
+        return FileResponse(path=first_image_path, media_type="image/jpeg")
+
 
 @app.get("/api/get_listing_images_urls", status_code=status.HTTP_200_OK, tags=["Images"])
 async def get_listing_images_urls(listingid: int, access_token: str, db=Depends(get_db)):
@@ -1180,12 +1211,18 @@ async def get_listing_image_by_photo_id(photo_id: int, access_token: str, db=Dep
     
     image_path = result.ImagePath
     
-    # Check if file actually exists
-    import os
-    if not os.path.exists(image_path):
-        raise HTTPException(status_code=404, detail="Image file not found on server")
-    
-    return FileResponse(path=image_path, media_type="image/jpeg")
+    # Check if this is a Blob Storage URL (new format) or local path (legacy)
+    if image_path.startswith('http'):
+        # New Blob Storage format - redirect to blob URL
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url=image_path)
+    else:
+        # Legacy local file format - serve from filesystem
+        import os
+        if not os.path.exists(image_path):
+            raise HTTPException(status_code=404, detail="Image file not found on server")
+        return FileResponse(path=image_path, media_type="image/jpeg")
+
 
 
 @app.post("/api/post_listings_picture", status_code=status.HTTP_200_OK, tags=["Images"])
@@ -1772,7 +1809,7 @@ async def confirm_transaction(listingid: int, buyerid: int, access_token: str = 
         if transaction_status == -1:
             return post_new_transaction(listingid, buyerid, userid, False, db)
         elif transaction_status == 0:
-            return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, userid, False, db)
+            return confirm_transaction_by_listingid_and_buyeid(listingid, buyerid, False, db)
         elif transaction_status == 1:
             raise HTTPException(status_code=400, detail="Transaction already confirmed")
     else:

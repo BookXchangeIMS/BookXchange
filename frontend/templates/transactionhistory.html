@@ -21,59 +21,57 @@
     <link rel="stylesheet" href="../static/footer.css">
 
     <!-- Script to load header and footer -->
+    <script src="../static/config.js"></script>
     <script src="../static/include.js"></script>
     <script src="../static/api.js"></script>
 </head>
 
 <body>
-    <!-- Header-->
-    <div id="header-placeholder"></div>
 
-    <!-- Back Button -->
-    <button class="back-btn" onclick="goBack()" aria-label="Go back">
-        <i class="fas fa-arrow-left"></i>
-    </button>
+    <body>
 
-    <!-- Main Content -->
-    <main>
-        <!-- Logo Section -->
-        <div class="logo-section fade-in">
-            <h1 class="page-title">Transaction History</h1>
-            <p class="page-subtitle">View your purchase and sales history</p>
-        </div>
+        <!-- Back Button -->
+        <button class="back-btn" onclick="goBack()" aria-label="Go back">
+            <i class="fas fa-arrow-left"></i>
+        </button>
 
-        <!-- Transactions Container -->
-        <div class="transactions-container">
-            <!-- Purchases Section -->
-            <section class="transactions-section purchases-section">
-                <h2 class="section-title">
-                    <i class="fas fa-shopping-bag"></i>
-                    My Purchases
-                </h2>
-                <div id="purchasesGrid" class="transactions-grid">
-                    <!-- Purchase transactions will be loaded here -->
-                </div>
-            </section>
+        <!-- Main Content -->
+        <main>
+            <!-- Logo Section -->
+            <div class="logo-section fade-in">
+                <h1 class="page-title">Transaction History</h1>
+                <p class="page-subtitle">View your purchase and sales history</p>
+            </div>
 
-            <!-- Sales Section -->
-            <section class="transactions-section sales-section">
-                <h2 class="section-title">
-                    <i class="fas fa-hand-holding-usd"></i>
-                    My Sales
-                </h2>
-                <div id="salesGrid" class="transactions-grid">
-                    <!-- Sale transactions will be loaded here -->
-                </div>
-            </section>
-        </div>
-    </main>
+            <!-- Transactions Container -->
+            <div class="transactions-container">
+                <!-- Purchases Section -->
+                <section class="transactions-section purchases-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-shopping-bag"></i>
+                        My Purchases
+                    </h2>
+                    <div id="purchasesGrid" class="transactions-grid">
+                        <!-- Purchase transactions will be loaded here -->
+                    </div>
+                </section>
 
-    <!-- Footer - LOADED BY include.js -->
-    <div id="footer-placeholder"></div>
+                <!-- Sales Section -->
+                <section class="transactions-section sales-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        My Sales
+                    </h2>
+                    <div id="salesGrid" class="transactions-grid">
+                        <!-- Sale transactions will be loaded here -->
+                    </div>
+                </section>
+            </div>
+        </main>
 
-    <!-- Transaction History JS -->
-    <script src="/static/transactionhistory.js"></script>
-    </head>
-</body>
+        <!-- Transaction History JS -->
+        <script src="../static/transactionhistory.js"></script>
+        </head>
+    </body>
 
 </html>

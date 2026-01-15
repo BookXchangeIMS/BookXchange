@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000';  // Changed from localhost to 127.0.0.1
+const API_BASE_URL = (typeof ENV !== 'undefined' && ENV.API_BASE_URL) || 'http://localhost:8000';
 
 const USE_MOCK_DATA = false; // Set to true for testing without backend
 const MAX_IMAGES = 10;
@@ -174,7 +174,7 @@ const api = {
 
             if (!response.ok) {
                 clearTokens();
-                window.location.href = '/login';
+                window.location.href = '../templates/Login.html';
                 throw new Error('Session expired. Please login again.');
             }
 
@@ -184,7 +184,7 @@ const api = {
         } catch (error) {
             console.error('Token refresh failed:', error);
             clearTokens();
-            window.location.href = '/login';
+            window.location.href = '../templates/Login.html';
             throw error;
         }
     }
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
     if (!USE_MOCK_DATA && !getAccessToken()) {
         showToast('Please login to add a listing', 'error');
-        setTimeout(() => window.location.href = '/login', 2000);
+        setTimeout(() => window.location.href = '../templates/Login.html', 2000);
         return;
     }
 
@@ -705,7 +705,7 @@ async function handleFormSubmit(event) {
         // Always redirect after a short delay
         console.log('🔄 Redirecting to announcements page...');
         setTimeout(() => {
-            window.location.href = '/announcements';
+            window.location.href = 'Announcements.html';
         }, 1000);
 
     } catch (error) {
@@ -800,7 +800,7 @@ async function handleScanBook(event) {
 function showCancelModal() {
     // If no changes were made, go directly back without showing modal
     if (!hasFormChanged && newImages.length === 0) {
-        window.location.href = '/announcements';
+        window.location.href = 'Announcements.html';
         return;
     }
 
@@ -817,7 +817,7 @@ function closeCancelModal() {
 
 // Confirm cancel and redirect
 function confirmCancel() {
-    window.location.href = '/announcements';
+    window.location.href = 'Announcements.html';
 }
 
 

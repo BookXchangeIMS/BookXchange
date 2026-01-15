@@ -73,7 +73,7 @@ async function createAccount(withPreferences) {
         // Validate all data is present
         if (!userData.name || !userData.email || !userData.password || !userData.dob || !userData.location) {
             alert('Registration data is incomplete. Please start over.');
-            window.location.href = '/registration';
+            window.location.href = '../templates/registration.html';
             return;
         }
 
@@ -108,7 +108,7 @@ async function createAccount(withPreferences) {
         localStorage.removeItem('reg_location');
 
         // Redirect to home
-        window.location.href = '/';
+        window.location.href = '../templates/home.html';
 
     } catch (error) {
         console.error('Registration error:', error);
