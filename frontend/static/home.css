@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
-    background-image: url('resources/backgroundopacity2.png');
+    background-image: url('../static/resources/backgroundopacity2.png');
     background-color: #FFF1D8;
     min-height: 100vh;
     display: flex;

@@ -1,6 +1,6 @@
 // Require login
 if (!isLoggedIn()) {
-  window.location.href = '../templates/Login.html';
+  window.location.href = '/login';
 }
 
 // Navigation functions - MUST be in global scope for onclick to work
@@ -9,24 +9,24 @@ window.goBack = function () {
 };
 
 window.goToHome = function () {
-  window.location.href = '../templates/home.html';
+  window.location.href = '/';
 };
 
 window.goToAnnouncements = function () {
-  window.location.href = 'Announcements.html';
+  window.location.href = '/announcements';
 };
 
 window.goToFavorites = function () {
-  window.location.href = 'favourites.html';
+  window.location.href = '/favourites';
 };
 
 // Inbox page
 window.goToMessages = function () {
-  window.location.href = 'mymessages.html';
+  window.location.href = '/messages';
 };
 
 window.goToProfile = function () {
-  window.location.href = 'profile.html';
+  window.location.href = '/profile';
 };
 
 // Tab switching function
@@ -137,7 +137,7 @@ function createInterestedCard(dialogue, listingInfo, userName) {
   card.addEventListener('click', () => {
     const listingId = card.dataset.listingId;
     const userId = card.dataset.userId;
-    window.location.href = `messages.html?listing_id=${listingId}&user_id=${userId}`;
+    window.location.href = `/mymessages?listing_id=${listingId}&user_id=${userId}`;
   });
 
   return card;
@@ -196,26 +196,15 @@ async function loadDialogues() {
       const isMyListing = listing.User?.UserID === myUserId;
 
       // Get the other user's name
-      let otherUserName = 'Unknown User';
+      const otherUserName = listing.User?.Name || 'Unknown User';
 
       if (isMyListing) {
-        // This is MY listing - get the name of who is interested (dialogue.UserID)
-        try {
-          const interestedUserProfile = await getUserProfile(dialogue.UserID, accessToken);
-          otherUserName = interestedUserProfile?.Name || 'Unknown User';
-        } catch (e) {
-          console.warn('Failed to load interested user profile', e);
-        }
-
         // This is my listing - show in "My Listings" tab
         const card = createMyListingCard(dialogue, listingInfo, otherUserName);
         myListingsCards.push(card);
         myListingsList.appendChild(card);
       } else {
-        // This is someone else's listing - show listing owner's name
-        otherUserName = listing.User?.Name || 'Unknown User';
-
-        // Show in "Interested In" tab
+        // This is someone else's listing - show in "Interested In" tab
         const card = createInterestedCard(dialogue, listingInfo, otherUserName);
         interestedCards.push(card);
         interestedList.appendChild(card);

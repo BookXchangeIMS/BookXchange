@@ -115,12 +115,27 @@ main {
     overflow: hidden;
 }
 
-/* Removed heavy ::before pseudo-element to prevent crashes */
+.transaction-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(200, 76, 61, 0.05) 0%, rgba(26, 26, 46, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+.transaction-card:hover::before {
+    opacity: 1;
+}
 
 .transaction-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    border-color: rgba(200, 76, 61, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(200, 76, 61, 0.1);
 }
 
 /* ========== TRANSACTION IMAGE ========== */

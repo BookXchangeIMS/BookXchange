@@ -3,7 +3,7 @@
 // ============================================
 
 window.goBack = function () {
-    window.location.href = '../templates/home.html';
+    window.location.href = '/';
 };
 
 // ============================================
@@ -87,7 +87,7 @@ async function loadUserProfile() {
         // Commented out to debug
         // setTimeout(() => {
         //     clearTokens();
-        //     window.location.href = '../templates/Login.html';
+        //     window.location.href = '/login';
         // }, 2000);
     }
 }
@@ -97,16 +97,16 @@ async function loadUserProfile() {
 // ============================================
 
 function editProfile() {
-    window.location.href = 'editprofile.html';
+    window.location.href = '/edit-profile';
 }
 
 function viewTransactionHistory() {
-    window.location.href = 'transactionhistory.html';
+    window.location.href = '/transactions';
 }
 
 // Add login check at page load
 if (!isLoggedIn()) {
-    window.location.href = '../templates/Login.html';
+    window.location.href = '/login';
 }
 
 function handleLogout() {
@@ -140,7 +140,7 @@ function confirmLogout() {
     // Show toast and redirect
     showToast('Logged out successfully', 'success');
     setTimeout(() => {
-        window.location.href = '../templates/Login.html';
+        window.location.href = '/login';
     }, 1000);
 }
 
@@ -149,23 +149,23 @@ function confirmLogout() {
 // ============================================
 
 function goToHome() {
-    window.location.href = '../templates/home.html';
+    window.location.href = '/';
 }
 
 function goToAnnouncements() {
-    window.location.href = 'Announcements.html';
+    window.location.href = '/announcements';
 }
 
 function goToFavorites() {
-    window.location.href = 'favourites.html';
+    window.location.href = '/favourites';
 }
 
 function goToProfile() {
-    window.location.href = 'profile.html';
+    window.location.href = '/profile';
 }
 
 function goToMessages() {
-    window.location.href = 'mymessages.html';
+    window.location.href = '/messages';
 }
 
 // ============================================

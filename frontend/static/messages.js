@@ -1,41 +1,33 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Read URL parameters to get listing and user IDs
-    const urlParams = new URLSearchParams(window.location.search);
-    const listingId = urlParams.get('listing_id');
-    const otherUserId = urlParams.get('user_id');
-
-    const accessToken = getAccessToken();
-    console.log('[Messages] URL params:', { listingId, otherUserId });
-
     // GLOBAL NAVIGATION FUNCTIONS
     window.goBack = function () {
         window.history.back();
     };
 
     window.goToHome = function () {
-        window.location.href = '../templates/home.html';
+        window.location.href = '/';
     };
 
     window.goToAnnouncements = function () {
-        window.location.href = 'Announcements.html';
+        window.location.href = '/announcements';
     };
 
     // Require login
     if (!isLoggedIn()) {
-        window.location.href = '../templates/Login.html';
+        window.location.href = '/login';
     }
 
     // Navigation functions - MUST be in global scope for onclick to work
     window.goToFavorites = function () {
-        window.location.href = 'favourites.html';
+        window.location.href = '/favourites';
     };
 
     window.goToMessages = function () {
-        window.location.href = 'mymessages.html';
+        window.location.href = '/messages';
     };
 
     window.goToProfile = function () {
-        window.location.href = 'profile.html';
+        window.location.href = '/profile';
     };
 
     // CHAT DOM
@@ -272,15 +264,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (otherProfile) {
                     otherUserName = otherProfile.Name;
                     if (profileNameEl) profileNameEl.textContent = otherProfile.Name;
-
-                    // Load profile picture if exists
-                    if (otherProfile.ProfileImagePath) {
-                        const profileAvatarEl = document.getElementById('profileAvatar');
-                        if (profileAvatarEl) {
-                            const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${otherUserId}&access_token=${accessToken}`;
-                            profileAvatarEl.innerHTML = `<img src="${imageUrl}" alt="${otherProfile.Name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'white\\' stroke-width=\\'1.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'></path><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'></circle></svg>'">`;
-                        }
-                    }
                 }
             } catch (e) {
                 console.error("Error fetching other user profile:", e);
@@ -426,10 +409,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (dealButton) {
-        dealButton.addEventListener('click', async function (event) {
-            event.preventDefault(); // Prevent form submission
+        dealButton.addEventListener('click', async function () {
             if (!listingId || !buyerId) return;
-
 
             const myConfirmation = iAmSeller ? confirmedBySeller : confirmedByBuyer;
 

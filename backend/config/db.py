@@ -1,14 +1,12 @@
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
-import os
-from backend.config.config import Settings
+from backend.config.config import *
 
-# Use DATABASE_URL from environment variable if available
-# Falls back to local Docker setup for development
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    f"mssql+pyodbc://sa:{Settings.SA_PASSWORD}@sqlserver2022:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
-)
+# Inside of container Testing
+DATABASE_URL = f"mssql+pyodbc://sa:{Settings.SA_PASSWORD}@sqlserver2022:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
+
+# Out of container Testing
+#DATABASE_URL = f"mssql+pyodbc://sa:{Settings.SA_PASSWORD}@localhost:1433/BookXchange?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
 
 engine = create_engine(DATABASE_URL)
 

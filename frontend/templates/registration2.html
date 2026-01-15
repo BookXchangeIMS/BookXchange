@@ -4,13 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookXchange - Register</title>
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="/static/registration.css">
+    <title>BookXchange - Registration (Step 2)</title>
+    <link rel="stylesheet" href="/static/registration2.css">
 </head>
 
 <body>
@@ -25,28 +20,31 @@
         <h1 class="title">Registration</h1>
 
         <!-- Form -->
-        <form class="form-group" onsubmit="handleRegistration(event)">
+        <form class="form-group" onsubmit="handleRegistration2(event)">
             <div class="input-group">
-                <label class="input-label">Write your name:</label>
-                <input type="text" class="input-field" placeholder="Full Name" required>
+                <label class="input-label">Date of Birth:</label>
+                <input type="date" class="input-field date-input" required max="">
             </div>
 
             <div class="input-group">
-                <label class="input-label">Your best Email:</label>
-                <input type="email" class="input-field" placeholder="Email" required>
+                <label class="input-label">Your Address:</label>
+                <input type="text" class="input-field" placeholder="Address" required>
             </div>
 
             <div class="button-container">
-                <button type="button" class="nav-btn" onclick="goToLogin()">Back</button>
+                <button type="button" class="nav-btn" onclick="goBack()">Back</button>
                 <button type="submit" class="submit-btn">
                     <span class="arrow">→</span>
                 </button>
             </div>
+
+            <div>
+                <input type="radio" id="terms" name="terms" required>
+                <label for="terms" class="terms-label">By continuing, I confirm I am a legal adult (18+)</div>
         </form>
     </div>
 
-    <script src="/static/api.js"></script>
-    <script src="/static/registration.js"></script>
+    <script src="/static/registration2.js"></script>
 </body>
 
 </html>
