@@ -118,6 +118,94 @@ body {
     box-shadow: 0 5px 20px rgba(26, 26, 46, 0.4);
 }
 
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 25px 0;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #d0d0d0;
+}
+
+.divider-text {
+    padding: 0 15px;
+    color: #666;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Google Sign-In Button */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 24px;
+    background-color: white;
+    border: 2px solid #dadce0;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #3c4043;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.google-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #c6c6c6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Profile Completion Page Specific */
+.complete-profile-message {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    font-weight: 500;
+}
+
+.input-label {
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: -12px;
+    padding-left: 25px;
+}
+
+.age-notice {
+    font-size: 13px;
+    color: #c84c3d;
+    margin-top: -10px;
+    font-style: italic;
+}
+
+.error-message {
+    background-color: #ffe6e6;
+    color: #c84c3d;
+    padding: 12px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 15px;
+    border: 1px solid #ffcccc;
+}
+
+
 /* Register Section */
 .register-section {
     margin-top: 40px;

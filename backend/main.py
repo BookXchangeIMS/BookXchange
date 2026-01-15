@@ -1939,12 +1939,20 @@ async def get_login_page(request: Request):
     """
     return templates.TemplateResponse("Login.html", {"request": request})
 
+@app.get("/complete-google-profile")
+async def get_complete_google_profile_page(request: Request):
+    """
+    Serves the Google OAuth profile completion page.
+    """
+    return templates.TemplateResponse("complete-google-profile.html", {"request": request})
+
 @app.get("/registration")
 async def get_registration_page(request: Request):
     """
     Serves the registration page.
     """
     return templates.TemplateResponse("registration.html", {"request": request})
+
 
 @app.get("/registration2")
 async def get_registration2_page(request: Request):
