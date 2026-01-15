@@ -75,11 +75,11 @@ tags_metadata = [
 app = FastAPI(openapi_tags=tags_metadata)
 
 
-
-
-GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
-GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
-GOOGLE_REDIRECT_URI = os.environ["GOOGLE_REDIRECT_URI"]
+# Use .get() to provide fallback and prevent KeyError during import
+# These are also defined in google_auth.py, but keeping them here for backward compatibility
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")
 
 app.include_router(google_auth_router)
 
