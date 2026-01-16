@@ -180,7 +180,8 @@ class GetTransaction(BaseModel):
     ConfirmedByBuyer: int
     ConfirmedBySeller: int
 
-
-
-
-
+class LeaderboardEntry(BaseModel):
+    UserID: int
+    Name: str
+    TotalPoints: int
+    Level: int

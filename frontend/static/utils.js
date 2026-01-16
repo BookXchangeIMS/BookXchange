@@ -186,6 +186,26 @@ function debounce(func, wait) {
     };
 }
 
+// Navigation functions
+function goToHome() {
+    window.location.href = 'home.html';
+}
+
+function goToMessages() {
+    window.location.href = 'messages.html';
+}
+
+function goToProfile() {
+    window.location.href = 'profile.html';
+}
+
+function goToUserProfile(userId) {
+    // Navigate to the profile page of another user (by ID)
+    // Assuming profile.html can accept a query parameter to load the specific user
+    window.location.href = `profile.html?user=${encodeURIComponent(userId)}`;
+}
+
+
 // Add CSS for toast animations if not already present
 if (!document.getElementById('utils-toast-styles')) {
     const style = document.createElement('style');

@@ -18,7 +18,7 @@ from backend.scripts.listings_crud import *
 from backend.scripts.ai_service import analyze_book_image
 from fastapi import UploadFile, File
 from backend.scripts.transactions_crud import *
-from backend.scripts.gamification import award_points
+
 
 from datetime import datetime
 
@@ -65,6 +65,7 @@ app = FastAPI(openapi_tags=tags_metadata)
 # Configure CORS to allow frontend requests
 from fastapi.middleware.cors import CORSMiddleware
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -72,6 +73,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+from backend.models import LeaderboardEntry
+from backend.scripts.gamification import get_leaderboard
+
+@app.get("/api/leaderboard", response_model=list[LeaderboardEntry], tags=["Gamification"])  # noqa: E501
+async def leaderboard_endpoint(access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Retrieve top users by points for the leaderboard.
+    If access_token is provided, it can be used for auth (optional).
+    """
+    # Optionally you could verify token, but leaderboard is public.
+    leaderboard_data = get_leaderboard(db, limit=10)
+    # Convert to LeaderboardEntry models
+    return [LeaderboardEntry(**entry) for entry in leaderboard_data]
 
 # Initialize Azure Blob Storage containers on startup
 @app.on_event("startup")
