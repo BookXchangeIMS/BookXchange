@@ -20,10 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = 'Announcements.html';
     };
 
-    // Require login
-    if (!isLoggedIn()) {
-        window.location.href = '../templates/Login.html';
-    }
+    // Authentication check removed - page will check token when loading data
+    // If token is missing, API calls will handle it gracefully
 
     // Navigation functions - MUST be in global scope for onclick to work
     window.goToFavorites = function () {
