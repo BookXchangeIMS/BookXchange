@@ -104,10 +104,8 @@ function viewTransactionHistory() {
     window.location.href = 'transactionhistory.html';
 }
 
-// Add login check at page load
-if (!isLoggedIn()) {
-    window.location.href = '../templates/Login.html';
-}
+// Authentication check removed - profile page will check token when loading profile data
+// If token is missing, loadUserProfile() will handle it gracefully
 
 function handleLogout() {
     const modal = document.getElementById('logoutModal');
