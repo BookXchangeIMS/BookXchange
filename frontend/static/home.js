@@ -1,5 +1,9 @@
-// Require login
-if (!isLoggedIn()) {
+// Require login - but wait for OAuth callback to complete first
+// Check if we're in the middle of an OAuth callback (has tokens in URL)
+const urlParams = new URLSearchParams(window.location.search);
+const hasOAuthTokens = urlParams.has('access_token') && urlParams.has('refresh_token');
+
+if (!hasOAuthTokens && !isLoggedIn()) {
     window.location.href = '../templates/Login.html';
 }
 
