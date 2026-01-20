@@ -36,8 +36,14 @@ function checkOAuthCallback() {
         localStorage.setItem('access_token', accessToken);
         localStorage.setItem('refresh_token', refreshToken);
 
-        // Clean URL and redirect to home page
-        window.location.href = './home.html';
+        // Clean URL and redirect to home page (if not already there)
+        if (window.location.pathname.includes('home.html')) {
+            // Already on home page, just clean the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            // Redirect to home page
+            window.location.href = './home.html';
+        }
         return;
     }
 }
