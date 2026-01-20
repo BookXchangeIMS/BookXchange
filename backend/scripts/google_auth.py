@@ -25,6 +25,7 @@ from backend.models import Location
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://bookxchangeims.github.io/BookXchange/frontend")
 SECRET_KEY = Settings().SECRET_KEY
 ALGORITHM = Settings().ALGORITHM
 
@@ -118,23 +119,34 @@ def google_callback(code: str | None = None, error: str | None = None, db = Depe
     :rtype: RedirectResponse
     :raises HTTPException: If authentication fails or code is missing
     """
+    print(f"[OAuth Callback] Received callback - code present: {code is not None}, error: {error}")
+    
     if error:
-        # Redirect to login page with error message
-        return RedirectResponse(f"/login?error={error}")
+        # Redirect to frontend login page with error message
+        print(f"[OAuth Callback] Google returned error: {error}")
+        return RedirectResponse(f"{FRONTEND_URL}/templates/Login.html?error={error}")
     if not code:
-        return RedirectResponse("/login?error=missing_code")
+        print("[OAuth Callback] No authorization code provided")
+        return RedirectResponse(f"{FRONTEND_URL}/templates/Login.html?error=missing_code")
 
     try:
+        print("[OAuth Callback] Exchanging code for user info...")
         google_user = exchange_code_for_userinfo(code)
         email = google_user.get("email")
         name = google_user.get("name", "")
+        print(f"[OAuth Callback] Got user info - email: {email}, name: {name}")
         
         if not email:
+            print("[OAuth Callback] Email not provided by Google")
             raise HTTPException(status_code=400, detail="Email not provided by Google")
         
         # Check if user exists
-        if check_if_email_exists(email, db):
+        user_exists = check_if_email_exists(email, db)
+        print(f"[OAuth Callback] User exists: {user_exists}")
+        
+        if user_exists:
             # Existing user - generate tokens and redirect to home
+            print(f"[OAuth Callback] Existing user - generating tokens for {email}")
             access_token = create_access_token({"Email": email})
             refresh_token = create_refresh_token()
             
@@ -142,14 +154,15 @@ def google_callback(code: str | None = None, error: str | None = None, db = Depe
             from backend.scripts.auth import get_userid_by_access_token
             user_id = get_userid_by_access_token(access_token, db)
             store_refresh_token(refresh_token, user_id, db)
+            print(f"[OAuth Callback] Tokens created, redirecting to frontend home")
             
-            # Redirect to home with tokens in URL params
-            return RedirectResponse(
-                f"/?access_token={access_token}&refresh_token={refresh_token}",
-                status_code=307
-            )
+            # Redirect to frontend home with tokens in URL params
+            redirect_url = f"{FRONTEND_URL}/templates/home.html?access_token={access_token}&refresh_token={refresh_token}"
+            print(f"[OAuth Callback] Redirecting to: {redirect_url}")
+            return RedirectResponse(redirect_url, status_code=307)
         else:
             # New user - create JWT session token (expires in 15 minutes)
+            print(f"[OAuth Callback] New user - creating session token for {email}")
             session_data = {
                 "email": email,
                 "name": name,
@@ -157,15 +170,19 @@ def google_callback(code: str | None = None, error: str | None = None, db = Depe
             }
             session_token = jwt.encode(session_data, SECRET_KEY, algorithm=ALGORITHM)
             
-            # Redirect to profile completion page
-            return RedirectResponse(
-                f"/complete-google-profile?session_token={session_token}&email={email}&name={name}",
-                status_code=307
-            )
-    except HTTPException:
+            # Redirect to frontend profile completion page
+            redirect_url = f"{FRONTEND_URL}/templates/complete-google-profile.html?session_token={session_token}&email={email}&name={name}"
+            print(f"[OAuth Callback] Redirecting to: {redirect_url}")
+            return RedirectResponse(redirect_url, status_code=307)
+    except HTTPException as he:
+        print(f"[OAuth Callback] HTTPException: {he.status_code} - {he.detail}")
         raise
     except Exception as e:
-        return RedirectResponse(f"/login?error=oauth_failed")
+        # Log the actual error for debugging
+        import traceback
+        print(f"[OAuth Callback] ERROR: {type(e).__name__}: {str(e)}")
+        print(f"[OAuth Callback] Traceback: {traceback.format_exc()}")
+        return RedirectResponse(f"{FRONTEND_URL}/templates/Login.html?error=oauth_failed")
 
 
 @router.post("/complete-profile", status_code=200)

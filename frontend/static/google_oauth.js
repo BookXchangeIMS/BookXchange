@@ -10,7 +10,7 @@ function handleGoogleLogin() {
 
 /**
  * Check URL parameters for OAuth callback data
- * Called on page load to handle OAuth redirects
+ * Called on page load to handle OAuth redirects from backend
  */
 function checkOAuthCallback() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -36,8 +36,8 @@ function checkOAuthCallback() {
         localStorage.setItem('access_token', accessToken);
         localStorage.setItem('refresh_token', refreshToken);
 
-        // Clean URL and redirect
-        window.location.href = '/';
+        // Clean URL and redirect to home page
+        window.location.href = './home.html';
         return;
     }
 }
@@ -123,11 +123,13 @@ async function handleCompleteProfile(event) {
 }
 
 // Initialize on page load if on complete profile page
-if (window.location.pathname === '/complete-google-profile') {
+if (window.location.pathname.includes('complete-google-profile')) {
     document.addEventListener('DOMContentLoaded', initCompleteProfilePage);
 }
 
-// Check for OAuth callback on login/home page
-if (window.location.pathname === '/login' || window.location.pathname === '/') {
+// Check for OAuth callback on login page or home page (for cross-origin redirects)
+if (window.location.pathname.includes('Login.html') ||
+    window.location.pathname.includes('home.html') ||
+    window.location.pathname === '/') {
     document.addEventListener('DOMContentLoaded', checkOAuthCallback);
 }
