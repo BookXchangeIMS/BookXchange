@@ -1,7 +1,7 @@
 // Require login
-/*if (!isLoggedIn()) {
+if (!isLoggedIn()) {
     window.location.href = '../templates/Login.html';
-}*/
+}
 
 // State
 let allListings = [];

@@ -27,7 +27,12 @@
 
 <body>
     <!-- Header -->
-    <div id="header-placeholder"></div>
+    <!--<div id="header-placeholder"></div>-->
+
+    <!-- Back Button -->
+    <button class="back-btn" onclick="window.history.back()" aria-label="Go back">
+        <i class="fas fa-arrow-left"></i>
+    </button>
 
     <!-- Main Content -->
     <main class="container mt-xl mb-xl leaderboard-page">
@@ -38,19 +43,19 @@
             <div class="leaderboard-header">
                 <div class="rank-col">Rank</div>
                 <div class="user-col">User</div>
-                <div class="points-col">Points</div>
-                <div class="badges-col">Badges</div>
+                <div class="points-col" id="points-col-header">Points</div>
             </div>
             <div id="leaderboard-list">
-                <!-- Leaderboard items will be populated here -->
+                <!-- Data will be populated by leaderboard.js -->
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <div id="footer-placeholder"></div>
+    <!-- <div id="footer-placeholder"></div> -->
 
     <!-- JS -->
+    <script src="../static/config.js"></script>
     <script src="../static/utils.js"></script>
     <script src="../static/ui-components.js"></script>
     <script src="../static/leaderboard.js"></script>

@@ -198,6 +198,7 @@ def get_leaderboard(db, limit: int = 10) -> list:
     stmt = select(
         users_table.c.UserID,
         users_table.c.Name,
+        users_table.c.ProfileImagePath,
         userpoints_table.c.TotalPoints,
         userpoints_table.c.Level
     ).join(
@@ -213,6 +214,7 @@ def get_leaderboard(db, limit: int = 10) -> list:
             {
                 "UserID": row.UserID,
                 "Name": row.Name,
+                "ProfileImagePath": row.ProfileImagePath,
                 "TotalPoints": row.TotalPoints,
                 "Level": row.Level
             }

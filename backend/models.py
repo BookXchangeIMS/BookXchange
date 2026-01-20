@@ -185,3 +185,4 @@ class LeaderboardEntry(BaseModel):
     Name: str
     TotalPoints: int
     Level: int
+    ProfileImagePath: str | None = None

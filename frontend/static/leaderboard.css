@@ -1,5 +1,50 @@
 /* Leaderboard Styles */
 
+body {
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+    background-image: url('resources/backgroundopacity2.png');
+    background-size: auto;
+    background-repeat: repeat;
+    background-attachment: fixed;
+    background-color: #FFF1D8;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Back Button - Below Header */
+.back-btn {
+    margin: 20px 0 0 20px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background-color: white;
+}
+
+.back-btn:hover i {
+    color: white;
+}
+
+.back-btn i {
+    font-size: 20px;
+    color: #1a1a2e;
+    transition: color 0.3s ease;
+}
+
 /* Container for the whole leaderboard page */
 .leaderboard-page {
     max-width: 1200px;
@@ -18,7 +63,7 @@
 
 .leaderboard-header {
     display: grid;
-    grid-template-columns: 80px 1fr 120px 1fr;
+    grid-template-columns: 80px 1fr 120px;
     padding: 20px 30px;
     background-color: var(--primary-color);
     color: var(--white);
@@ -30,7 +75,7 @@
 
 .leaderboard-item {
     display: grid;
-    grid-template-columns: 80px 1fr 120px 1fr;
+    grid-template-columns: 80px 1fr 120px;
     padding: 20px 30px;
     border-bottom: 1px solid var(--border-color);
     align-items: center;
@@ -99,30 +144,7 @@
     text-align: right;
 }
 
-.badges-col {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.badge {
-    font-size: 16px;
-    color: var(--secondary-color);
-    background-color: rgba(26, 26, 46, 0.1);
-    padding: 5px;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform var(--transition-fast);
-}
-
-.badge:hover {
-    transform: scale(1.2);
-    background-color: var(--secondary-color);
+#points-col-header {
     color: var(--white);
 }
 
@@ -135,10 +157,6 @@
         padding: 15px;
     }
 
-    .badges-col {
-        display: none;
-    }
-
     .rank-col {
         width: 30px;
         height: 30px;
@@ -146,7 +164,7 @@
     }
 
     .points-col {
-        text-align: left;
+        text-align: right;
     }
 
     .leaderboard-header {
