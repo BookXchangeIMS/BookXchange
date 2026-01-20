@@ -1,11 +1,10 @@
-// Require login - but wait for OAuth callback to complete first
-// Check if we're in the middle of an OAuth callback (has tokens in URL)
+// Guest browsing allowed - users can view home page without login
+// Authentication will be checked when trying to interact with listings
 const urlParams = new URLSearchParams(window.location.search);
 const hasOAuthTokens = urlParams.has('access_token') && urlParams.has('refresh_token');
 
-if (!hasOAuthTokens && !isLoggedIn()) {
-    window.location.href = '../templates/Login.html';
-}
+// Only redirect to login if explicitly required (not for guest browsing)
+// Individual interactions will prompt login when needed
 
 // State
 let allListings = [];
@@ -192,7 +191,8 @@ function getFilterValues() {
 }
 
 async function handleSearch(query) {
-    const accessToken = getAccessToken();
+    // Get access token if logged in, otherwise null for guest browsing
+    const accessToken = isLoggedIn() ? getAccessToken() : null;
     try {
         const filters = getFilterValues();
 
@@ -224,7 +224,8 @@ async function loadAllListings() {
         if (skeletonGrid) skeletonGrid.style.display = 'grid';
         if (booksGrid) booksGrid.style.display = 'none';
 
-        const accessToken = getAccessToken();
+        // Get access token if logged in, otherwise null for guest browsing
+        const accessToken = isLoggedIn() ? getAccessToken() : null;
         const apiResponse = await getAllListings(accessToken);
 
         // Transform API response to internal format using centralized function
@@ -292,6 +293,14 @@ function loadBooks(books) {
 
 // Toggle favorite status
 async function toggleFavorite(listingId) {
+    // Check if user is logged in
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to add favorites. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
+
     const book = allListings.find(b => b.id === listingId);
     if (!book) return;
 
@@ -325,6 +334,14 @@ async function toggleFavorite(listingId) {
 
 // View book details
 function viewBookDetails(bookId) {
+    // Check if user is logged in
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view listing details. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
+
     console.log('Viewing details for book ID:', bookId);
     window.location.href = `listing?id=${bookId}`;
 }
