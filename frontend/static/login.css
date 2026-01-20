@@ -169,6 +169,36 @@ body {
     height: 20px;
 }
 
+/* Guest Browse Button */
+.guest-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px 40px;
+    background-color: transparent;
+    border: 3px solid #1a1a2e;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.guest-btn:hover {
+    background-color: #1a1a2e;
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(26, 26, 46, 0.3);
+}
+
+.guest-btn i {
+    font-size: 20px;
+}
+
 /* Profile Completion Page Specific */
 .complete-profile-message {
     font-size: 16px;
