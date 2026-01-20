@@ -33,7 +33,7 @@ function checkOAuthCallback() {
 
     if (accessToken && refreshToken) {
         // Existing user - store tokens and redirect to home
-        localStorage.setItem('access_token', accessToken);
+        localStorage.setItem('access-token', accessToken);
         localStorage.setItem('refresh_token', refreshToken);
 
         // Clean URL and redirect to home page (if not already there)
@@ -119,7 +119,7 @@ async function handleCompleteProfile(event) {
         const data = await response.json();
 
         // Store tokens
-        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('access-token', data.access_token);
         localStorage.setItem('refresh_token', data.refresh_token);
 
         // Redirect to home
