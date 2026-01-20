@@ -94,6 +94,7 @@ async function handleCompleteProfile(event) {
         // Create form data
         const formData = new FormData();
         formData.append('session_token', sessionToken);
+        formData.append('name', document.getElementById('name').value);
         formData.append('date_of_birth', dob);
         formData.append('location_address', location);
 
@@ -114,7 +115,7 @@ async function handleCompleteProfile(event) {
         localStorage.setItem('refresh_token', data.refresh_token);
 
         // Redirect to home
-        window.location.href = '/';
+        window.location.href = './home.html';
 
     } catch (error) {
         errorEl.textContent = error.message || 'An error occurred. Please try again.';
