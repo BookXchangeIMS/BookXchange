@@ -1,7 +1,5 @@
-// Require login
-if (!isLoggedIn()) {
-  window.location.href = '../templates/Login.html';
-}
+// Authentication check removed - messages page will check token when loading data
+// If token is missing, the API calls will handle it gracefully
 
 // Navigation functions - MUST be in global scope for onclick to work
 window.goBack = function () {
