@@ -41,8 +41,10 @@ function checkOAuthCallback() {
             // Already on home page, just clean the URL
             window.history.replaceState({}, document.title, window.location.pathname);
         } else {
-            // Redirect to home page
-            window.location.href = './home.html';
+            // Redirect to home page with absolute path
+            window.location.href = window.location.pathname.includes('Login.html')
+                ? '../templates/home.html'
+                : './home.html';
         }
         return;
     }
