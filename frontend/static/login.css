@@ -169,34 +169,33 @@ body {
     height: 20px;
 }
 
-/* Guest Browse Button */
+/* Guest Browse Button - Subtle text link style */
 .guest-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    width: 100%;
-    padding: 16px 40px;
+    gap: 8px;
+    width: auto;
+    padding: 0;
     background-color: transparent;
-    border: 3px solid #1a1a2e;
-    border-radius: 25px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a2e;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #666;
     cursor: pointer;
     transition: all 0.3s ease;
     margin-bottom: 20px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .guest-btn:hover {
-    background-color: #1a1a2e;
-    color: white;
-    transform: scale(1.05);
-    box-shadow: 0 5px 20px rgba(26, 26, 46, 0.3);
+    color: #c84c3d;
+    transform: translateY(-1px);
 }
 
 .guest-btn i {
-    font-size: 20px;
+    font-size: 16px;
 }
 
 /* Profile Completion Page Specific */
