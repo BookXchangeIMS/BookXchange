@@ -199,6 +199,10 @@ function goToProfile() {
     window.location.href = 'profile.html';
 }
 
+function goToLeaderboard() {
+    window.location.href = 'leaderboard.html';
+}
+
 function goToUserProfile(userId) {
     // Navigate to the profile page of another user (by ID)
     // Assuming profile.html can accept a query parameter to load the specific user

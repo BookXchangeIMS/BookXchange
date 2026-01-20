@@ -155,6 +155,10 @@ function goToProfile() {
     window.location.href = '../templates/profile.html';
 }
 
+function goToLeaderboard() {
+    window.location.href = '../templates/leaderboard.html';
+}
+
 function goToLogin() {
     window.location.href = '../templates/Login.html';
 }
@@ -165,4 +169,5 @@ window.goToAnnouncements = goToAnnouncements;
 window.goToFavorites = goToFavorites;
 window.goToMessages = goToMessages;
 window.goToProfile = goToProfile;
+window.goToLeaderboard = goToLeaderboard;
 window.goToLogin = goToLogin;
