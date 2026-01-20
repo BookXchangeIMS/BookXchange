@@ -58,6 +58,7 @@ class GetMyUser(GetUser):
     Location: Location
 
 # Book model
+
 class Book(BaseModel):
     BookID: int
     Title: str
@@ -87,7 +88,8 @@ class GetBook(BaseModel):
     ISBN: str | None
     Edition: int | None
 
-# Listings model
+# Listing model
+
 class PostListing(BaseModel):
     Book: PostBook
     Description: str
@@ -120,7 +122,7 @@ class UpdateListing(BaseModel):
     BookCondition: str | None
     LocationAddress: str
 
-# Chat Models
+# Message model
 
 class Message(BaseModel):
     MessageID: int
@@ -137,7 +139,6 @@ class PostMessage(BaseModel):
     Content: str
     SentDate: datetime = datetime.now()
 
-# Chat Models
 class GetMessage(BaseModel):
     MessageID: int
     SenderID: int
@@ -145,6 +146,8 @@ class GetMessage(BaseModel):
     ReceiverID: int
     Content: str
     SentDate: datetime
+
+# Dialogue model
 
 class GetDialogue(BaseModel):
     Messages: list[GetMessage]
@@ -154,7 +157,8 @@ class GetDialogues(BaseModel):
     ListingID: int
     LastMessage: GetMessage
 
-# Transaction models
+# Transaction model
+
 class Transaction(BaseModel):
     TransactionID: int
     ListingID: int

@@ -25,6 +25,10 @@ document.addEventListener('componentsLoaded', function () {
 
 let searchTimeout;
 
+/**
+ * Initialize search functionality.
+ * Sets up debounced input listener and Enter key handler.
+ */
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -53,6 +57,10 @@ let selectedLat = null;
 let selectedLon = null;
 let selectedRadius = 10;
 
+/**
+ * Configure filter modal and event listeners.
+ * Handles filter application, reset, and modal toggling.
+ */
 function setupFilters() {
     const filterBtn = document.getElementById('filterBtn');
     const filterModal = document.getElementById('filterModal');
@@ -138,6 +146,10 @@ function setupFilters() {
     }
 }
 
+/**
+ * Initialize the filter map using Leaflet.
+ * Allows users to select a centralized location for radius search.
+ */
 function initFilterMap() {
     if (filterMap) {
         filterMap.invalidateSize();
@@ -163,6 +175,10 @@ function initFilterMap() {
     });
 }
 
+/**
+ * Collect current values from all filter inputs.
+ * @returns {Object} A filter object compatible with the search API.
+ */
 function getFilterValues() {
     const filters = {
         genres: [],
@@ -187,6 +203,10 @@ function getFilterValues() {
     return filters;
 }
 
+/**
+ * Process search request with query and current filters.
+ * @param {string} query - The search text.
+ */
 async function handleSearch(query) {
     const accessToken = getAccessToken();
     try {
@@ -214,6 +234,10 @@ async function handleSearch(query) {
 }
 
 // Load all listings from API
+/**
+ * Fetch all available listings from the API.
+ * Updates the global `allListings` state and renders the grid.
+ */
 async function loadAllListings() {
     try {
         // Show skeleton loading state
@@ -261,6 +285,11 @@ function hideSkeletonAndShowBooks() {
 }
 
 // ---- PAGINATION LOGIC ----
+/**
+ * Render a page of books to the grid.
+ * Handles pagination slicing and empty states.
+ * @param {Array} books - The list of book objects to render.
+ */
 function loadBooks(books) {
     if (!booksGrid) return;
     booksGrid.innerHTML = '';

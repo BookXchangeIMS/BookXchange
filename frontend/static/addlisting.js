@@ -1,7 +1,6 @@
 // API Configuration
 const API_BASE_URL = 'http://127.0.0.1:8000';  // Changed from localhost to 127.0.0.1
 
-const USE_MOCK_DATA = false; // Set to true for testing without backend
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -30,12 +29,18 @@ function clearTokens() {
 
 
 // API Helper Functions
+/**
+ * Centralized API wrapper for handling requests, token refresh, and errors.
+ */
 const api = {
+    /**
+     * Make a POST request with JSON body.
+     * Automatically handles 401 token refresh.
+     * @param {string} endpoint - API endpoint (e.g., '/api/foo').
+     * @param {Object} data - payload.
+     * @returns {Promise<Object>} Response JSON.
+     */
     async post(endpoint, data) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            return await window.mockAPI.createBook(data);
-        }
-
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
                 method: 'POST',
@@ -78,7 +83,11 @@ const api = {
         }
     },
 
-    // Post FormData (for file uploads) with retry logic
+    /**
+     * Make a POST request with FormData (for file uploads).
+     * @param {string} endpoint - API endpoint.
+     * @param {FormData} formData - FormData object.
+     */
     async postFormData(endpoint, formData) {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -118,15 +127,6 @@ const api = {
 
     // Upload multiple images
     async uploadImages(listingId, files) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            const uploadedUrls = [];
-            for (const file of files) {
-                const response = await window.mockAPI.uploadImage(file);
-                uploadedUrls.push(response.imageUrl);
-            }
-            return { success: true, imageUrls: uploadedUrls };
-        }
-
         try {
             // Upload images one by one using the existing endpoint
             const uploadPromises = files.map(file => {
@@ -199,13 +199,11 @@ let hasFormChanged = false; // Track if form has been modified
 // Initialize
 document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
-    if (!USE_MOCK_DATA && !getAccessToken()) {
+    if (!getAccessToken()) {
         showToast('Please login to add a listing', 'error');
         setTimeout(() => window.location.href = '/login', 2000);
         return;
     }
-
-    if (USE_MOCK_DATA) showMockModeIndicator();
 
     setupEventListeners();
     loadGenres(); // Load available genres
@@ -215,12 +213,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 // Load user's location from profile
 async function loadUserLocation() {
     try {
-        if (USE_MOCK_DATA) {
-            // Mock location
-            document.getElementById('bookLocation').value = 'Lisbon, Portugal';
-            return;
-        }
-
         const accessToken = getAccessToken();
         if (!accessToken) return;
 
@@ -250,33 +242,15 @@ async function loadGenres() {
     const container = document.getElementById('availableGenres');
 
     try {
-        let genres = [];
-
-        if (USE_MOCK_DATA) {
-            // Mock genres
-            genres = [
-                { GenreID: 1, GenreName: "Fantasy" },
-                { GenreID: 2, GenreName: "Science Fiction" },
-                { GenreID: 3, GenreName: "Mystery" },
-                { GenreID: 4, GenreName: "Thriller" },
-                { GenreID: 5, GenreName: "Romance" },
-                { GenreID: 6, GenreName: "Non-Fiction" },
-                { GenreID: 7, GenreName: "History" },
-                { GenreID: 8, GenreName: "Biography" },
-                { GenreID: 9, GenreName: "Horror" },
-                { GenreID: 10, GenreName: "Adventure" }
-            ];
-        } else {
-            // Fetch from backend
-            const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
-            if (response.ok) {
-                genres = await response.json();
-            } else {
-                console.error('Failed to fetch genres');
-                container.innerHTML = '<div class="error-message">Failed to load genres</div>';
-                return;
-            }
+        // Fetch from backend
+        const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
+        if (!response.ok) {
+            console.error('Failed to fetch genres');
+            container.innerHTML = '<div class="error-message">Failed to load genres</div>';
+            return;
         }
+
+        const genres = await response.json();
 
         // Clear loading message
         container.innerHTML = '';
@@ -313,18 +287,7 @@ async function loadGenres() {
 }
 
 
-function showMockModeIndicator() {
-    const indicator = document.createElement('div');
-    indicator.textContent = '🧪 MOCK MODE';
-    indicator.style.cssText = `
-        position: fixed; top: 10px; right: 10px;
-        background: #f39c12; color: white;
-        padding: 8px 16px; border-radius: 20px;
-        font-weight: 700; font-size: 12px;
-        z-index: 10000; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    `;
-    document.body.appendChild(indicator);
-}
+
 
 
 // Setup event listeners
@@ -416,7 +379,10 @@ function handleFileSelect(e) {
 }
 
 
-// Process and validate files
+/**
+ * Process selected files, validate them, and generate previews.
+ * @param {File[]} files - Array of File objects.
+ */
 function processFiles(files) {
     const currentTotal = newImages.length;
     const availableSlots = MAX_IMAGES - currentTotal;
@@ -582,7 +548,10 @@ function formatPrice(event) {
 }
 
 
-// Validate form
+/**
+ * Validate all form fields before submission.
+ * @returns {boolean} True if form is valid, false otherwise.
+ */
 function validateForm() {
     const errors = [];
 
@@ -619,8 +588,11 @@ function validateForm() {
 }
 
 
-// Handle form submission - FIXED TO MATCH BACKEND
-// Handle form submission - FIXED TO MATCH BACKEND
+/**
+ * Handle new listing form submission.
+ * Collects data, calls API to create listing, and uploads images.
+ * @param {Event} event - Submit event.
+ */
 async function handleFormSubmit(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -718,7 +690,11 @@ async function handleFormSubmit(event) {
 }
 
 
-// Handle AI Book Scan
+/**
+ * Handle AI book scanning via image upload.
+ * Sends image to backend and populates form fields with results.
+ * @param {Event} event - File input change event.
+ */
 async function handleScanBook(event) {
     const file = event.target.files[0];
     if (!file) return;

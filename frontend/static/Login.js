@@ -1,3 +1,8 @@
+/**
+ * Handle user login form submission.
+ * Validates inputs, calls API, and redirects on success.
+ * @param {Event} event - The form submission event.
+ */
 async function handleLogin(event) {
     event.preventDefault();
 
@@ -27,6 +32,9 @@ async function handleLogin(event) {
     }
 }
 
+/**
+ * Redirect to registration page.
+ */
 function handleRegister() {
     window.location.href = '/registration';
 

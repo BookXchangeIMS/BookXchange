@@ -1,6 +1,5 @@
 // API Configuration
 const API_BASE_URL = 'http://localhost:8000';
-const USE_MOCK_DATA = false; // Set to false to use backend
 
 // Token Management
 function getAccessToken() {
@@ -29,62 +28,13 @@ function formatArray(arr) {
     return arr;
 }
 
-// Initialize books in localStorage on first load (for mock mode only)
-function initializeBooksStorage() {
-    if (!localStorage.getItem('MOCK_USER_BOOKS')) {
-        const defaultBooks = {
-            101: {
-                ListingID: 101,
-                Name: "Harry Potter and the Sorcerer's Stone",
-                Image_Path: "../static/resources/harrypotter.png",
-                PublicationDate: "1997-06-26",
-                Location: "Benfica - Lisboa",
-                author: "J.K. Rowling",
-                price: "$18.25",
-                condition: "Good",
-                genres: "Fantasy, Adventure",
-                description: "A magical journey begins at Hogwarts!"
-            },
-            102: {
-                ListingID: 102,
-                Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-                Image_Path: "../static/resources/lotr.png",
-                PublicationDate: "1954-07-29",
-                Location: "Benfica - Lisboa",
-                author: "J.R.R. Tolkien",
-                price: "$45.00",
-                condition: "Almost new",
-                genres: "Fantasy, Adventure",
-                description: "A classic masterpiece!"
-            },
-            103: {
-                ListingID: 103,
-                Name: "Sapiens: A Brief History of Humankind",
-                Image_Path: "../static/resources/sapiens.png",
-                PublicationDate: "2011-09-08",
-                Location: "Benfica - Lisboa",
-                author: "Yuval Noah Harari",
-                price: "$15.00",
-                condition: "Good",
-                genres: "Non-fiction, History",
-                description: "History of humankind."
-            }
-        };
-        localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(defaultBooks));
-    }
-}
 
-// Get books from localStorage (mock mode only)
-function getBooksFromStorage() {
-    const stored = localStorage.getItem('MOCK_USER_BOOKS');
-    if (stored) {
-        const booksObj = JSON.parse(stored);
-        return Object.values(booksObj);
-    }
-    return [];
-}
 
-// Fetch listings from backend
+/**
+ * Fetch all listings belonging to the current user.
+ * Transforms backend data to frontend model.
+ * @returns {Promise<Array>} List of user's listings.
+ */
 async function fetchListingsFromBackend() {
     try {
         const accessToken = getAccessToken();
@@ -175,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 // Initialize search after components are loaded
 document.addEventListener('componentsLoaded', async function () {
-    const books = USE_MOCK_DATA ? getBooksFromStorage() : await fetchListingsFromBackend();
+    const books = await fetchListingsFromBackend();
 
     // Convert to format SearchManager expects (with title and author)
     const searchableData = books.map(book => ({
@@ -194,16 +144,8 @@ document.addEventListener('componentsLoaded', async function () {
  */
 async function loadUserBooks() {
     try {
-        let books;
-
-        if (USE_MOCK_DATA) {
-            // Use localStorage
-            books = getBooksFromStorage();
-        } else {
-            // Fetch from backend
-            books = await fetchListingsFromBackend();
-        }
-
+        // Fetch from backend
+        const books = await fetchListingsFromBackend();
         displayUserBooks(books);
     } catch (error) {
         console.error('Error loading books:', error);
@@ -215,6 +157,10 @@ async function loadUserBooks() {
 
 /**
  * Display books in grid
+ */
+/**
+ * Render user's books grid.
+ * @param {Array} books - List of book objects.
  */
 function displayUserBooks(books) {
     if (!userBooksGrid) return;
@@ -280,6 +226,11 @@ function displayUserBooks(books) {
 
 /**
  * Create a book card element
+ */
+/**
+ * Create a book card DOM element.
+ * @param {Object} book - Book data.
+ * @returns {HTMLElement} The card element.
  */
 function createBookCard(book) {
     const card = document.createElement('div');

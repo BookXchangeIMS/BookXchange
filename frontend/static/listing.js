@@ -41,6 +41,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 // LOAD LISTING DETAILS FROM API
 // ============================================
 
+/**
+ * Fetch and display all details for a specific listing.
+ * Orchestrates loading book details, images, and map.
+ * @param {number} listingId - The ID of the listing to load.
+ */
 async function loadListingDetails(listingId) {
     try {
         const accessToken = getAccessToken();
@@ -69,6 +74,11 @@ async function loadListingDetails(listingId) {
 // INITIALIZE MAP
 // ============================================
 
+/**
+ * Initialize Leaflet map with listing location.
+ * @param {number} lat - Latitude.
+ * @param {number} lng - Longitude.
+ */
 function initializeMap(lat, lng) {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
@@ -101,6 +111,10 @@ function initializeMap(lat, lng) {
 // POPULATE BOOK DETAILS
 // ============================================
 
+/**
+ * Fill HTML elements with listing data.
+ * @param {Object} listing - The listing object from API.
+ */
 function populateBookDetails(listing) {
     // Title and Author
     document.getElementById('bookTitle').textContent = listing.Book.Title || 'Untitled';
@@ -180,6 +194,12 @@ function populateBookDetails(listing) {
 // LOAD IMAGES
 // ============================================
 
+/**
+ * Fetch and display images for the listing.
+ * Falls back to placeholder if no images found.
+ * @param {number} listingId - The listing ID.
+ * @param {string} accessToken - User's access token.
+ */
 async function loadImages(listingId, accessToken) {
     try {
         // Fetch image URLs from backend
@@ -216,6 +236,10 @@ async function loadImages(listingId, accessToken) {
 // IMAGE GALLERY WITH THUMBNAILS
 // ============================================
 
+/**
+ * Render the main image and thumbnail carousel.
+ * @param {string[]} images - Array of image URLs.
+ */
 function loadImageGallery(images) {
     const mainImage = document.getElementById('mainImage');
     const thumbnailGallery = document.getElementById('thumbnailGallery');
@@ -260,6 +284,10 @@ function loadImageGallery(images) {
 // ZOOM FUNCTIONALITY
 // ============================================
 
+/**
+ * Enable click-to-zoom functionality for the main image.
+ * Sets up overlay and event listeners.
+ */
 function initializeZoomFunctionality() {
     const mainImage = document.getElementById('mainImage');
     const zoomOverlay = document.getElementById('zoomOverlay');
@@ -302,6 +330,10 @@ function initializeZoomFunctionality() {
 // TOGGLE FAVORITE
 // ============================================
 
+/**
+ * Toggle the favorite status of the current listing.
+ * Updates UI and calls backend API.
+ */
 async function toggleFavorite() {
     if (!currentListing) return;
 

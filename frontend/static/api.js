@@ -1,10 +1,20 @@
-// API Client for Login/Logout - BookXchange
+/**
+ * API Client for Login/Logout - BookXchange
+ * Handles all backend API interactions using fetch.
+ */
 const API_BASE_URL = 'http://localhost:8000';
 
 
 // ============================================
 // LOGIN
 // ============================================
+/**
+ * Authenticate a user with email and password.
+ * @param {string} email - The user's email address.
+ * @param {string} password - The user's password.
+ * @returns {Promise<Object>} The response JSON containing access and refresh tokens.
+ * @throws {Error} If login fails.
+ */
 async function signIn(email, password) {
     const formData = new FormData();
     formData.append('Email', email);
@@ -27,6 +37,12 @@ async function signIn(email, password) {
 // ============================================
 // LOGOUT
 // ============================================
+/**
+ * Logout the user by invalidating their tokens.
+ * @param {string} accessToken - The current access token.
+ * @param {string} refreshToken - The current refresh token.
+ * @throws {Error} If logout fails.
+ */
 async function logout(accessToken, refreshToken) {
     const response = await fetch(`${API_BASE_URL}/api/logout`, {
         method: 'DELETE',
@@ -45,6 +61,11 @@ async function logout(accessToken, refreshToken) {
 // ============================================
 // TOKEN MANAGEMENT
 // ============================================
+/**
+ * Save authentication tokens to localStorage.
+ * @param {string} accessToken - The access token to save.
+ * @param {string} refreshToken - The refresh token to save.
+ */
 function saveTokens(accessToken, refreshToken) {
     localStorage.setItem('access-token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
@@ -77,7 +98,10 @@ function isLoggedIn() {
 // ============================================
 
 /**
- * Check if user email already exists
+/**
+ * Check if a user email already exists in the system.
+ * @param {string} email - The email to check.
+ * @returns {Promise<boolean>} True if user exists, false otherwise.
  */
 async function doesUserExist(email) {
     const response = await fetch(`${API_BASE_URL}/api/does_user_exist?email=${encodeURIComponent(email)}`);
@@ -91,7 +115,16 @@ async function doesUserExist(email) {
 }
 
 /**
- * Sign up a new user
+/**
+ * Register a new user.
+ * @param {Object} userData - User registration details.
+ * @param {string} userData.name - User's full name.
+ * @param {string} userData.email - User's email.
+ * @param {string} userData.password - User's password.
+ * @param {string} userData.dob - Date of birth.
+ * @param {string} userData.location - Location address.
+ * @returns {Promise<Object>} The created user object or response.
+ * @throws {Error} If registration fails.
  */
 async function signUp(userData) {
     const formData = new FormData();
@@ -163,9 +196,9 @@ async function deleteAccount(accessToken, refreshToken) {
 // PROFILE
 // ============================================
 
-/**
- * Get current user's profile
- */
+
+// Get current user's profile
+
 async function getMyProfile(accessToken) {
     const response = await fetch(`${API_BASE_URL}/api/get_your_profile`, {
         headers: {
@@ -321,7 +354,19 @@ async function getAllListings(accessToken) {
 }
 
 /**
- * Search listings by query and filters
+/**
+ * Search for listings based on a query and set of filters.
+ * @param {string} query - The search text.
+ * @param {Object} [filters={}] - Optional filters.
+ * @param {string[]} [filters.genres] - Array of genre names.
+ * @param {number} [filters.minPrice] - Minimum price.
+ * @param {number} [filters.maxPrice] - Maximum price.
+ * @param {string[]} [filters.listingTypes] - 'Sale', 'Exchange', 'Donation'.
+ * @param {number} [filters.lat] - Latitude for location search.
+ * @param {number} [filters.lon] - Longitude for location search.
+ * @param {number} [filters.radius] - Search radius in km.
+ * @param {string} accessToken - The access token.
+ * @returns {Promise<Array>} List of matching listings.
  */
 async function searchListings(query, filters = {}, accessToken) {
     let url = `${API_BASE_URL}/api/search_listings?q=${encodeURIComponent(query)}`;
@@ -421,7 +466,11 @@ async function removeFavorite(listingId, accessToken) {
 // ============================================
 
 /**
- * Transform API listing data to UI-friendly format
+/**
+ * Transform raw API listing data into a UI-friendly format.
+ * Handles price formatting, date relation, author strings, and image paths.
+ * @param {Object} listing - The raw listing object from the API.
+ * @returns {Object} The processed listing object for UI rendering.
  */
 function transformListingData(listing) {
     // Format price based on listing type
@@ -527,7 +576,13 @@ async function getDialogue(otherUserId, listingId, accessToken) {
 }
 
 /**
+/**
  * Send a new message to another user about a listing.
+ * @param {number} receiverId - The recipient's user ID.
+ * @param {number} listingId - The listing ID the message is about.
+ * @param {string} content - The message text.
+ * @param {string} accessToken - The access token.
+ * @returns {Promise<Object>} The response from the server.
  */
 async function sendMessageApi(receiverId, listingId, content, accessToken) {
     const params = new URLSearchParams({
@@ -553,7 +608,7 @@ async function sendMessageApi(receiverId, listingId, content, accessToken) {
 }
 
 // ============================================
-// HANDSHAKES / TRANSACTIONS
+// HANDSHAKES
 // ============================================
 
 /**
@@ -602,8 +657,13 @@ async function getTransactionStatus(listingId, buyerId, accessToken) {
 }
 
 /**
- * Confirm a transaction for listing + buyer.
- * Creates transaction if it doesn't exist, or updates existing one.
+/**
+ * Confirm a transaction for a listing and buyer.
+ * Creates transaction if it doesn't exist, or updates an existing one.
+ * @param {number} listingId - The listing ID.
+ * @param {number} buyerId - The buyer's user ID.
+ * @param {string} accessToken - The access token.
+ * @returns {Promise<Object>} The transaction object.
  */
 async function confirmTransaction(listingId, buyerId, accessToken) {
     const url = `${API_BASE_URL}/api/confirm_transaction/?listingid=${listingId}&buyerid=${buyerId}`;

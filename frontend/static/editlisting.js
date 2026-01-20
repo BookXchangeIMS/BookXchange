@@ -1,62 +1,9 @@
 // API Configuration
 const API_BASE_URL = 'http://localhost:8000';
-const USE_MOCK_DATA = false; // Change to false for backend
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-// Get books from localStorage (shared with announcements page)
-function getBooksDatabase() {
-    const stored = localStorage.getItem('MOCK_USER_BOOKS');
-    if (stored) {
-        return JSON.parse(stored);
-    }
-    // Default books if nothing in storage
-    const defaultBooks = {
-        101: {
-            ListingID: 101,
-            Name: "Harry Potter and the Sorcerer's Stone",
-            author: "J.K. Rowling",
-            price: "$18.25",
-            PublicationDate: "1997",
-            condition: "Good",
-            Location: "Benfica - Lisboa",
-            genres: "Fantasy, Adventure",
-            description: "A magical journey begins at Hogwarts! Follow Harry Potter as he discovers his true identity and battles the forces of darkness.",
-            Image_Path: "../static/resources/harrypotter.png"
-        },
-        102: {
-            ListingID: 102,
-            Name: "The Lord of the Rings: The Fellowship of the Ring (First Edition)",
-            author: "J.R.R. Tolkien",
-            price: "$45.00",
-            PublicationDate: "1954",
-            condition: "Almost new",
-            Location: "Benfica - Lisboa",
-            genres: "Fantasy, Adventure",
-            description: "A classic masterpiece by J.R.R. Tolkien! This book will take you on an unforgettable journey through Middle-earth.",
-            Image_Path: "../static/resources/lotr.png"
-        },
-        103: {
-            ListingID: 103,
-            Name: "Sapiens: A Brief History of Humankind",
-            author: "Yuval Noah Harari",
-            price: "$15.00",
-            PublicationDate: "2011",
-            condition: "Good",
-            Location: "Benfica - Lisboa",
-            genres: "Non-fiction, History",
-            description: "Explore the history of humankind from the Stone Age to the modern era in this thought-provoking book.",
-            Image_Path: "../static/resources/sapiens.png"
-        }
-    };
-    localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(defaultBooks));
-    return defaultBooks;
-}
 
-// Save books to localStorage
-function saveBooksDatabase(books) {
-    localStorage.setItem('MOCK_USER_BOOKS', JSON.stringify(books));
-}
 
 // Token Management
 function getAccessToken() {
@@ -78,19 +25,11 @@ function clearTokens() {
 }
 
 // API Helper Functions
+/**
+ * Centralized API wrapper for edit operations.
+ */
 const api = {
     async get(endpoint) {
-        if (USE_MOCK_DATA) {
-            // Mock API - use localStorage
-            const id = parseInt(endpoint.split('/').pop());
-            const booksDB = getBooksDatabase();
-            const book = booksDB[id];
-            if (!book) {
-                throw new Error('Book not found');
-            }
-            return { data: book };
-        }
-
         try {
             // Use backend endpoint: /api/get_listing_by_ListingID
             const listingId = endpoint.split('/').pop();
@@ -111,7 +50,13 @@ const api = {
 
             const data = await response.json();
 
-            // Helper function to extract year from date string
+
+
+            // Transform backend response to match frontend format
+            /**
+             * Extract year from date string.
+             * @param {string} dateString
+             */
             const extractYear = (dateString) => {
                 if (!dateString) return '';
                 if (dateString.includes('T')) {
@@ -120,7 +65,6 @@ const api = {
                 return dateString.split('-')[0];
             };
 
-            // Transform backend response to match frontend format
             return {
                 data: {
                     ListingID: data.ListingID,
@@ -146,18 +90,6 @@ const api = {
     },
 
     async put(endpoint, data) {
-        if (USE_MOCK_DATA) {
-            // Mock API - update localStorage
-            const id = parseInt(endpoint.split('/').pop());
-            const booksDB = getBooksDatabase();
-            if (booksDB[id]) {
-                booksDB[id] = { ...booksDB[id], ...data };
-                saveBooksDatabase(booksDB);
-                return { success: true, data: booksDB[id] };
-            }
-            throw new Error('Book not found');
-        }
-
         try {
             console.log('=== SENDING UPDATE DATA TO BACKEND ===');
             console.log(JSON.stringify(data, null, 2));
@@ -192,18 +124,6 @@ const api = {
     },
 
     async delete(endpoint) {
-        if (USE_MOCK_DATA) {
-            // Mock API - delete from localStorage
-            const id = parseInt(endpoint.split('/').pop());
-            const booksDB = getBooksDatabase();
-            if (booksDB[id]) {
-                delete booksDB[id];
-                saveBooksDatabase(booksDB);
-                return { success: true, message: 'Deleted successfully' };
-            }
-            throw new Error('Book not found');
-        }
-
         try {
             // Use backend endpoint: /api/delete_listing
             const listingId = endpoint.split('/').pop();
@@ -283,7 +203,7 @@ let hasFormChanged = false; // Track if form has been modified
 // Initialize
 document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
-    if (!USE_MOCK_DATA && !getAccessToken()) {
+    if (!getAccessToken()) {
         showToast('Please login to edit listing', 'error');
         setTimeout(() => window.location.href = '/login', 2000);
         return;
@@ -299,8 +219,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         return;
     }
 
-    if (USE_MOCK_DATA) showMockModeIndicator();
-
     setupEventListeners();
 
     // Load genres first, then listing details
@@ -315,51 +233,22 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 
-function showMockModeIndicator() {
-    const indicator = document.createElement('div');
-    indicator.textContent = '🧪 MOCK MODE';
-    indicator.style.cssText = `
-        position: fixed; top: 10px; right: 10px;
-        background: #f39c12; color: white;
-        padding: 8px 16px; border-radius: 20px;
-        font-weight: 700; font-size: 12px;
-        z-index: 10000; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    `;
-    document.body.appendChild(indicator);
-}
+
 
 // Load available genres from backend
 async function loadGenres() {
     const container = document.getElementById('availableGenres');
 
     try {
-        let genres = [];
-
-        if (USE_MOCK_DATA) {
-            // Mock genres
-            genres = [
-                { GenreID: 1, GenreName: "Fantasy" },
-                { GenreID: 2, GenreName: "Science Fiction" },
-                { GenreID: 3, GenreName: "Mystery" },
-                { GenreID: 4, GenreName: "Thriller" },
-                { GenreID: 5, GenreName: "Romance" },
-                { GenreID: 6, GenreName: "Non-Fiction" },
-                { GenreID: 7, GenreName: "History" },
-                { GenreID: 8, GenreName: "Biography" },
-                { GenreID: 9, GenreName: "Horror" },
-                { GenreID: 10, GenreName: "Adventure" }
-            ];
-        } else {
-            // Fetch from backend
-            const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
-            if (response.ok) {
-                genres = await response.json();
-            } else {
-                console.error('Failed to fetch genres');
-                container.innerHTML = '<div class="error-message">Failed to load genres</div>';
-                return;
-            }
+        // Fetch from backend
+        const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
+        if (!response.ok) {
+            console.error('Failed to fetch genres');
+            container.innerHTML = '<div class="error-message">Failed to load genres</div>';
+            return;
         }
+
+        const genres = await response.json();
 
         // Clear loading message
         container.innerHTML = '';
@@ -395,7 +284,10 @@ async function loadGenres() {
     }
 }
 
-// Fetch listing details including images
+/**
+ * Retrieve listing details from server and populate state.
+ * @param {number} id - listing ID.
+ */
 async function fetchListingDetails(id) {
     try {
         const response = await api.get(`/api/listings/${id}`);
@@ -443,7 +335,10 @@ async function fetchListingDetails(id) {
     }
 }
 
-// Load form fields
+/**
+ * Populate form inputs with existing book data.
+ * @param {Object} book - Book details object.
+ */
 function loadListingDetailsIntoForm(book) {
     document.getElementById('bookTitle').value = book.Name || book.title || '';
 
@@ -807,6 +702,11 @@ function validateForm() {
 }
 
 // Handle form submission - FIXED TO GET NEW VALUES FROM FORM
+/**
+ * Handle update form submission.
+ * Collects changes, calls PUT API, and handles image add/delete.
+ * @param {Event} event
+ */
 async function handleFormSubmit(event) {
     event.preventDefault();
 

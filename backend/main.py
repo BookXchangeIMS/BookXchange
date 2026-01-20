@@ -1734,7 +1734,7 @@ async def confirm_transaction(listingid: int, buyerid: int, access_token: str = 
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
     
-    # ✅ CHECK AUTHORIZATION FIRST
+    # Check authorization first
     if listing.UserID != userid and buyerid != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to confirm this transaction")
     
@@ -1776,7 +1776,7 @@ async def unconfirm_transaction(listingid: int, buyerid: int, access_token: str 
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
     
-    # ✅ CHECK AUTHORIZATION FIRST
+    # Check authorization first
     if listing.UserID != userid and buyerid != userid:
         raise HTTPException(status_code=403, detail="Unauthorized to unconfirm this transaction")
     
@@ -1833,7 +1833,7 @@ async def get_transaction_history(access_token: str = Header(None), db=Depends(g
     if not transactions or transactions == []:
         raise HTTPException(status_code=404, detail="No transactions found")
     result = []
-    for transaction in transactions:
+    for transaction in transactions: 
         listing = await get_listing(transaction.ListingID, access_token, db)
         result.append(
         GetTransaction(
@@ -1852,6 +1852,7 @@ async def get_transaction_history(access_token: str = Header(None), db=Depends(g
 # PAGE ROUTES
 # ===================================================================================================================
 
+"""
 @app.get("/")
 async def get_home_page(request: Request):
     """
@@ -1988,5 +1989,4 @@ async def get_announcements_page(request: Request):
     Serves the announcements page.
     """
     return templates.TemplateResponse("Announcements.html", {"request": request})
-
-
+"""
