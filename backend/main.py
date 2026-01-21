@@ -77,49 +77,14 @@ app.add_middleware(
 from backend.models import LeaderboardEntry
 from backend.scripts.gamification import get_leaderboard
 
-from sqlalchemy import select, func
-from backend.config.db import metadata
-
 @app.get("/api/leaderboard", response_model=list[LeaderboardEntry], tags=["Gamification"])  # noqa: E501
 async def leaderboard_endpoint(access_token: str = Header(None), db=Depends(get_db)):
     """
     Retrieve top users by points for the leaderboard.
     If access_token is provided, it can be used for auth (optional).
     """
-    # Inline logic to ensure correct behavior (fetch all users)
-    userpoints_table = metadata.tables["UserPoints"]
-    users_table = metadata.tables["Users"]
-    
-    # Use outerjoin to include users without point records (default to 0 points)
-    stmt = select(
-        users_table.c.UserID,
-        users_table.c.Name,
-        users_table.c.ProfileImagePath,
-        func.coalesce(userpoints_table.c.TotalPoints, 0).label("TotalPoints"),
-        func.coalesce(userpoints_table.c.Level, 1).label("Level")
-    ).select_from(users_table).outerjoin(
-        userpoints_table,
-        users_table.c.UserID == userpoints_table.c.UserID
-    ).order_by(
-        func.coalesce(userpoints_table.c.TotalPoints, 0).desc()
-    ).limit(10)
-    
-    try:
-        rows = db.execute(stmt).fetchall()
-        leaderboard_data = [
-            {
-                "UserID": row.UserID,
-                "Name": row.Name,
-                "ProfileImagePath": row.ProfileImagePath,
-                "TotalPoints": row.TotalPoints,
-                "Level": row.Level
-            }
-            for row in rows
-        ]
-    except Exception as e:
-        print(f"Error fetching leaderboard: {e}")
-        leaderboard_data = []
-
+    # Optionally you could verify token, but leaderboard is public.
+    leaderboard_data = get_leaderboard(db, limit=10)
     # Convert to LeaderboardEntry models
     return [LeaderboardEntry(**entry) for entry in leaderboard_data]
 
