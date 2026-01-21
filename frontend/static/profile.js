@@ -250,10 +250,16 @@ async function loadUserPoints() {
     if (!token) return;
 
     try {
-        const userId = getUserId();
+        // Get user ID from profile first
+        const profile = await getMyProfile(token);
+        if (!profile || !profile.UserID) {
+            console.log('No user profile found');
+            return;
+        }
+
         const apiBaseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:8000';
-        
-        const response = await fetch(`${apiBaseUrl}/api/user/${userId}/points`, {
+
+        const response = await fetch(`${apiBaseUrl}/api/user/${profile.UserID}/points`, {
             headers: {
                 'access_token': token
             }
@@ -263,7 +269,7 @@ async function loadUserPoints() {
             const data = await response.json();
             const pointsEl = document.getElementById('user-points');
             const levelEl = document.getElementById('user-level');
-            
+
             if (pointsEl) pointsEl.textContent = data.TotalPoints || 0;
             if (levelEl) levelEl.textContent = data.Level || 1;
         } else {
