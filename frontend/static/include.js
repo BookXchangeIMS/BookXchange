@@ -1,4 +1,9 @@
+let componentsLoaded = false;
+
 function loadHTML() {
+    if (componentsLoaded) return;
+    componentsLoaded = true;
+
     let headerLoaded = false;
     let footerLoaded = false;
 
@@ -16,18 +21,27 @@ function loadHTML() {
     // Load Header
     const headerPlaceholder = document.getElementById('header-placeholder');
     if (headerPlaceholder) {
-        fetch('/BookXchange/frontend/templates/header.html')
-            .then(response => response.text())
-            .then(data => {
-                headerPlaceholder.innerHTML = data;
-                headerLoaded = true;
-                checkAllLoaded();
-            })
-            .catch(error => {
-                console.error('Error loading header:', error);
-                headerLoaded = true;
-                checkAllLoaded();
-            });
+        // Prevent double injection if placeholder already has content
+        if (headerPlaceholder.children.length === 0) {
+            fetch('/BookXchange/frontend/templates/header.html')
+                .then(response => response.text())
+                .then(data => {
+                    // Clear again just to be safe
+                    headerPlaceholder.innerHTML = '';
+                    headerPlaceholder.innerHTML = data;
+                    headerLoaded = true;
+                    checkAllLoaded();
+                })
+                .catch(error => {
+                    console.error('Error loading header:', error);
+                    headerLoaded = true;
+                    checkAllLoaded();
+                });
+        } else {
+            // Already has content (maybe server-injected or previous run)
+            headerLoaded = true;
+            checkAllLoaded();
+        }
     } else {
         headerLoaded = true;
     }
@@ -35,18 +49,23 @@ function loadHTML() {
     // Load Footer
     const footerPlaceholder = document.getElementById('footer-placeholder');
     if (footerPlaceholder) {
-        fetch('/BookXchange/frontend/templates/footer.html')
-            .then(response => response.text())
-            .then(data => {
-                footerPlaceholder.innerHTML = data;
-                footerLoaded = true;
-                checkAllLoaded();
-            })
-            .catch(error => {
-                console.error('Error loading footer:', error);
-                footerLoaded = true;
-                checkAllLoaded();
-            });
+        if (footerPlaceholder.children.length === 0) {
+            fetch('/BookXchange/frontend/templates/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    footerPlaceholder.innerHTML = data;
+                    footerLoaded = true;
+                    checkAllLoaded();
+                })
+                .catch(error => {
+                    console.error('Error loading footer:', error);
+                    footerLoaded = true;
+                    checkAllLoaded();
+                });
+        } else {
+            footerLoaded = true;
+            checkAllLoaded();
+        }
     } else {
         footerLoaded = true;
     }
@@ -56,7 +75,6 @@ function loadHTML() {
         checkAllLoaded();
     }
 }
-
 // Set active footer button based on current page
 function setActiveFooterButton() {
     // Get current page filename from URL

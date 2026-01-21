@@ -9,7 +9,9 @@ async function loadLeaderboard() {
     leaderboardList.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading leaderboard...</div>';
 
     try {
-        const response = await fetch(`${window.ENV.API_BASE_URL}/api/leaderboard`);
+        const apiBaseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:8000';
+        console.log('Fetching leaderboard from:', apiBaseUrl);
+        const response = await fetch(`${apiBaseUrl}/api/leaderboard`);
 
         if (!response.ok) {
             throw new Error(`Failed to fetch leaderboard: ${response.status}`);
@@ -54,15 +56,21 @@ async function loadLeaderboard() {
                 rankClass = 'rank-3';
             }
 
-            // Use profile image if provided and construct full URL if it's a relative path, otherwise fallback
+            // Safely get API_BASE_URL
+            const apiBaseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:8000';
+
+            // Use profile image if provided and is a valid URL
             let avatarUrl = `https://i.pravatar.cc/150?u=${user.UserID}`;
             if (user.ProfileImagePath) {
-                // Check if it's a full URL or relative path
                 if (user.ProfileImagePath.startsWith('http')) {
                     avatarUrl = user.ProfileImagePath;
                 } else {
-                    // Ensure we have the correct base for images if served from backend
-                    avatarUrl = `${window.ENV.API_BASE_URL}/${user.ProfileImagePath}`;
+                    // If it's a relative path, we only try to use it if we think it might be served.
+                    // But since backend doesn't serve authentic files by default, we'll be cautious.
+                    // Usage of placeholders for relative paths avoids 404s on unserved local files.
+                    // If you have local serving enabled, uncomment the line below:
+                    // avatarUrl = `${apiBaseUrl}/${user.ProfileImagePath}`;
+                    console.warn(`Skipping relative profile image path: ${user.ProfileImagePath}`);
                 }
             }
 

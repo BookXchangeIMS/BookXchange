@@ -1,37 +1,35 @@
 <header>
     <div class="logo">
-        <div class="logo-icon" onclick="goToHome()" style="cursor: pointer;">
-            <img src="../static/resources/BookLogo.png" class="book-svg" alt="BookXchange Logo">
+        <div class="logo-icon" onclick="goToHome()" role="button" tabindex="0">
+            <img src="../static/resources/BookLogo.png" alt="BookXchange Logo">
         </div>
     </div>
 
-    <div class="search-bar">
-        <input type="text" placeholder="Find books..." id="searchInput">
-        <button class="filter-btn" id="filterBtn" aria-label="Filter search">
-            <header>
-                <div class="logo">
-                    <div class="logo-icon" onclick="goToHome()" style="cursor: pointer;">
-                        <img src="../static/resources/BookLogo.png" class="book-svg" alt="BookXchange Logo">
-                    </div>
-                </div>
+    <div class="search-bar-container">
+        <div class="search-input-wrapper">
+            <input type="text" placeholder="Find books..." id="searchInput" aria-label="Search books">
+            <button class="filter-btn" id="filterBtn" aria-label="Filter search" title="Filters">
+                <i class="fas fa-sliders-h"></i>
+            </button>
+            <i class="fas fa-search search-icon"></i>
+        </div>
+    </div>
 
-                <div class="search-bar">
-                    <input type="text" placeholder="Find books..." id="searchInput">
-                    <button class="filter-btn" id="filterBtn" aria-label="Filter search">
-                        <i class="fas fa-sliders-h"></i>
-                    </button>
-                    <i class="fas fa-search search-icon"></i>
-                </div>
+    <div class="header-actions">
+        <!-- Chat/Messages -->
+        <button class="action-btn chat-btn" onclick="goToMessages()" aria-label="Messages" title="Messages">
+            <i class="fas fa-comments"></i>
+        </button>
 
-                <div class="header-actions">
-                    <button class="chat-btn" onclick="goToMessages()">
-                        <i class="fas fa-comments"></i>
-                    </button>
-                    <button class="leaderboard-btn" onclick="goToLeaderboard()" title="Leaderboard">
-                        <i class="fas fa-trophy"></i>
-                    </button>
-                    <button class="profile-btn" onclick="goToProfile()">
-                        <i class="fas fa-user"></i>
-                    </button>
-                </div>
-            </header>
+        <!-- Leaderboard -->
+        <button class="action-btn leaderboard-btn" onclick="goToLeaderboard()" aria-label="Leaderboard"
+            title="Leaderboard">
+            <i class="fas fa-trophy"></i>
+        </button>
+
+        <!-- Profile -->
+        <button class="action-btn profile-btn" onclick="goToProfile()" aria-label="Profile" title="Profile">
+            <i class="fas fa-user"></i>
+        </button>
+    </div>
+</header>

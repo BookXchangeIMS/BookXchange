@@ -6,6 +6,7 @@ header {
     padding: 15px 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     display: flex;
+    flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
     position: sticky;
@@ -13,21 +14,32 @@ header {
     z-index: 100;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    overflow: hidden;
     transition: all 0.3s ease;
+    gap: 20px;
 }
 
+/* Logo */
 .logo {
     display: flex;
     align-items: center;
-    gap: 10px;
+    flex-shrink: 0;
+}
+
+.logo-icon {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
 }
 
 .logo-icon img {
     height: 55px;
     width: auto;
     display: block;
-    margin-left: 22px;
+    margin-left: 10px;
     transition: transform 0.3s ease;
 }
 
@@ -35,29 +47,23 @@ header {
     transform: scale(1.05);
 }
 
-.logo-text {
-    font-size: 24px;
-    font-weight: 900;
-    color: white;
-}
-
-.logo-text .highlight {
-    color: #1a1a2e;
-}
-
-.search-bar {
+/* Search Bar Container */
+.search-bar-container {
     flex: 1;
-    max-width: 600px;
-    margin: 0 20px;
+    display: flex;
+    justify-content: center;
+    margin: 0 10px;
+}
+
+.search-input-wrapper {
     position: relative;
-}
-
-.search-bar>input {
-    height: 44px;
-}
-
-.search-bar input {
     width: 100%;
+    max-width: 600px;
+}
+
+.search-input-wrapper input {
+    width: 100%;
+    height: 44px;
     padding: 10px 45px 10px 25px;
     border-radius: 30px;
     border: none;
@@ -67,31 +73,35 @@ header {
     color: #1a1a2e;
     outline: none;
     transition: all 0.3s ease;
+    box-sizing: border-box;
+    /* Critical for size consistency */
 }
 
-.search-bar input::placeholder {
+.search-input-wrapper input::placeholder {
     color: #999;
 }
 
-.search-bar input:focus {
-    transform: scale(1.02);
+.search-input-wrapper input:focus {
+    transform: scale(1.01);
     box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
     background-color: #F3E6CF;
 }
 
-.search-bar i {
+.search-input-wrapper .search-icon {
     position: absolute;
     right: 20px;
     top: 50%;
     transform: translateY(-50%);
     color: #666;
     font-size: 18px;
+    pointer-events: none;
 }
 
+/* Filter Button */
 .filter-btn {
     position: absolute;
     right: 50px;
-    /* Left of the search icon */
+    /* Left of search icon */
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -103,9 +113,10 @@ header {
     border-radius: 50%;
     transition: all 0.3s ease;
     display: none;
-    /* Hidden by default, shown only on Home page via JS */
+    /* Controlled by JS */
     align-items: center;
     justify-content: center;
+    z-index: 2;
 }
 
 .filter-btn:hover {
@@ -113,20 +124,21 @@ header {
     color: #c84c3d;
 }
 
+/* Header Actions */
 .header-actions {
     display: flex;
     gap: 15px;
+    align-items: center;
+    flex-shrink: 0;
 }
 
-.chat-btn,
-.profile-btn,
-.leaderboard-btn {
+.action-btn {
     background-color: rgba(243, 230, 207, 0.95);
     border: none;
     font-size: 20px;
     color: #c84c3d;
     cursor: pointer;
-    padding: 10px;
+    padding: 0;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -136,31 +148,20 @@ header {
     justify-content: center;
 }
 
-.chat-btn:hover,
-.profile-btn:hover,
-.leaderboard-btn:hover {
+.action-btn:hover {
     transform: scale(1.15);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     background-color: #F3E6CF;
 }
 
-/* Responsive Header */
+/* Responsive */
 @media (max-width: 1200px) {
     header {
         padding: 12px 18px;
     }
 
-    .logo-text {
-        font-size: 22px;
-    }
-
     .logo-icon img {
         height: 48px;
-    }
-
-    .search-bar input {
-        font-size: 15px;
-        padding: 10px 40px 10px 20px;
     }
 }
 
@@ -170,9 +171,7 @@ header {
         margin-left: 0;
     }
 
-    .chat-btn,
-    .profile-btn,
-    .leaderboard-btn {
+    .action-btn {
         width: 44px;
         height: 44px;
     }
@@ -184,15 +183,11 @@ header {
     }
 
     header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 12px;
+        gap: 10px;
     }
 
-    .header-actions {
-        margin-left: auto;
-        justify-content: flex-end;
+    .search-input-wrapper input {
+        padding-right: 40px;
     }
 }
 
@@ -202,16 +197,25 @@ header {
         gap: 8px;
     }
 
-    .search-bar input {
-        font-size: 14px;
-        padding: 8px 36px 8px 16px;
-    }
-
-    .chat-btn,
-    .profile-btn,
-    .leaderboard-btn {
+    .action-btn {
         width: 36px;
         height: 36px;
         font-size: 16px;
+    }
+
+    .search-input-wrapper input {
+        font-size: 14px;
+        height: 40px;
+        padding-left: 15px;
+        padding-right: 35px;
+    }
+
+    .search-input-wrapper .search-icon {
+        right: 15px;
+        font-size: 16px;
+    }
+
+    .filter-btn {
+        right: 40px;
     }
 }
