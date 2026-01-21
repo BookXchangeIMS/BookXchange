@@ -2128,3 +2128,23 @@ async def leaderboard_endpoint(access_token: str = Header(None), db=Depends(get_
     """
     leaderboard_data = get_leaderboard(db, limit=10)
     return leaderboard_data
+
+@app.get("/api/user/{userid}/points", status_code=status.HTTP_200_OK, tags=["Gamification"])
+async def get_user_points_endpoint(userid: int, access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Get points and level for a specific user.
+    Returns TotalPoints, Level, and LastUpdated.
+    """
+    # Optional auth - anyone can view public leaderboard data
+    from backend.scripts.gamification import get_user_points
+    
+    try:
+        points_data = get_user_points(userid, db)
+        return points_data
+    except Exception as e:
+        # Return defaults if user has no points record yet
+        return {
+            "TotalPoints": 0,
+            "Level": 1,
+            "LastUpdated": datetime.now()
+        }
