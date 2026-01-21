@@ -58,42 +58,69 @@ async function loadLeaderboard() {
 
             // Safely get API_BASE_URL
             const apiBaseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:8000';
-
-            // Avatar Logic
-            let avatarHtml;
             const token = localStorage.getItem('access-token');
 
-            // Function to generate placeholder HTML
-            const getPlaceholderHtml = () => `<div class="user-avatar placeholder"><i class="fas fa-user"></i></div>`;
+            // Construct Rank Column
+            const rankDiv = document.createElement('div');
+            rankDiv.className = `rank-col ${rankClass}`;
+            rankDiv.innerHTML = rankDisplay;
 
+            // Construct User Column
+            const userColDiv = document.createElement('div');
+            userColDiv.className = 'user-col';
+
+            // 1. Create Image Element
+            const img = document.createElement('img');
+            img.className = 'user-avatar';
+            img.alt = user.Name;
+
+            // 2. Create Placeholder Element (Hidden by default)
+            const placeholder = document.createElement('div');
+            placeholder.className = 'user-avatar placeholder';
+            placeholder.innerHTML = '<i class="fas fa-user"></i>';
+            placeholder.style.display = 'none';
+
+            // 3. Determine source and visibility
             if (user.ProfileImagePath) {
                 if (user.ProfileImagePath.startsWith('http')) {
-                    // Blob storage or external URL
-                    avatarHtml = `<img src="${user.ProfileImagePath}" alt="${user.Name}" class="user-avatar" onerror="this.outerHTML='${getPlaceholderHtml().replace(/'/g, "\\'")}'">`;
+                    img.src = user.ProfileImagePath;
                 } else if (token) {
-                    // Local/Backend served image (requires auth)
-                    const imageUrl = `${apiBaseUrl}/api/get_users_profile_picture?userid=${user.UserID}&access_token=${token}`;
-                    avatarHtml = `<img src="${imageUrl}" alt="${user.Name}" class="user-avatar" onerror="this.outerHTML='${getPlaceholderHtml().replace(/'/g, "\\'")}'">`;
+                    img.src = `${apiBaseUrl}/api/get_users_profile_picture?userid=${user.UserID}&access_token=${token}`;
                 } else {
-                    // No token to fetch protected image -> fallback
-                    avatarHtml = getPlaceholderHtml();
+                    // No token for protected image
+                    img.style.display = 'none';
+                    placeholder.style.display = 'flex';
                 }
             } else {
-                avatarHtml = getPlaceholderHtml();
+                img.style.display = 'none';
+                placeholder.style.display = 'flex';
             }
 
-            // Badges logic (future implementation)
-            const badgesHtml = '';
+            // 4. Handle Load Errors
+            img.onerror = () => {
+                img.style.display = 'none';
+                placeholder.style.display = 'flex';
+            };
 
-            item.innerHTML = `
-                <div class="rank-col ${rankClass}">${rankDisplay}</div>
-                <div class="user-col">
-                    ${avatarHtml}
-                    <span class="user-name">${user.Name || 'Anonymous'}</span>
-                </div>
-                <div class="points-col">${(user.TotalPoints || 0).toLocaleString()} pts</div>
-                <!-- <div class="badges-col">${badgesHtml}</div> -->
-            `;
+            // 5. Append to User Column
+            userColDiv.appendChild(img);
+            userColDiv.appendChild(placeholder);
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'user-name';
+            nameSpan.textContent = user.Name || 'Anonymous';
+            userColDiv.appendChild(nameSpan);
+
+            // Construct Points Column
+            const pointsDiv = document.createElement('div');
+            pointsDiv.className = 'points-col';
+            pointsDiv.textContent = `${(user.TotalPoints || 0).toLocaleString()} pts`;
+
+            // Append all to item
+            item.innerHTML = ''; // Clear
+            item.appendChild(rankDiv);
+            item.appendChild(userColDiv);
+            item.appendChild(pointsDiv);
             leaderboardList.appendChild(item);
         });
 
