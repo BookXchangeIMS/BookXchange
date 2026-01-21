@@ -17,7 +17,7 @@ POINT_VALUES = {
     "SIGN_UP": 50,                    # New user registration
     "SIGN_IN": 10,                    # Daily login
     "CREATE_LISTING": 300,            # Post a new book listing
-    "SEND_MESSAGE": 25,               # Send message to another user
+    "SEND_MESSAGE": 10,               # Send message to another user
     "COMPLETE_TRANSACTION": 500,      # Successfully close a deal/handshake
 }
 

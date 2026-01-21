@@ -305,6 +305,18 @@ document.addEventListener("DOMContentLoaded", () => {
             appendMessage(text, "sent");
             messageInput.value = "";
 
+            // Award points for sending message (10 points)
+            try {
+                await fetch(`${API_BASE_URL}/api/award_message_points`, {
+                    method: 'POST',
+                    headers: {
+                        'access_token': accessToken
+                    }
+                });
+            } catch (error) {
+                console.log('Failed to award message points:', error);
+            }
+
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({
                     receiverid: parseInt(otherUserId),

@@ -2136,6 +2136,36 @@ def exchange_code_for_userinfo(code: str):
     return userinfo_resp.json()
 
 
+@app.post("/api/award_message_points", status_code=status.HTTP_200_OK, tags=["Gamification"])
+async def award_message_points_endpoint(access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Award 10 points for sending a message (called from frontend on button click)
+    """
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Access token required")
+    
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    try:
+        award_points(userid, "SEND_MESSAGE", db)
+        points_data = get_user_points(userid, db)
+        return {
+            "success": True,
+            "message": "Points awarded",
+            "totalPoints": points_data.get("TotalPoints", 0),
+            "level": points_data.get("Level", 1)
+        }
+    except Exception as e:
+        print(f"Error awarding message points: {e}")
+        return {
+            "success": False,
+            "message": "Failed to award points"
+        }
+
+
+
 @app.get("/auth/google/callback")
 async def google_callback(code: str | None = None, error: str | None = None):
     if error:
