@@ -59,19 +59,27 @@ async function loadLeaderboard() {
             // Safely get API_BASE_URL
             const apiBaseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:8000';
 
-            // Use profile image if provided and is a valid URL
-            let avatarUrl = `https://i.pravatar.cc/150?u=${user.UserID}`;
+            // Avatar Logic
+            let avatarHtml;
+            const token = localStorage.getItem('access-token');
+
+            // Function to generate placeholder HTML
+            const getPlaceholderHtml = () => `<div class="user-avatar placeholder"><i class="fas fa-user"></i></div>`;
+
             if (user.ProfileImagePath) {
                 if (user.ProfileImagePath.startsWith('http')) {
-                    avatarUrl = user.ProfileImagePath;
+                    // Blob storage or external URL
+                    avatarHtml = `<img src="${user.ProfileImagePath}" alt="${user.Name}" class="user-avatar" onerror="this.outerHTML='${getPlaceholderHtml().replace(/'/g, "\\'")}'">`;
+                } else if (token) {
+                    // Local/Backend served image (requires auth)
+                    const imageUrl = `${apiBaseUrl}/api/get_users_profile_picture?userid=${user.UserID}&access_token=${token}`;
+                    avatarHtml = `<img src="${imageUrl}" alt="${user.Name}" class="user-avatar" onerror="this.outerHTML='${getPlaceholderHtml().replace(/'/g, "\\'")}'">`;
                 } else {
-                    // If it's a relative path, we only try to use it if we think it might be served.
-                    // But since backend doesn't serve authentic files by default, we'll be cautious.
-                    // Usage of placeholders for relative paths avoids 404s on unserved local files.
-                    // If you have local serving enabled, uncomment the line below:
-                    // avatarUrl = `${apiBaseUrl}/${user.ProfileImagePath}`;
-                    console.warn(`Skipping relative profile image path: ${user.ProfileImagePath}`);
+                    // No token to fetch protected image -> fallback
+                    avatarHtml = getPlaceholderHtml();
                 }
+            } else {
+                avatarHtml = getPlaceholderHtml();
             }
 
             // Badges logic (future implementation)
@@ -80,7 +88,7 @@ async function loadLeaderboard() {
             item.innerHTML = `
                 <div class="rank-col ${rankClass}">${rankDisplay}</div>
                 <div class="user-col">
-                    <img src="${avatarUrl}" alt="${user.Name}" class="user-avatar" onerror="this.src='https://i.pravatar.cc/150?u=${user.UserID}'">
+                    ${avatarHtml}
                     <span class="user-name">${user.Name || 'Anonymous'}</span>
                 </div>
                 <div class="points-col">${(user.TotalPoints || 0).toLocaleString()} pts</div>
