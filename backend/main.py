@@ -1722,6 +1722,12 @@ async def websocket_endpoint(websocket: WebSocket):
                     # This returns True, not an object
                     post_new_message(current_userid, receiverid, listingid, content, db)
                     
+                    # Award points for sending a message
+                    try:
+                        award_points(current_userid, "SEND_MESSAGE", db)
+                    except Exception as e:
+                        print(f"Failed to award message points via WebSocket: {e}")
+                    
                     # Manually construct the message object
                     # We use '0' for MessageID since we don't have it, but the UI will still show it
                     outgoing = {
