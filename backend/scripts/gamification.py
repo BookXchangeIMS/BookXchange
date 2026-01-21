@@ -213,14 +213,13 @@ def get_leaderboard(db, limit: int = 10) -> list:
         rows = db.execute(stmt).fetchall()
         return [
             {
-                "Rank": i,
                 "UserID": row.UserID,
                 "Name": row.Name,
                 "ProfileImagePath": row.ProfileImagePath,
                 "TotalPoints": row.TotalPoints,
                 "Level": row.Level
             }
-            for i, row in enumerate(rows, 1)
+            for row in rows
         ]
     except Exception as e:
         print(f"Error fetching leaderboard: {e}")
