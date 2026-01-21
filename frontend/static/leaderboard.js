@@ -38,7 +38,7 @@ async function loadLeaderboard() {
                 if (typeof goToUserProfile === 'function') {
                     goToUserProfile(user.UserID);
                 } else {
-                    window.location.href = `profile_view.html?uid=${user.UserID}`;
+                    window.location.href = `foreignprofile.html?id=${user.UserID}`;
                 }
             });
 
