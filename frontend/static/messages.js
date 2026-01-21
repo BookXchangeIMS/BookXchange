@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 await fetch(`${API_BASE_URL}/api/award_message_points`, {
                     method: 'POST',
                     headers: {
-                        'access_token': accessToken
+                        'Access-Token': accessToken
                     }
                 });
             } catch (error) {

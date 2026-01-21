@@ -119,6 +119,7 @@ header {
 }
 
 .chat-btn,
+.leaderboard-btn,
 .profile-btn {
     background-color: rgba(243, 230, 207, 0.95);
     border: none;
@@ -136,6 +137,7 @@ header {
 }
 
 .chat-btn:hover,
+.leaderboard-btn:hover,
 .profile-btn:hover {
     transform: scale(1.15);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
@@ -169,6 +171,7 @@ header {
     }
 
     .chat-btn,
+    .leaderboard-btn,
     .profile-btn {
         width: 44px;
         height: 44px;
@@ -205,6 +208,7 @@ header {
     }
 
     .chat-btn,
+    .leaderboard-btn,
     .profile-btn {
         width: 36px;
         height: 36px;
