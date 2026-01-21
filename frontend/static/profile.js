@@ -12,6 +12,7 @@ window.goBack = function () {
 
 document.addEventListener('DOMContentLoaded', async function () {
     await loadUserProfile();
+    await loadUserPoints(); // Load gamification data
 });
 
 // ============================================

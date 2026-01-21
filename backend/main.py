@@ -2116,3 +2116,15 @@ async def google_callback(code: str | None = None, error: str | None = None):
     return JSONResponse(google_user)
 
 
+# ==================================================================================
+# GAMIFICATION ENDPOINTS
+# ==================================================================================
+
+@app.get("/api/leaderboard", status_code=status.HTTP_200_OK, tags=["Gamification"])
+async def leaderboard_endpoint(access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Retrieve top users by points for the leaderboard.
+    Authentication optional - leaderboard is public.
+    """
+    leaderboard_data = get_leaderboard(db, limit=10)
+    return leaderboard_data
