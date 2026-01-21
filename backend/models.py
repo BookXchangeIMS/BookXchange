@@ -181,6 +181,7 @@ class GetTransaction(BaseModel):
     ConfirmedBySeller: int
 
 class LeaderboardEntry(BaseModel):
+    Rank: int
     UserID: int
     Name: str
     TotalPoints: int
