@@ -514,6 +514,14 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
             
         post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
         listingid = get_listingid_by_userid_and_bookit(userid, new_bookid, db)
+        
+        # Award points for creating listing
+        try:
+            award_points(userid, "CREATE_LISTING", db)
+        except Exception as e:
+            print(f"Failed to award listing creation points: {e}")
+            # Don't fail listing creation if points fail
+        
         new_listing = get_listing_by_listingid(listingid, db)
         user = get_user_by_id(userid, db)
         return GetListing(
