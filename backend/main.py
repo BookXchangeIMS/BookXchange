@@ -24,6 +24,7 @@ from backend.scripts.ai_service import analyze_book_image
 from fastapi import UploadFile, File
 from backend.scripts.transactions_crud import *
 from backend.scripts.google_auth import router as google_auth_router
+from backend.scripts.gamification import get_leaderboard, award_points
 
 
 from datetime import datetime
@@ -70,6 +71,10 @@ tags_metadata = [
     {
         "name": "Transactions",
         "description": "Operations concerned with seeing transactions history",
+    },
+    {
+        "name": "Gamification",
+        "description": "Operations for points, levels, and leaderboard",
     },
 ]
 app = FastAPI(openapi_tags=tags_metadata)

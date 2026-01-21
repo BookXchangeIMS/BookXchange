@@ -180,7 +180,10 @@ class GetTransaction(BaseModel):
     ConfirmedByBuyer: int
     ConfirmedBySeller: int
 
-
-
-
-
+# Gamification models
+class LeaderboardEntry(BaseModel):
+    UserID: int
+    Name: str
+    ProfileImagePath: str | None = None
+    TotalPoints: int
+    Level: int
