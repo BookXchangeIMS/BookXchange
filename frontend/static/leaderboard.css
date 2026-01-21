@@ -201,22 +201,3 @@ body {
         font-size: 14px;
     }
 }
-
-/* Avatar Placeholder Style */
-.user-avatar.placeholder {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 20px;
-    border: 2px solid var(--border-color);
-    box-shadow: 0 2px 5px rgba(200, 76, 61, 0.2);
-}
-
-.user-avatar.placeholder i {
-    color: white;
-}
