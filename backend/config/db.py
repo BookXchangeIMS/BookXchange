@@ -1,13 +1,6 @@
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
 import os
-from pathlib import Path
-from dotenv import load_dotenv
-
-# Load .env file
-env_path = Path(__file__).resolve().parent.parent / '.env'
-load_dotenv(dotenv_path=env_path)
-
 from backend.config.config import Settings
 
 # Use DATABASE_URL from environment variable if available

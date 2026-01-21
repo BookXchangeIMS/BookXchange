@@ -78,14 +78,13 @@ from backend.models import LeaderboardEntry
 from backend.scripts.gamification import get_leaderboard
 
 @app.get("/api/leaderboard", response_model=list[LeaderboardEntry], tags=["Gamification"])  # noqa: E501
-async def leaderboard_endpoint(limit: int = 50, access_token: str = Header(None), db=Depends(get_db)):
+async def leaderboard_endpoint(access_token: str = Header(None), db=Depends(get_db)):
     """
     Retrieve top users by points for the leaderboard.
     If access_token is provided, it can be used for auth (optional).
-    Limit defaults to 50 users.
     """
     # Optionally you could verify token, but leaderboard is public.
-    leaderboard_data = get_leaderboard(db, limit=limit)
+    leaderboard_data = get_leaderboard(db, limit=10)
     # Convert to LeaderboardEntry models
     return [LeaderboardEntry(**entry) for entry in leaderboard_data]
 
