@@ -240,3 +240,37 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ============================================
+// LOAD USER GAMIFICATION STATS
+// ============================================
+
+async function loadUserPoints() {
+    const token = getAccessToken();
+    if (!token) return;
+
+    try {
+        const userId = getUserId();
+        const apiBaseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:8000';
+        
+        const response = await fetch(`${apiBaseUrl}/api/user/${userId}/points`, {
+            headers: {
+                'access_token': token
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const pointsEl = document.getElementById('user-points');
+            const levelEl = document.getElementById('user-level');
+            
+            if (pointsEl) pointsEl.textContent = data.TotalPoints || 0;
+            if (levelEl) levelEl.textContent = data.Level || 1;
+        } else {
+            console.log('No gamification data yet, using defaults');
+        }
+    } catch (error) {
+        console.error('Failed to load gamification stats:', error);
+        // Silently fail - not critical for profile page
+    }
+}
