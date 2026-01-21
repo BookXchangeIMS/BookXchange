@@ -196,6 +196,14 @@ async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
         refresh_token = create_refresh_token()
         if not store_refresh_token(refresh_token, userid, db):
             raise HTTPException(status_code=500, detail="Error storing refresh token")
+        
+        # Award login points
+        try:
+            award_points(userid, "SIGN_IN", db)
+        except Exception as e:
+            print(f"Failed to award login points: {e}")
+            # Don't fail login if points fail
+        
         return Tokens(access_token=access_token, refresh_token=refresh_token)
     else:
         raise HTTPException(
@@ -1580,7 +1588,16 @@ async def post_message(receiverid: int, listingid: int, content: str, access_tok
     if not content or len(content.strip()) == 0:
         raise HTTPException(status_code=400, detail="Message content cannot be empty")
 
-    return post_new_message(senderid, receiverid, listingid, content, db)
+    result = post_new_message(senderid, receiverid, listingid, content, db)
+    
+    # Award points for sending message
+    try:
+        award_points(senderid, "SEND_MESSAGE", db)
+    except Exception as e:
+        print(f"Failed to award message points: {e}")
+        # Don't fail message send if points fail
+    
+    return result
 
 
 @app.delete("/api/delete_message", status_code=status.HTTP_204_NO_CONTENT, tags=["Messages"])
