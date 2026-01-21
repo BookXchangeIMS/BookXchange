@@ -4,7 +4,7 @@ Gamification module for BookXchange.
 Handles point awards and level progression for user actions.
 """
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from backend.config.db import metadata
 from fastapi import HTTPException
 from datetime import datetime
@@ -195,17 +195,18 @@ def get_leaderboard(db, limit: int = 10) -> list:
     userpoints_table = metadata.tables["UserPoints"]
     users_table = metadata.tables["Users"]
     
+    # Use outerjoin to include users without point records (default to 0 points)
     stmt = select(
         users_table.c.UserID,
         users_table.c.Name,
         users_table.c.ProfileImagePath,
-        userpoints_table.c.TotalPoints,
-        userpoints_table.c.Level
-    ).join(
+        func.coalesce(userpoints_table.c.TotalPoints, 0).label("TotalPoints"),
+        func.coalesce(userpoints_table.c.Level, 1).label("Level")
+    ).outerjoin(
         userpoints_table,
         users_table.c.UserID == userpoints_table.c.UserID
     ).order_by(
-        userpoints_table.c.TotalPoints.desc()
+        func.coalesce(userpoints_table.c.TotalPoints, 0).desc()
     ).limit(limit)
     
     try:
