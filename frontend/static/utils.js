@@ -205,7 +205,8 @@ function goToLeaderboard() {
 
 function goToUserProfile(userId) {
     // Navigate to the profile page of another user (by ID)
-    window.location.href = `foreignprofile.html?id=${encodeURIComponent(userId)}`;
+    // Assuming profile.html can accept a query parameter to load the specific user
+    window.location.href = `profile.html?user=${encodeURIComponent(userId)}`;
 }
 
 
