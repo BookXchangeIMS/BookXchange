@@ -25,6 +25,9 @@ document.addEventListener('componentsLoaded', function () {
 
 let searchTimeout;
 
+/**
+ * Setup search input listeners with debounce
+ */
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -53,6 +56,9 @@ let selectedLat = null;
 let selectedLon = null;
 let selectedRadius = 10;
 
+/**
+ * Initialize and setup filter modal and controls
+ */
 function setupFilters() {
     const filterBtn = document.getElementById('filterBtn');
     const filterModal = document.getElementById('filterModal');
@@ -138,6 +144,9 @@ function setupFilters() {
     }
 }
 
+/**
+ * Initialize the Leaflet map for location filtering
+ */
 function initFilterMap() {
     if (filterMap) {
         filterMap.invalidateSize();
@@ -163,6 +172,10 @@ function initFilterMap() {
     });
 }
 
+/**
+ * Collect current filter values from UI
+ * @returns {Object} Filter object containing genres, price range, types, and location
+ */
 function getFilterValues() {
     const filters = {
         genres: [],
@@ -187,6 +200,10 @@ function getFilterValues() {
     return filters;
 }
 
+/**
+ * Handle search execution with current filters
+ * @param {string} query - Search query string
+ */
 async function handleSearch(query) {
     const accessToken = getAccessToken();
     try {
@@ -214,6 +231,9 @@ async function handleSearch(query) {
 }
 
 // Load all listings from API
+/**
+ * Load all listings from API and render them
+ */
 async function loadAllListings() {
     try {
         // Show skeleton loading state
@@ -236,6 +256,9 @@ async function loadAllListings() {
 }
 
 // Hide skeleton and show books with animation
+/**
+ * Transition from skeleton loader to actual book grid
+ */
 function hideSkeletonAndShowBooks() {
     if (skeletonGrid) skeletonGrid.style.display = 'none';
 
@@ -261,6 +284,10 @@ function hideSkeletonAndShowBooks() {
 }
 
 // Load books with pagination using shared UI components
+/**
+ * Render books grid with pagination
+ * @param {Array} books - Array of book objects to display
+ */
 function loadBooks(books) {
     if (!booksGrid) return;
 
@@ -287,6 +314,10 @@ function loadBooks(books) {
 }
 
 // Toggle favorite status
+/**
+ * Toggle favorite status for a listing
+ * @param {number|string} listingId - ID of the listing to toggle
+ */
 async function toggleFavorite(listingId) {
     const book = allListings.find(b => b.id === listingId);
     if (!book) return;
@@ -320,6 +351,10 @@ async function toggleFavorite(listingId) {
 }
 
 // View book details
+/**
+ * Navigate to book details page
+ * @param {number|string} bookId - ID of the book listing
+ */
 function viewBookDetails(bookId) {
     console.log('Viewing details for book ID:', bookId);
     window.location.href = `listing?id=${bookId}`;

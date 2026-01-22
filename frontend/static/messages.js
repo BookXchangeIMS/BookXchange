@@ -347,13 +347,13 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (!myConfirmationStatus && otherConfirmationStatus) {
             // Other party confirmed, waiting for me
             dealButton.classList.remove('deal-confirmed');
-            dealButton.innerHTML = '<img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake" class="handshake-img">';
+            dealButton.innerHTML = '<img src="../static/resources/svg/handshake.svg" width="53" height="30" alt="Handshake" class="handshake-img">';
             dealButton.title = "Other party confirmed - click to confirm deal";
             dealButton.style.animation = 'pulse 1.5s ease-in-out infinite';
         } else {
             // No confirmations yet
             dealButton.classList.remove('deal-confirmed');
-            dealButton.innerHTML = '<img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake" class="handshake-img">';
+            dealButton.innerHTML = '<img src="../static/resources/svg/handshake.svg" width="53" height="30" alt="Handshake" class="handshake-img">';
             dealButton.title = "Click to propose deal";
             dealButton.style.animation = '';
         }

@@ -117,7 +117,7 @@ main {
   height: auto;
   display: block;
   margin: 0 auto;
-  content: url('../static/resources/your_messages.png');
+  content: url('../static/resources/svg/your_messages.svg');
 }
 
 /* ============================================
@@ -303,7 +303,7 @@ main {
 /* Mobile (up to 768px) */
 @media (max-width: 768px) {
   .logo-img {
-    content: url('../static/resources/your_messages_phone.png');
+    content: url('../static/resources/svg/your_messages_phone.svg');
     width: 280px;
     max-width: 90%;
   }
