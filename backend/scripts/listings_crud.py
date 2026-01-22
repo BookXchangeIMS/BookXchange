@@ -605,16 +605,28 @@ def delete_new_listing(listingid: int, db):
     
     # Then delete the listing itself
     listing_stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
+
+    messages_stmt = metadata.tables["Messages"].delete().where(metadata.tables["Messages"].c.ListingID == listingid)
     
-    try:
+    reports_stmt = metadata.tables["Reports"].delete().where(metadata.tables["Reports"].c.ListingID == listingid)
+    
+    notifications_stmt = metadata.tables["Notification"].delete().where(metadata.tables["Notification"].c.ListingID == listingid)
+    
+    #try:
         # Delete images first (due to foreign key constraints)
-        db.execute(img_stmt)
-        # Then delete the listing
-        db.execute(listing_stmt)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Couldn't delete listing. Please try again later.")
+    db.execute(img_stmt)
+    # Then messages
+    db.execute(messages_stmt)
+    # Then reports
+    db.execute(reports_stmt)
+    # Then notifications
+    db.execute(notifications_stmt)
+    # Then delete the listing
+    db.execute(listing_stmt)
+    db.commit()
+    #except Exception as e:
+#    db.rollback()
+    #    raise HTTPException(status_code=500, detail="Couldn't delete listing. Please try again later.")
 
 def get_listings_by_userid(user_id: int, db):
     """

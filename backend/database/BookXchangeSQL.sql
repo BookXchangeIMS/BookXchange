@@ -175,7 +175,7 @@ CREATE INDEX IX_Notification_ListingID ON Notification(ListingID);
 GO
 
 ALTER TABLE Listings
-ADD CONSTRAINT DF_Listings_UserID DEFAULT 1 FOR UserID;
+ADD CONSTRAINT DF_Listings_UserID DEFAULT 33 FOR UserID;
 
 GO
 
@@ -196,13 +196,13 @@ BEGIN
 
     -- Reassign SenderID
     UPDATE m
-    SET SenderID = 1
+    SET SenderID = 33
     FROM Messages m
     JOIN deleted d ON m.SenderID = d.UserID;
 
     -- Reassign ReceiverID
     UPDATE m
-    SET ReceiverID = 1
+    SET ReceiverID = 33
     FROM Messages m
     JOIN deleted d ON m.ReceiverID = d.UserID;
 
