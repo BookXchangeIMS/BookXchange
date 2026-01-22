@@ -3,6 +3,11 @@ from sqlalchemy import select, and_, or_, func, case
 
 from backend.config.db import metadata
 
+# Import gamification
+try:
+    from backend.scripts.gamification import award_points
+except ImportError:
+    award_points = None
 
 def get_transaction_by_listingid_and_userid(listingid: int, buyerid: int, db):
     transactions = metadata.tables["Transactions"]
@@ -36,6 +41,22 @@ def confirm_transaction_by_listingid_and_buyeid(listingid: int, buyerid: int, By
         db.commit()
     except Exception as e:
         raise HTTPException(status_code=409, detail="Couldn't confirm transaction")
+    
+    # Award gamification points when transaction completes
+    if award_points:
+        try:
+            # Get seller ID from listing
+            seller_stmt = select(listings.c.UserID).where(listings.c.ListingID == listingid)
+            seller_id = db.execute(seller_stmt).scalar()
+            
+            # Award 500 points to both buyer and seller
+            if seller_id:
+                award_points(seller_id, "COMPLETE_TRANSACTION", db)
+            award_points(buyerid, "COMPLETE_TRANSACTION", db)
+        except Exception as e:
+            print(f"Failed to award transaction points: {e}")
+            # Don't fail the transaction if points fail
+    
     stmt2 = listings.update().where(listings.c.ListingID == listingid).values(ListingState="Closed")
     try:
         db.execute(stmt2)

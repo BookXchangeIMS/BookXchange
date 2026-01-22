@@ -1,5 +1,10 @@
 import asyncio
 
+# Load environment variables from .env file (for local development)
+# In production (Azure), environment variables are set in App Service Configuration
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Depends, Form, Header, UploadFile, File, WebSocket, WebSocketDisconnect, status, Query, Request
 from collections import defaultdict
 from typing import Annotated, Dict, Set
@@ -18,8 +23,17 @@ from backend.scripts.listings_crud import *
 from backend.scripts.ai_service import analyze_book_image
 from fastapi import UploadFile, File
 from backend.scripts.transactions_crud import *
+from backend.scripts.google_auth import router as google_auth_router
+from backend.scripts.gamification import get_leaderboard, award_points
+
 
 from datetime import datetime
+
+import os
+from urllib.parse import urlencode
+import requests
+from fastapi import HTTPException
+from starlette.responses import RedirectResponse, JSONResponse
 
 tags_metadata = [
     {
@@ -58,8 +72,21 @@ tags_metadata = [
         "name": "Transactions",
         "description": "Operations concerned with seeing transactions history",
     },
+    {
+        "name": "Gamification",
+        "description": "Operations for points, levels, and leaderboard",
+    },
 ]
 app = FastAPI(openapi_tags=tags_metadata)
+
+
+# Use .get() to provide fallback and prevent KeyError during import
+# These are also defined in google_auth.py, but keeping them here for backward compatibility
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")
+
+app.include_router(google_auth_router)
 
 # Configure CORS to allow frontend requests
 from fastapi.middleware.cors import CORSMiddleware
@@ -169,6 +196,14 @@ async def sign_in(login_data: Annotated[SignIn, Form()],db= Depends(get_db)):
         refresh_token = create_refresh_token()
         if not store_refresh_token(refresh_token, userid, db):
             raise HTTPException(status_code=500, detail="Error storing refresh token")
+        
+        # Award login points
+        try:
+            award_points(userid, "SIGN_IN", db)
+        except Exception as e:
+            print(f"Failed to award login points: {e}")
+            # Don't fail login if points fail
+        
         return Tokens(access_token=access_token, refresh_token=refresh_token)
     else:
         raise HTTPException(
@@ -487,6 +522,14 @@ async def post_listing(listing_form: PostListing, access_token = Header(None), d
             
         post_new_listing(listing_form, userid, new_locationid, new_bookid, db)
         listingid = get_listingid_by_userid_and_bookit(userid, new_bookid, db)
+        
+        # Award points for creating listing
+        try:
+            award_points(userid, "CREATE_LISTING", db)
+        except Exception as e:
+            print(f"Failed to award listing creation points: {e}")
+            # Don't fail listing creation if points fail
+        
         new_listing = get_listing_by_listingid(listingid, db)
         user = get_user_by_id(userid, db)
         return GetListing(
@@ -1551,7 +1594,16 @@ async def post_message(receiverid: int, listingid: int, content: str, access_tok
     if not content or len(content.strip()) == 0:
         raise HTTPException(status_code=400, detail="Message content cannot be empty")
 
-    return post_new_message(senderid, receiverid, listingid, content, db)
+    result = post_new_message(senderid, receiverid, listingid, content, db)
+    
+    # Award points for sending message
+    try:
+        award_points(senderid, "SEND_MESSAGE", db)
+    except Exception as e:
+        print(f"Failed to award message points: {e}")
+        # Don't fail message send if points fail
+    
+    return result
 
 
 @app.delete("/api/delete_message", status_code=status.HTTP_204_NO_CONTENT, tags=["Messages"])
@@ -1675,6 +1727,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 try:
                     # This returns True, not an object
                     post_new_message(current_userid, receiverid, listingid, content, db)
+                    
+                    # Award points for sending a message
+                    try:
+                        award_points(current_userid, "SEND_MESSAGE", db)
+                    except Exception as e:
+                        print(f"Failed to award message points via WebSocket: {e}")
                     
                     # Manually construct the message object
                     # We use '0' for MessageID since we don't have it, but the UI will still show it
@@ -1923,12 +1981,20 @@ async def get_login_page(request: Request):
     """
     return templates.TemplateResponse("Login.html", {"request": request})
 
+@app.get("/complete-google-profile")
+async def get_complete_google_profile_page(request: Request):
+    """
+    Serves the Google OAuth profile completion page.
+    """
+    return templates.TemplateResponse("complete-google-profile.html", {"request": request})
+
 @app.get("/registration")
 async def get_registration_page(request: Request):
     """
     Serves the registration page.
     """
     return templates.TemplateResponse("registration.html", {"request": request})
+
 
 @app.get("/registration2")
 async def get_registration2_page(request: Request):
@@ -2033,3 +2099,119 @@ async def get_announcements_page(request: Request):
     return templates.TemplateResponse("Announcements.html", {"request": request})
 
 
+
+@app.get("/auth/google/login")
+async def google_login():
+    params = {
+        "response_type": "code",
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "consent",
+    }
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
+    return RedirectResponse(url)
+
+
+def exchange_code_for_userinfo(code: str):
+    token_resp = requests.post(
+        "https://oauth2.googleapis.com/token",
+        data={
+            "code": code,
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "redirect_uri": GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code",
+        },
+        timeout=10,
+    )
+    if not token_resp.ok:
+        raise HTTPException(status_code=400, detail="Failed to get token from Google")
+
+    access_token = token_resp.json().get("access_token")
+
+    userinfo_resp = requests.get(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=10,
+    )
+    if not userinfo_resp.ok:
+        raise HTTPException(status_code=400, detail="Failed to get user info from Google")
+
+    return userinfo_resp.json()
+
+
+@app.post("/api/award_message_points", status_code=status.HTTP_200_OK, tags=["Gamification"])
+async def award_message_points_endpoint(access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Award 10 points for sending a message (called from frontend on button click)
+    """
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Access token required")
+    
+    userid = get_userid_by_access_token(access_token, db)
+    if not userid:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    try:
+        award_points(userid, "SEND_MESSAGE", db)
+        points_data = get_user_points(userid, db)
+        return {
+            "success": True,
+            "message": "Points awarded",
+            "totalPoints": points_data.get("TotalPoints", 0),
+            "level": points_data.get("Level", 1)
+        }
+    except Exception as e:
+        print(f"Error awarding message points: {e}")
+        return {
+            "success": False,
+            "message": "Failed to award points"
+        }
+
+
+
+@app.get("/auth/google/callback")
+async def google_callback(code: str | None = None, error: str | None = None):
+    if error:
+        raise HTTPException(status_code=400, detail=f"Google error: {error}")
+    if not code:
+        raise HTTPException(status_code=400, detail="Missing code")
+
+    google_user = exchange_code_for_userinfo(code)
+    return JSONResponse(google_user)
+
+
+# ==================================================================================
+# GAMIFICATION ENDPOINTS
+# ==================================================================================
+
+@app.get("/api/leaderboard", status_code=status.HTTP_200_OK, tags=["Gamification"])
+async def leaderboard_endpoint(access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Retrieve top users by points for the leaderboard.
+    Authentication optional - leaderboard is public.
+    """
+    leaderboard_data = get_leaderboard(db, limit=10)
+    return leaderboard_data
+
+@app.get("/api/user/{userid}/points", status_code=status.HTTP_200_OK, tags=["Gamification"])
+async def get_user_points_endpoint(userid: int, access_token: str = Header(None), db=Depends(get_db)):
+    """
+    Get points and level for a specific user.
+    Returns TotalPoints, Level, and LastUpdated.
+    """
+    # Optional auth - anyone can view public leaderboard data
+    from backend.scripts.gamification import get_user_points
+    
+    try:
+        points_data = get_user_points(userid, db)
+        return points_data
+    except Exception as e:
+        # Return defaults if user has no points record yet
+        return {
+            "TotalPoints": 0,
+            "Level": 1,
+            "LastUpdated": datetime.now()
+        }

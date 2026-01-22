@@ -20,10 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = 'Announcements.html';
     };
 
-    // Require login
-    if (!isLoggedIn()) {
-        window.location.href = '../templates/Login.html';
-    }
+    // Authentication check removed - page will check token when loading data
+    // If token is missing, API calls will handle it gracefully
 
     // Navigation functions - MUST be in global scope for onclick to work
     window.goToFavorites = function () {
@@ -306,6 +304,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             appendMessage(text, "sent");
             messageInput.value = "";
+
+            // Award points for sending message (10 points)
+            try {
+                await fetch(`${API_BASE_URL}/api/award_message_points`, {
+                    method: 'POST',
+                    headers: {
+                        'Access-Token': accessToken
+                    }
+                });
+            } catch (error) {
+                console.log('Failed to award message points:', error);
+            }
 
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({

@@ -1,0 +1,222 @@
+/* Leaderboard Styles */
+
+body {
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+    background-image: url('resources/backgroundopacity2.png');
+    background-size: auto;
+    background-repeat: repeat;
+    background-attachment: fixed;
+    background-color: #FFF1D8;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Back Button - Below Header */
+.back-btn {
+    margin: 20px 0 0 20px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background-color: white;
+}
+
+.back-btn:hover i {
+    color: white;
+}
+
+.back-btn i {
+    font-size: 20px;
+    color: #1a1a2e;
+    transition: color 0.3s ease;
+}
+
+/* Container for the whole leaderboard page */
+.leaderboard-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+
+.leaderboard-container {
+    background-color: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    margin-top: var(--spacing-lg);
+    width: 100%;
+}
+
+.leaderboard-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px;
+    padding: 20px 30px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-weight: var(--font-bold);
+    font-size: 18px;
+    align-items: center;
+    border-radius: var(--radius-md);
+}
+
+.leaderboard-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px;
+    padding: 20px 30px;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    transition: background-color var(--transition-fast);
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-item:hover {
+    background-color: rgba(200, 76, 61, 0.05);
+}
+
+.rank-col {
+    font-weight: var(--font-bold);
+    font-size: 20px;
+    color: var(--text-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.rank-1 {
+    color: #FFD700;
+    font-size: 24px;
+}
+
+.rank-2 {
+    color: #C0C0C0;
+    font-size: 22px;
+}
+
+.rank-3 {
+    color: #CD7F32;
+    font-size: 22px;
+}
+
+.user-col {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.user-name {
+    font-weight: var(--font-semibold);
+    color: var(--text-dark);
+    font-size: 18px;
+}
+
+.points-col {
+    font-weight: var(--font-bold);
+    color: var(--primary-color);
+    font-size: 18px;
+    text-align: right;
+}
+
+#points-col-header {
+    color: var(--white);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+
+    .leaderboard-header,
+    .leaderboard-item {
+        grid-template-columns: 60px 1fr 80px;
+        padding: 15px;
+    }
+
+    .rank-col {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
+
+    .points-col {
+        text-align: right;
+    }
+
+    .leaderboard-header {
+        font-size: 16px;
+    }
+
+    .leaderboard-item {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .leaderboard-page {
+        padding: var(--spacing-sm);
+    }
+
+    .leaderboard-header,
+    .leaderboard-item {
+        grid-template-columns: 40px 1fr 60px;
+        padding: 10px;
+    }
+
+    .rank-col {
+        width: 25px;
+        height: 25px;
+        font-size: 14px;
+    }
+
+    .user-name {
+        font-size: 16px;
+    }
+
+    .points-col {
+        font-size: 14px;
+    }
+}
+
+/* Avatar Placeholder Style */
+.user-avatar.placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 5px rgba(200, 76, 61, 0.2);
+}
+
+.user-avatar.placeholder i {
+    color: white;
+}

@@ -257,3 +257,54 @@ body {
         font-size: 28px;
     }
 }
+
+/* Divider for Google OAuth */
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 25px 0;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #d0d0d0;
+}
+
+.divider-text {
+    padding: 0 15px;
+    color: #666;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Google Sign-Up Button - Matching site aesthetic */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px 40px;
+    background-color: #c84c3d;
+    border: none;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.google-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(200, 76, 61, 0.3);
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+}

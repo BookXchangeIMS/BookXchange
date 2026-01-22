@@ -12,6 +12,7 @@ window.goBack = function () {
 
 document.addEventListener('DOMContentLoaded', async function () {
     await loadUserProfile();
+    await loadUserPoints(); // Load gamification data
 });
 
 // ============================================
@@ -104,10 +105,8 @@ function viewTransactionHistory() {
     window.location.href = 'transactionhistory.html';
 }
 
-// Add login check at page load
-if (!isLoggedIn()) {
-    window.location.href = '../templates/Login.html';
-}
+// Authentication check removed - profile page will check token when loading profile data
+// If token is missing, loadUserProfile() will handle it gracefully
 
 function handleLogout() {
     const modal = document.getElementById('logoutModal');
@@ -241,3 +240,43 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ============================================
+// LOAD USER GAMIFICATION STATS
+// ============================================
+
+async function loadUserPoints() {
+    const token = getAccessToken();
+    if (!token) return;
+
+    try {
+        // Get user ID from profile first
+        const profile = await getMyProfile(token);
+        if (!profile || !profile.UserID) {
+            console.log('No user profile found');
+            return;
+        }
+
+        const apiBaseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:8000';
+
+        const response = await fetch(`${apiBaseUrl}/api/user/${profile.UserID}/points`, {
+            headers: {
+                'access_token': token
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const pointsEl = document.getElementById('user-points');
+            const levelEl = document.getElementById('user-level');
+
+            if (pointsEl) pointsEl.textContent = data.TotalPoints || 0;
+            if (levelEl) levelEl.textContent = data.Level || 1;
+        } else {
+            console.log('No gamification data yet, using defaults');
+        }
+    } catch (error) {
+        console.error('Failed to load gamification stats:', error);
+        // Silently fail - not critical for profile page
+    }
+}
