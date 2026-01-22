@@ -146,7 +146,9 @@ function displayUserBooks(books) {
     userBooksGrid.innerHTML = '';
 
     // Re-add the add-book-card as first item
+    let addBookCardElement;
     if (addBookCard) {
+        addBookCardElement = addBookCard;
         userBooksGrid.appendChild(addBookCard);
     } else {
         // If it doesn't exist, create it
@@ -159,11 +161,15 @@ function displayUserBooks(books) {
                 <p>Add a Book</p>
             </div>
         `;
+        addBookCardElement = newAddBookCard;
         userBooksGrid.appendChild(newAddBookCard);
     }
 
     // Check if there are books to display
     if (books.length === 0) {
+        // Add full-width class when no books
+        addBookCardElement.classList.add('full-width');
+        
         const emptyState = document.createElement('div');
         emptyState.className = 'empty-state';
         emptyState.innerHTML = `
@@ -174,6 +180,9 @@ function displayUserBooks(books) {
         userBooksGrid.appendChild(emptyState);
         return;
     }
+    
+    // Remove full-width class when there are books
+    addBookCardElement.classList.remove('full-width');
 
     // Add book cards
     books.forEach(book => {
