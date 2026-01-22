@@ -502,6 +502,11 @@ async function getDialogues(accessToken) {
     });
 
     if (!response.ok) {
+        // If no dialogues found (404), return empty array instead of error
+        if (response.status === 404) {
+            return [];
+        }
+
         const errorText = await response.text();
         console.error('GetDialogues API error:', response.status, errorText);
         throw new Error(`Failed to fetch dialogues: ${response.status}`);
