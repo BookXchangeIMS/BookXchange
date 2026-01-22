@@ -53,9 +53,9 @@ body {
 }
 
 .leaderboard-container {
-    background-color: var(--white);
+    background-color: transparent;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
     overflow: hidden;
     margin-top: var(--spacing-lg);
     width: 100%;
@@ -65,21 +65,26 @@ body {
     display: grid;
     grid-template-columns: 80px 1fr 120px;
     padding: 20px 30px;
-    background-color: var(--primary-color);
+    background-color: rgba(200, 76, 61, 0.95);
     color: var(--white);
     font-weight: var(--font-bold);
     font-size: 18px;
     align-items: center;
     border-radius: var(--radius-md);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .leaderboard-item {
     display: grid;
     grid-template-columns: 80px 1fr 120px;
     padding: 20px 30px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(200, 76, 61, 0.2);
     align-items: center;
     transition: background-color var(--transition-fast);
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .leaderboard-item:last-child {
@@ -87,7 +92,7 @@ body {
 }
 
 .leaderboard-item:hover {
-    background-color: rgba(200, 76, 61, 0.05);
+    background-color: rgba(200, 76, 61, 0.15);
 }
 
 .rank-col {
