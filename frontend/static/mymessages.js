@@ -163,7 +163,7 @@ async function loadDialogues() {
 
     if (!dialogues || dialogues.length === 0) {
       const emptyMessage = `
-        <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+        <div class="empty-state" style="text-align: center; padding: 40px 20px; grid-column: 1 / -1; width: 100%;">
           <i class="fas fa-comments" style="font-size: 40px; color: #c84c3d; margin-bottom: 15px;"></i>
           <p style="color: #666; font-size: 18px;">You have no messages yet.</p>
           <small style="color: #999;">Start contacting sellers from listings to see conversations here.</small>
@@ -223,7 +223,7 @@ async function loadDialogues() {
     // Handle empty states for each tab
     if (myListingsCards.length === 0) {
       myListingsList.innerHTML = `
-        <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+        <div class="empty-state" style="text-align: center; padding: 40px 20px; grid-column: 1 / -1; width: 100%;">
           <i class="fas fa-box-open" style="font-size: 40px; color: #c84c3d; margin-bottom: 15px;"></i>
           <p style="color: #666; font-size: 18px;">No messages about your listings yet.</p>
         </div>
@@ -232,7 +232,7 @@ async function loadDialogues() {
 
     if (interestedCards.length === 0) {
       interestedList.innerHTML = `
-        <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+        <div class="empty-state" style="text-align: center; padding: 40px 20px; grid-column: 1 / -1; width: 100%;">
           <i class="fas fa-heart-broken" style="font-size: 40px; color: #c84c3d; margin-bottom: 15px;"></i>
           <p style="color: #666; font-size: 18px;">No messages about listings you're interested in.</p>
         </div>
