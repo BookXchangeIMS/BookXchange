@@ -9,7 +9,7 @@ const hasOAuthTokens = urlParams.has('access_token') && urlParams.has('refresh_t
 // State
 let allListings = [];
 let currentPage = 1;
-const PAGE_SIZE = 4; // Set the # of results per page here
+const PAGE_SIZE = 12; // Set the # of results per page here
 
 // DOM elements
 const booksGrid = document.getElementById('booksGrid');
