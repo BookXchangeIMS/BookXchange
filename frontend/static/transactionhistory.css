@@ -340,8 +340,8 @@ html {
 /* ========== BACK BUTTON ========== */
 .back-btn {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 140px;
+    left: 40px;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -367,8 +367,6 @@ html {
 
 @media (max-width: 768px) {
     .back-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
+        display: none;
     }
 }
