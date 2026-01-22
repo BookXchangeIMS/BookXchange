@@ -66,7 +66,7 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px 20px;
+    padding: 20px 20px 16px 20px;
     background: linear-gradient(135deg, var(--white) 0%, #f8f9fa 100%);
     border-bottom: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
@@ -437,8 +437,8 @@ body {
     height: 44px;
     border-radius: 50%;
     border: none;
-    background-color: rgba(200, 76, 61, 0.1);
-    color: var(--primary-color);
+    background-color: var(--primary-color);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -448,17 +448,15 @@ body {
 }
 
 .deal-btn-input:hover {
-    background-color: var(--primary-color);
+    background-color: #a83d30;
     transform: scale(1.05);
-}
-
-.deal-btn-input:hover img {
-    filter: brightness(0) invert(1);
+    box-shadow: var(--shadow-md);
 }
 
 .deal-btn-input img {
     width: 24px;
     height: 24px;
+    filter: brightness(0) invert(1);
 }
 
 .message-input {
@@ -509,21 +507,28 @@ body {
    ============================================ */
 
 @media (min-width: 768px) {
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+    }
+
     .messages-container {
         position: relative;
         max-width: 800px;
-        margin: 20px auto;
+        margin: 0 auto;
         border-radius: var(--radius-xl);
         box-shadow: var(--shadow-lg);
-        height: calc(100vh - 40px);
+        height: calc(100vh - 20px);
         min-height: 600px;
-        max-height: calc(100vh - 40px);
+        max-height: calc(100vh - 20px);
     }
 
     .chat-header {
         border-top-left-radius: var(--radius-xl);
         border-top-right-radius: var(--radius-xl);
-        padding: 20px 30px;
+        padding: 24px 30px 20px 30px;
         min-height: 90px;
     }
 
@@ -628,10 +633,12 @@ body {
     .messages-container {
         max-width: 1000px;
         min-height: 700px;
+        height: calc(100vh - 20px);
+        max-height: calc(100vh - 20px);
     }
 
     .chat-header {
-        padding: 24px 40px;
+        padding: 28px 40px 24px 40px;
     }
 
     .user-avatar-header {
