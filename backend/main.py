@@ -612,10 +612,11 @@ async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db
     """
     Retrieve all available listings from the database.
     
-    This endpoint fetches all book listings regardless of who posted them, making it
-    ideal for displaying all available books on the home page or marketplace view.
-    The authenticated user's ID is used to determine which listings are marked as
-    favorites for that user.
+    For authenticated users, listings are sorted by relevance based on:
+    - Distance from the user's location (closer listings ranked higher)
+    - Genre preferences (books matching user's preferred genres ranked higher)
+    
+    For unauthenticated users, listings are returned in default order.
     
     :param access_token: The access token for user authentication
     :type access_token: str
@@ -631,15 +632,20 @@ async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db
             userid = None
     else:
         userid = None
-        
-    listings = get_all_listings(db)
+    
+    # Use sorted listings for authenticated users
+    if userid:
+        listings = get_sorted_listings_for_user(userid, db)
+    else:
+        listings = get_all_listings(db)
+    
     result = []
     
     for listing in listings:
         user = get_user_by_id(listing.UserID, db)
         book = get_book_by_id(listing.BookID, db)
         location = get_location_by_id(listing.LocationID, db)
-        is_favorite = check_if_listing_is_favorite(listing.ListingID, userid, db)
+        is_favorite = check_if_listing_is_favorite(listing.ListingID, userid, db) if userid else False
         
         result.append(GetListing(
             ListingID=listing.ListingID,
