@@ -1,7 +1,7 @@
 import zipfile
 
 from fastapi import HTTPException
-from PIL import Image, ImageFile
+from PIL import Image, ImageFile, ImageOps
 from pillow_heif import register_heif_opener
 
 from uuid import uuid4
@@ -115,6 +115,10 @@ def insert_profile_picture(image_file: UploadFile):
     if not validate_image_extension(image_file):
         raise HTTPException(status_code=400, detail="Invalid image type")
     image = Image.open(image_file.file)
+    
+    # Fix EXIF orientation to prevent rotation issues
+    image = ImageOps.exif_transpose(image)
+    
     if not validate_profile_picture_resolution(image):
         raise HTTPException(status_code=400, detail="Image resolution is too small or too big")
     if not validate_profile_picture_ratio(image):
@@ -183,6 +187,10 @@ def insert_listing_picture(image_file: UploadFile):
     if not validate_image_extension(image_file):
         raise HTTPException(status_code=400, detail="Invalid image type")
     image = Image.open(image_file.file)
+    
+    # Fix EXIF orientation to prevent rotation issues
+    image = ImageOps.exif_transpose(image)
+    
     if not validate_listing_picture_resolution(image):
         raise HTTPException(status_code=400, detail="Image resolution is too small or too big")
     
