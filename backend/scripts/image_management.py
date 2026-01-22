@@ -2,6 +2,8 @@ import zipfile
 
 from fastapi import HTTPException
 from PIL import Image, ImageFile
+from pillow_heif import register_heif_opener
+
 from uuid import uuid4
 from fastapi import UploadFile
 
@@ -17,12 +19,15 @@ allowed_pfp_resolutions = {
 allowed_listing_resolutions = {
     "min_width": 100,
     "min_height": 100,
-    "max_width": 3000,
-    "max_height": 3000,
+    "max_width": 10000,
+    "max_height": 10000,
 }
 
+
+# This allows PIL to recognize .heic files
+register_heif_opener()
 allowed_image_resolutions = [
-    'jpg', 'jpeg', 'png', 'tiff', 'raw', 'webp', 'gif', 'bmp'
+    'jpg', 'jpeg', 'png', 'tiff', 'raw', 'webp', 'gif', 'bmp', 'heic'
 ]
 allowed_profile_picture_ratio = 3.0
 
