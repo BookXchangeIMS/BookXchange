@@ -213,14 +213,17 @@ async function loadImages(listingId, accessToken) {
 }
 
 // ============================================
-// IMAGE GALLERY WITH THUMBNAILS
+// IMAGE GALLERY WITH SWIPE
 // ============================================
 
 function loadImageGallery(images) {
     const mainImage = document.getElementById('mainImage');
-    const thumbnailGallery = document.getElementById('thumbnailGallery');
+    const swipeIndicator = document.getElementById('swipeIndicator');
+    const mainImageWrapper = document.querySelector('.main-image-wrapper');
 
-    if (!mainImage || !thumbnailGallery) return;
+    if (!mainImage) return;
+
+    let currentImageIndex = 0;
 
     // Set first image as main
     mainImage.src = images[0];
@@ -228,32 +231,89 @@ function loadImageGallery(images) {
         this.src = '../static/resources/placeholder.jpg';
     };
 
-    // Clear and create thumbnails
-    thumbnailGallery.innerHTML = '';
+    // Show swipe indicator only if there are multiple images
+    if (images.length > 1 && swipeIndicator) {
+        swipeIndicator.style.display = 'flex';
+        
+        // Hide indicator after 3 seconds
+        setTimeout(() => {
+            swipeIndicator.style.opacity = '0';
+            swipeIndicator.style.transition = 'opacity 0.5s ease';
+        }, 3000);
+    } else if (swipeIndicator) {
+        swipeIndicator.style.display = 'none';
+    }
 
-    images.forEach((imgSrc, index) => {
-        const thumbnail = document.createElement('img');
-        thumbnail.src = imgSrc;
-        thumbnail.alt = `Image ${index + 1}`;
-        thumbnail.className = 'thumbnail';
-        if (index === 0) thumbnail.classList.add('active');
+    // Add swipe functionality if multiple images
+    if (images.length > 1 && mainImageWrapper) {
+        let touchStartX = 0;
+        let touchEndX = 0;
 
-        // Error handling for thumbnails
-        thumbnail.onerror = function () {
-            this.src = '../static/resources/placeholder.jpg';
-        };
-
-        // Click handler to change main image
-        thumbnail.addEventListener('click', function () {
-            mainImage.src = imgSrc;
-
-            // Update active state
-            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-            thumbnail.classList.add('active');
+        mainImageWrapper.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
         });
 
-        thumbnailGallery.appendChild(thumbnail);
-    });
+        mainImageWrapper.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        // Mouse drag support for desktop
+        let mouseStartX = 0;
+        let isDragging = false;
+
+        mainImageWrapper.addEventListener('mousedown', (e) => {
+            mouseStartX = e.screenX;
+            isDragging = true;
+        });
+
+        mainImageWrapper.addEventListener('mouseup', (e) => {
+            if (isDragging) {
+                const mouseEndX = e.screenX;
+                const diff = mouseStartX - mouseEndX;
+                
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        // Swiped left - next image
+                        currentImageIndex = (currentImageIndex + 1) % images.length;
+                    } else {
+                        // Swiped right - previous image
+                        currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                    }
+                    updateMainImage();
+                }
+            }
+            isDragging = false;
+        });
+
+        mainImageWrapper.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        function handleSwipe() {
+            const swipeDistance = touchStartX - touchEndX;
+            
+            if (Math.abs(swipeDistance) > 50) {
+                if (swipeDistance > 0) {
+                    // Swiped left - next image
+                    currentImageIndex = (currentImageIndex + 1) % images.length;
+                } else {
+                    // Swiped right - previous image
+                    currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                }
+                updateMainImage();
+            }
+        }
+
+        function updateMainImage() {
+            mainImage.style.opacity = '0';
+            setTimeout(() => {
+                mainImage.src = images[currentImageIndex];
+                mainImage.style.transition = 'opacity 0.3s ease';
+                mainImage.style.opacity = '1';
+            }, 150);
+        }
+    }
 }
 
 // ============================================
