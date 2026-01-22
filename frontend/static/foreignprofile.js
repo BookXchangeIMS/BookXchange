@@ -96,7 +96,9 @@ async function loadUserProfile(userId, accessToken) {
 async function loadUserListings(userId, accessToken) {
   try {
     const listings = await getUserListings(userId, accessToken);
-    userListings = listings;
+    // Filter out inactive listings
+    const activeListings = listings.filter(listing => listing.Status !== 'Inactive');
+    userListings = activeListings;
 
     // Update section title
     const titleElement = document.querySelector('.listings-section h2');
@@ -105,7 +107,7 @@ async function loadUserListings(userId, accessToken) {
     }
 
     // Render listings
-    renderListings(listings);
+    renderListings(activeListings);
 
   } catch (error) {
     console.error('Error loading user listings:', error);

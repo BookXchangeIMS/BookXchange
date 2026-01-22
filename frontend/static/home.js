@@ -254,7 +254,9 @@ async function handleSearch(query) {
         if (booksGrid) booksGrid.style.display = 'none';
 
         const results = await searchListings(query, filters, accessToken);
-        allListings = results.map(transformListingData);
+        allListings = results
+            .map(transformListingData)
+            .filter(listing => listing.status !== 'Inactive'); // Filter out inactive listings
         currentPage = 1; // Reset to page 1 on search/filter
         hideSkeletonAndShowBooks();
 
@@ -279,7 +281,9 @@ async function loadAllListings() {
         const apiResponse = await getAllListings(accessToken);
 
         // Transform API response to internal format using centralized function
-        allListings = apiResponse.map(transformListingData);
+        allListings = apiResponse
+            .map(transformListingData)
+            .filter(listing => listing.status !== 'Inactive'); // Filter out inactive listings
 
         currentPage = 1; // Reset to page 1
         hideSkeletonAndShowBooks();
