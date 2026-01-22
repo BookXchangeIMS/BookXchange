@@ -12,6 +12,41 @@ body {
     overflow-x: hidden;
 }
 
+/* Logo Section */
+.logo-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    min-height: 200px;
+    width: 100%;
+}
+
+.logo-img {
+    width: 600px;
+    max-width: 80%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 4px 12px rgba(200, 76, 61, 0.15));
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
 /* Container for the whole leaderboard page */
 .leaderboard-page {
     position: relative;
@@ -118,6 +153,15 @@ body {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .logo-section {
+        min-height: 150px;
+        margin-bottom: 15px;
+    }
+
+    .logo-img {
+        width: 90%;
+        max-width: 450px;
+    }
 
     .leaderboard-header,
     .leaderboard-item {
