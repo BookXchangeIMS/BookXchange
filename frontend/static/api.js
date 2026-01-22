@@ -344,11 +344,13 @@ async function searchListings(query, filters = {}, accessToken) {
         url += `&lat=${filters.lat}&lon=${filters.lon}&radius=${filters.radius}`;
     }
 
-    const response = await fetch(url, {
-        headers: {
-            'access-token': accessToken
-        }
-    });
+    // Only include access token header if user is logged in
+    const headers = {};
+    if (accessToken) {
+        headers['access-token'] = accessToken;
+    }
+
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
         const errorText = await response.text();

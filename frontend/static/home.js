@@ -38,13 +38,36 @@ function setupSearch() {
         const newSearchInput = searchInput.cloneNode(true);
         searchInput.parentNode.replaceChild(newSearchInput, searchInput);
 
+        // Add login check on focus for guest users
+        newSearchInput.addEventListener('focus', (e) => {
+            if (!isLoggedIn()) {
+                e.target.blur(); // Remove focus
+                if (confirm('You need to log in to search for books. Would you like to log in now?')) {
+                    window.location.href = '../templates/Login.html';
+                }
+                return;
+            }
+        });
+
         newSearchInput.addEventListener('input', (e) => {
+            if (!isLoggedIn()) {
+                if (confirm('You need to log in to search for books. Would you like to log in now?')) {
+                    window.location.href = '../templates/Login.html';
+                }
+                return;
+            }
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => handleSearch(e.target.value), 500);
         });
 
         // Also handle "Enter" key
         newSearchInput.addEventListener('keypress', (e) => {
+            if (!isLoggedIn()) {
+                if (confirm('You need to log in to search for books. Would you like to log in now?')) {
+                    window.location.href = '../templates/Login.html';
+                }
+                return;
+            }
             if (e.key === 'Enter') {
                 clearTimeout(searchTimeout);
                 handleSearch(e.target.value);
@@ -77,6 +100,13 @@ function setupFilters() {
 
         // Open Modal
         filterBtn.addEventListener('click', () => {
+            // Check if user is logged in before opening filter modal
+            if (!isLoggedIn()) {
+                if (confirm('You need to log in to use filters. Would you like to log in now?')) {
+                    window.location.href = '../templates/Login.html';
+                }
+                return;
+            }
             filterModal.classList.add('active');
             // Initialize map after modal is visible to ensure correct rendering
             setTimeout(initFilterMap, 100);
@@ -378,5 +408,5 @@ function viewBookDetails(bookId) {
     }
 
     console.log('Viewing details for book ID:', bookId);
-    window.location.href = `listing?id=${bookId}`;
+    window.location.href = `listing.html?id=${bookId}`;
 }

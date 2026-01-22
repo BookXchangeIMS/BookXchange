@@ -1164,8 +1164,8 @@ async def get_listing_primary_image(listingid: int, access_token: str, db=Depend
     """
     import os
     
-    if not verify_access_token(access_token):
-        raise HTTPException(status_code=401, detail="Invalid access token")
+    #if not verify_access_token(access_token):
+    #    raise HTTPException(status_code=401, detail="Invalid access token")
     
     image_paths = get_listing_image_paths(listingid, db)
     if not image_paths or len(image_paths) == 0:
