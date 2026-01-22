@@ -75,7 +75,7 @@ function loadHTML() {
         <button class="chat-btn" onclick="goToMessages()">
             <i class="fas fa-comments"></i>
         </button>
-        <button class="leaderboard-btn" onclick="window.location.href='../templates/leaderboard.html'">
+        <button class="leaderboard-btn" onclick="goToLeaderboard()">
             <i class="fas fa-trophy"></i>
         </button>
         <button class="profile-btn" onclick="goToProfile()">
@@ -184,23 +184,58 @@ window.SearchManager = SearchManager;
 
 // Global Navigation Functions
 function goToHome() {
+    // Allow navigation to home page without login (guest browsing allowed)
     window.location.href = '../templates/home.html';
 }
 
 function goToAnnouncements() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to create announcements. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
     window.location.href = '../templates/Announcements.html';
 }
 
 function goToFavorites() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view your favorites. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
     window.location.href = '../templates/favourites.html';
 }
 
 function goToMessages() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view your messages. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
     window.location.href = '../templates/mymessages.html';
 }
 
 function goToProfile() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view your profile. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
     window.location.href = '../templates/profile.html';
+}
+
+function goToLeaderboard() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view the leaderboard. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
+    window.location.href = '../templates/leaderboard.html';
 }
 
 function goToLogin() {
@@ -213,4 +248,5 @@ window.goToAnnouncements = goToAnnouncements;
 window.goToFavorites = goToFavorites;
 window.goToMessages = goToMessages;
 window.goToProfile = goToProfile;
+window.goToLeaderboard = goToLeaderboard;
 window.goToLogin = goToLogin;
