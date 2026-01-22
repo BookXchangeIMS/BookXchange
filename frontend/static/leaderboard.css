@@ -3,9 +3,6 @@
 body {
     font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
     background-image: url('resources/backgroundopacity2.png');
-    background-size: auto;
-    background-repeat: repeat;
-    background-attachment: fixed;
     background-color: #FFF1D8;
     min-height: 100vh;
     padding: 0;
