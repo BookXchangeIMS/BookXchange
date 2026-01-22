@@ -608,7 +608,7 @@ async def get_your_listings(access_token=Header(None), db=Depends(get_db)):
     return await get_users_listings(userid, access_token, db)
 
 @app.get("/api/get_all_listings", status_code=status.HTTP_200_OK, response_model=list[GetListing], tags=["Listings"])
-async def get_all_listings_endpoint(access_token=Header(None), db=Depends(get_db)):
+async def get_all_listings_endpoint(access_token: str = Header(None), db=Depends(get_db)):
     """
     Retrieve all available listings from the database.
     
