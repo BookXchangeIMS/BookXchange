@@ -40,16 +40,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("chatForm");
     const messageInput = document.getElementById("messageInput");
     const chatMessages = document.getElementById("chatMessages");
-    const profileNameEl = document.getElementById("profileName");
-    const userRoleTextEl = document.getElementById("userRoleText");
+    
+    // Header elements
+    const headerNameEl = document.getElementById("headerName");
+    const headerRoleEl = document.getElementById("headerRole");
+    const headerAvatarEl = document.getElementById("headerAvatar");
 
-    // Listing card DOM
-    const listingImageEl = document.getElementById("listingImage");
-    const listingTitleEl = document.getElementById("listingTitle");
-    const listingAuthorEl = document.getElementById("listingAuthor");
-    const listingLocationEl = document.getElementById("listingLocation");
-    const listingDateEl = document.getElementById("listingDate");
-    const listingPriceEl = document.getElementById("listingPrice");
+    // Book info bar elements
+    const bookImageEl = document.getElementById("bookImage");
+    const bookTitleEl = document.getElementById("bookTitle");
+    const bookAuthorEl = document.getElementById("bookAuthor");
+    const bookPriceEl = document.getElementById("bookPrice");
+    const bookConditionEl = document.getElementById("bookCondition");
 
     let currentUserId = null;
     let otherUserName = "the other party";
@@ -91,19 +93,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function populateListingCard(mapped) {
         if (!mapped) return;
-        if (listingImageEl) {
-            listingImageEl.src = mapped.imagePath;
-            listingImageEl.alt = mapped.title;
-            listingImageEl.onerror = function () {
+        
+        // Update book info bar
+        if (bookImageEl) {
+            bookImageEl.src = mapped.imagePath;
+            bookImageEl.alt = mapped.title;
+            bookImageEl.onerror = function () {
                 this.onerror = null;
                 this.src = '../static/resources/placeholder.jpg';
             };
         }
-        if (listingTitleEl) listingTitleEl.textContent = mapped.title;
-        if (listingAuthorEl) listingAuthorEl.textContent = `by ${mapped.author}`;
-        if (listingLocationEl) listingLocationEl.textContent = mapped.location;
-        if (listingDateEl) listingDateEl.textContent = mapped.date;
-        if (listingPriceEl) listingPriceEl.textContent = mapped.price;
+        if (bookTitleEl) bookTitleEl.textContent = mapped.title;
+        if (bookAuthorEl) bookAuthorEl.textContent = mapped.author;
+        if (bookPriceEl) bookPriceEl.textContent = mapped.price;
+        if (bookConditionEl) bookConditionEl.textContent = mapped.condition || 'Good';
     }
 
     function addDealProposalMessage(fromMe) {
@@ -269,15 +272,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const otherProfile = await getUserProfile(otherUserId, accessToken);
                 if (otherProfile) {
                     otherUserName = otherProfile.Name;
-                    if (profileNameEl) profileNameEl.textContent = otherProfile.Name;
+                    if (headerNameEl) headerNameEl.textContent = otherProfile.Name;
 
                     // Load profile picture if exists
-                    if (otherProfile.ProfileImagePath) {
-                        const profileAvatarEl = document.getElementById('profileAvatar');
-                        if (profileAvatarEl) {
-                            const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${otherUserId}&access_token=${accessToken}`;
-                            profileAvatarEl.innerHTML = `<img src="${imageUrl}" alt="${otherProfile.Name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'white\\' stroke-width=\\'1.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'></path><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'></circle></svg>'">`;
-                        }
+                    if (otherProfile.ProfileImagePath && headerAvatarEl) {
+                        const imageUrl = `${API_BASE_URL}/api/get_users_profile_picture?userid=${otherUserId}&access_token=${accessToken}`;
+                        headerAvatarEl.innerHTML = `<img src="${imageUrl}" alt="${otherProfile.Name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'white\\' stroke-width=\\'1.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\\'></path><circle cx=\\'12\\' cy=\\'7\\' r=\\'4\\'></circle></svg>'">`;
                     }
                 }
             } catch (e) {
@@ -425,8 +425,8 @@ document.addEventListener("DOMContentLoaded", () => {
             buyerId = (currentUserId === listingOwnerId) ? parseInt(otherUserId) : currentUserId;
             iAmSeller = (currentUserId === listingOwnerId);
 
-            if (userRoleTextEl) {
-                userRoleTextEl.textContent = iAmSeller ? "You are selling" : "You are buying";
+            if (headerRoleEl) {
+                headerRoleEl.textContent = iAmSeller ? "Buyer" : "Seller";
             }
 
             await refreshTransactionStatusAndUI(true);
