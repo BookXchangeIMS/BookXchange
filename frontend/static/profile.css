@@ -71,7 +71,7 @@ body {
 
 /* Main Content */
 .main-content {
-    padding: 0 2rem 2rem;
+    padding: 1rem 2rem 2rem;
     display: flex;
     justify-content: center;
     align-items: flex-start;
