@@ -31,16 +31,6 @@ async function loadLeaderboard() {
             const rank = index + 1;
             const item = document.createElement('div');
             item.className = 'leaderboard-item fade-in';
-            item.style.cursor = 'pointer';
-
-            // Click navigates to user's profile
-            item.addEventListener('click', () => {
-                if (typeof goToUserProfile === 'function') {
-                    goToUserProfile(user.UserID);
-                } else {
-                    window.location.href = `profile_view.html?uid=${user.UserID}`;
-                }
-            });
 
             // Determine rank display and CSS class
             let rankDisplay = rank;
