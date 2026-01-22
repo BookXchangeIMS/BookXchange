@@ -81,25 +81,7 @@ async function loadUserProfile(userId, accessToken) {
       }
     }
 
-    // Try to get user preferences/genres
-    try {
-      // Note: This endpoint might not exist for other users, only for current user
-      // We'll try it but catch errors gracefully
-      const preferences = await getPreferences(accessToken);
-      const interests = document.querySelector('.interests .tags');
-      if (interests && preferences && preferences.length > 0) {
-        interests.textContent = preferences.join(', ');
-      } else {
-        interests.textContent = 'No interests specified';
-      }
-    } catch (error) {
-      // If we can't get preferences (likely because endpoint is only for current user)
-      // Just show a default message
-      const interests = document.querySelector('.interests .tags');
-      if (interests) {
-        interests.textContent = 'Not available';
-      }
-    }
+    // Preferences are not shown on foreign profiles - they are only for recommendations
 
   } catch (error) {
     console.error('Error loading user profile:', error);
