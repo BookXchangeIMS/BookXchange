@@ -852,6 +852,8 @@ def get_sorted_listings_for_user(userid: int, db):
     :rtype: list
     :raises HTTPException: If the database query fails for any reason
     """
+    print(f"DEBUG: get_sorted_listings_for_user called for userid: {userid}")
+    
     # Configurable weights for combining scores
     GENRE_WEIGHT = 0.6  # 60% weight on genre preferences
     DISTANCE_WEIGHT = 0.4  # 40% weight on distance
@@ -878,6 +880,7 @@ def get_sorted_listings_for_user(userid: int, db):
         
         user_lat = user_location.Latitude
         user_lon = user_location.Longitude
+        print(f"DEBUG: User location - Lat: {user_lat}, Lon: {user_lon}")
         
         # Get user's genre preferences
         from backend.scripts.profile_crud import get_preferences_by_userid
@@ -887,8 +890,11 @@ def get_sorted_listings_for_user(userid: int, db):
             # User has no preferences
             user_preferences = []
         
+        print(f"DEBUG: User preferences: {user_preferences}")
+        
         # Get all listings
         all_listings = get_all_listings(db)
+        print(f"DEBUG: Total listings to sort: {len(all_listings)}")
         
         # Calculate scores for each listing
         listings_with_scores = []
@@ -927,11 +933,16 @@ def get_sorted_listings_for_user(userid: int, db):
         # Sort by score (highest first)
         listings_with_scores.sort(key=lambda x: x['score'], reverse=True)
         
+        print(f"DEBUG: Sorted {len(listings_with_scores)} listings. Top 3 scores: {[item['score'] for item in listings_with_scores[:3]]}")
+        
         # Return just the listings in sorted order
         return [item['listing'] for item in listings_with_scores]
         
     except Exception as e:
-        print(f"Sorting Error: {e}")
+        import traceback
+        print(f"Sorting Error: {type(e).__name__}: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
         # Fall back to unsorted listings on any error
         return get_all_listings(db)
+
 
