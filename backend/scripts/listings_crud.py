@@ -599,34 +599,37 @@ def delete_new_listing(listingid: int, db):
     :raises HTTPException: If an error occurs during the deletion process, raising an exception
         with HTTP status code 500 and a message detailing the failure.
     """
-    # First, delete all associated images from ListingPhoto table
-    listingphoto = metadata.tables["ListingPhoto"]
-    img_stmt = listingphoto.delete().where(listingphoto.c.ListingID == listingid)
-    
-    # Then delete the listing itself
-    listing_stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
+    try:
+        # First, delete all associated images from ListingPhoto table
+        listingphoto = metadata.tables["ListingPhoto"]
+        img_stmt = listingphoto.delete().where(listingphoto.c.ListingID == listingid)
+        
+        # Delete favorites (CRITICAL: This was missing and causing foreign key constraint errors)
+        favorites_stmt = metadata.tables["Favorites"].delete().where(metadata.tables["Favorites"].c.ListingID == listingid)
+        
+        # Delete messages
+        messages_stmt = metadata.tables["Messages"].delete().where(metadata.tables["Messages"].c.ListingID == listingid)
+        
+        # Delete reports
+        reports_stmt = metadata.tables["Reports"].delete().where(metadata.tables["Reports"].c.ListingID == listingid)
+        
+        # Delete notifications
+        notifications_stmt = metadata.tables["Notification"].delete().where(metadata.tables["Notification"].c.ListingID == listingid)
+        
+        # Then delete the listing itself
+        listing_stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
 
-    messages_stmt = metadata.tables["Messages"].delete().where(metadata.tables["Messages"].c.ListingID == listingid)
-    
-    reports_stmt = metadata.tables["Reports"].delete().where(metadata.tables["Reports"].c.ListingID == listingid)
-    
-    notifications_stmt = metadata.tables["Notification"].delete().where(metadata.tables["Notification"].c.ListingID == listingid)
-    
-    #try:
-        # Delete images first (due to foreign key constraints)
-    db.execute(img_stmt)
-    # Then messages
-    db.execute(messages_stmt)
-    # Then reports
-    db.execute(reports_stmt)
-    # Then notifications
-    db.execute(notifications_stmt)
-    # Then delete the listing
-    db.execute(listing_stmt)
-    db.commit()
-    #except Exception as e:
-#    db.rollback()
-    #    raise HTTPException(status_code=500, detail="Couldn't delete listing. Please try again later.")
+        # Execute deletions in order (respecting foreign key constraints)
+        db.execute(img_stmt)
+        db.execute(favorites_stmt)  # CRITICAL: Delete favorites before listing
+        db.execute(messages_stmt)
+        db.execute(reports_stmt)
+        db.execute(notifications_stmt)
+        db.execute(listing_stmt)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Couldn't delete listing: {str(e)}")
 
 def get_listings_by_userid(user_id: int, db):
     """

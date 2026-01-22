@@ -29,7 +29,9 @@ async function loadFavorites() {
         const apiResponse = await getMyFavorites(accessToken);
 
         // Transform API response to internal format using centralized function
-        allFavorites = apiResponse.map(transformListingData);
+        allFavorites = apiResponse
+            .map(transformListingData)
+            .filter(listing => listing.status !== 'Inactive'); // Filter out inactive listings
 
         // Load books into grid
         loadBooks(allFavorites);
