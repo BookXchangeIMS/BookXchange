@@ -408,5 +408,5 @@ function viewBookDetails(bookId) {
     }
 
     console.log('Viewing details for book ID:', bookId);
-    window.location.href = `listing?id=${bookId}`;
+    window.location.href = `listing.html?id=${bookId}`;
 }
