@@ -122,8 +122,8 @@ async function handleCompleteProfile(event) {
         localStorage.setItem('access-token', data.access_token);
         localStorage.setItem('refresh_token', data.refresh_token);
 
-        // Redirect to home
-        window.location.href = './home.html';
+        // Redirect to preferences page for new users to select their interests
+        window.location.href = './preferencedashboard.html';
 
     } catch (error) {
         errorEl.textContent = error.message || 'An error occurred. Please try again.';
