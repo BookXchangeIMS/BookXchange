@@ -12,9 +12,11 @@ body {
     overflow-x: hidden;
 }
 
-/* Back Button - Below Header */
+/* Back Button - Inside Container */
 .back-btn {
-    margin: 20px 0 0 20px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border: none;
@@ -27,12 +29,13 @@ body {
     justify-content: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    z-index: 10;
 }
 
 .back-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    background-color: white;
+    background-color: #c84c3d;
 }
 
 .back-btn:hover i {
@@ -47,6 +50,7 @@ body {
 
 /* Container for the whole leaderboard page */
 .leaderboard-page {
+    position: relative;
     max-width: 1200px;
     margin: 0 auto;
     padding: var(--spacing-md);

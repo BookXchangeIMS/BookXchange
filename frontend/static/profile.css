@@ -33,9 +33,11 @@ body {
     animation: fadeIn 0.8s ease-out forwards;
 }
 
-/* Back Button - Below Header */
+/* Back Button - Inside Card */
 .back-btn {
-    margin: 20px 0 0 20px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border: none;
@@ -48,6 +50,7 @@ body {
     justify-content: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    z-index: 10;
 }
 
 .back-btn:hover {
@@ -80,6 +83,7 @@ body {
 
 /* Profile Card */
 .profile-card {
+    position: relative;
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -306,7 +310,8 @@ body {
     .back-btn {
         width: 45px;
         height: 45px;
-        margin: 15px 0 0 15px;
+        top: 15px;
+        left: 15px;
     }
 
     .back-btn i {
