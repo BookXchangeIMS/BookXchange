@@ -1,7 +1,5 @@
-// Require login
-if (!isLoggedIn()) {
-    window.location.href = '../templates/Login.html';
-}
+// Authentication check removed - page will check token when loading data
+// If token is missing, API calls will handle it gracefully
 
 // State
 let allFavorites = [];
@@ -31,7 +29,9 @@ async function loadFavorites() {
         const apiResponse = await getMyFavorites(accessToken);
 
         // Transform API response to internal format using centralized function
-        allFavorites = apiResponse.map(transformListingData);
+        allFavorites = apiResponse
+            .map(transformListingData)
+            .filter(listing => listing.status !== 'Inactive'); // Filter out inactive listings
 
         // Load books into grid
         loadBooks(allFavorites);

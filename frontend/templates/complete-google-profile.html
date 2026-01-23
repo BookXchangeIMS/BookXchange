@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookXchange - Complete Your Profile</title>
+    <link rel="stylesheet" href="../static/login.css">
+</head>
+
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Logo Icon -->
+        <div class="logo-icon">
+            <img src="../static/resources/BlackBookLogo.png" class="book-svg" alt="BookXchange Logo">
+        </div>
+
+        <!-- Logo Text -->
+        <h1 class="logo-text">Book<span class="highlight">X</span>change</h1>
+
+        <!-- Subheading -->
+        <p class="complete-profile-message">Complete your profile to finish registration</p>
+
+        <!-- Form -->
+        <form class="form-group" id="completeProfileForm" onsubmit="handleCompleteProfile(event)">
+            <input type="hidden" id="sessionToken" name="session_token">
+
+            <label for="email" class="input-label">Email (from Google)</label>
+            <input type="email" id="email" class="input-field" readonly>
+
+            <label for="name" class="input-label">Name</label>
+            <input type="text" id="name" name="name" class="input-field" placeholder="Enter your name" required>
+
+            <label for="dob" class="input-label">Date of Birth *</label>
+            <input type="date" id="dob" name="date_of_birth" class="input-field" required>
+
+            <label for="location" class="input-label">Location Address *</label>
+            <input type="text" id="location" name="location_address" class="input-field"
+                placeholder="Enter your address" required>
+
+            <p class="age-notice">* You must be at least 18 years old to register</p>
+
+            <button type="submit" class="login-btn">Complete Registration</button>
+        </form>
+
+        <!-- Error Message -->
+        <p id="errorMessage" class="error-message" style="display:none;"></p>
+    </div>
+
+    <script src="../static/config.js"></script>
+    <script src="../static/api.js"></script>
+    <script src="../static/google_oauth.js"></script>
+</body>
+
+</html>

@@ -62,44 +62,6 @@ main {
 }
 
 /* ============================================
-   BACK BUTTON
-   ============================================ */
-.back-btn {
-  position: fixed;
-  top: 100px;
-  left: 20px;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  z-index: 50;
-}
-
-.back-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  background-color: #c84c3d;
-}
-
-.back-btn:hover i {
-  color: white;
-}
-
-.back-btn i {
-  font-size: 20px;
-  color: #1a1a2e;
-  transition: color 0.3s ease;
-}
-
-/* ============================================
    LOGO SECTION
    ============================================ */
 .logo-section {
@@ -117,7 +79,7 @@ main {
   height: auto;
   display: block;
   margin: 0 auto;
-  content: url('../static/resources/your_messages.png');
+  content: url('../static/resources/svg/your_messages.svg');
 }
 
 /* ============================================
@@ -303,7 +265,7 @@ main {
 /* Mobile (up to 768px) */
 @media (max-width: 768px) {
   .logo-img {
-    content: url('../static/resources/your_messages_phone.png');
+    content: url('../static/resources/svg/your_messages_phone.svg');
     width: 280px;
     max-width: 90%;
   }

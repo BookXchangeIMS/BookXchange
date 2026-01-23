@@ -118,6 +118,122 @@ body {
     box-shadow: 0 5px 20px rgba(26, 26, 46, 0.4);
 }
 
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 25px 0;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #d0d0d0;
+}
+
+.divider-text {
+    padding: 0 15px;
+    color: #666;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Google Sign-In Button - Matching site aesthetic */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 16px 40px;
+    background-color: #c84c3d;
+    border: none;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.google-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(200, 76, 61, 0.3);
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Guest Browse Button - Subtle text link style */
+.guest-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.guest-btn:hover {
+    color: #c84c3d;
+    transform: translateY(-1px);
+}
+
+.guest-btn i {
+    font-size: 16px;
+}
+
+/* Profile Completion Page Specific */
+.complete-profile-message {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    font-weight: 500;
+}
+
+.input-label {
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: -12px;
+    padding-left: 25px;
+}
+
+.age-notice {
+    font-size: 13px;
+    color: #c84c3d;
+    margin-top: -10px;
+    font-style: italic;
+}
+
+.error-message {
+    background-color: #ffe6e6;
+    color: #c84c3d;
+    padding: 12px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 15px;
+    border: 1px solid #ffcccc;
+}
+
+
 /* Register Section */
 .register-section {
     margin-top: 40px;

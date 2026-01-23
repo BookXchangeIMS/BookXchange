@@ -24,9 +24,7 @@
     <script src="../static/include.js"></script>
 
     <!-- Page JavaScript -->
-    <script src="../static/config.js"></script>
     <script src="../static/api.js"></script>
-    <script src="../static/config.js"></script>
     <script src="../static/profile.js"></script>
 </head>
 
@@ -35,16 +33,16 @@
     <!-- Header will be loaded here -->
     <div id="header-placeholder"></div>
 
-    <!-- Back Button -->
-    <button class="back-btn" onclick="goBack()" aria-label="Go back">
-        <i class="fas fa-arrow-left"></i>
-    </button>
-
     <!-- Main Content -->
     <main class="main-content">
 
         <!-- Profile Card -->
         <div class="profile-card">
+            
+            <!-- Back Button -->
+            <button class="back-btn" onclick="goBack()" aria-label="Go back">
+                <i class="fas fa-arrow-left"></i>
+            </button>
 
             <!-- Profile Header -->
             <div class="profile-header">
@@ -69,9 +67,24 @@
                 <p id="interestsText">Loading...</p>
             </div>
 
+            <!-- Gamification Section -->
+            <div class="info-section">
+                <h3><i class="fas fa-trophy"></i> Gamification</h3>
+                <div class="gamification-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Points:</span>
+                        <span class="stat-value" id="user-points">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Level:</span>
+                        <span class="stat-value" id="user-level">1</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button class="action-btn" onclick="window.location.href='editprofile.html'">>
+                <button class="action-btn" onclick="window.location.href='editprofile.html'">
                     <i class="fas fa-edit"></i>
                     <span>Edit Profile</span>
                 </button>

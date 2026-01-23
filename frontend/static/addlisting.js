@@ -1,12 +1,16 @@
 // API Configuration
 const API_BASE_URL = (typeof ENV !== 'undefined' && ENV.API_BASE_URL) || 'http://localhost:8000';
 
-const USE_MOCK_DATA = false; // Set to true for testing without backend
+// Mock data removed
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 
 // Token Management
+/**
+ * specific description
+ * @returns {string|null} Access Token
+ */
 function getAccessToken() {
     return localStorage.getItem('access-token');
 }
@@ -17,12 +21,20 @@ function getRefreshToken() {
 }
 
 
+/**
+ * Set authentication tokens
+ * @param {string} accessToken - JWT access token
+ * @param {string} refreshToken - JWT refresh token
+ */
 function setTokens(accessToken, refreshToken) {
     localStorage.setItem('access-token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
 }
 
 
+/**
+ * Clear authentication tokens from storage
+ */
 function clearTokens() {
     localStorage.removeItem('access-token');
     localStorage.removeItem('refresh_token');
@@ -30,11 +42,12 @@ function clearTokens() {
 
 
 // API Helper Functions
+/**
+ * API Wrapper object for standardized requests
+ */
 const api = {
     async post(endpoint, data) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            return await window.mockAPI.createBook(data);
-        }
+        // Mock check removed
 
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -118,14 +131,7 @@ const api = {
 
     // Upload multiple images
     async uploadImages(listingId, files) {
-        if (USE_MOCK_DATA && window.mockAPI) {
-            const uploadedUrls = [];
-            for (const file of files) {
-                const response = await window.mockAPI.uploadImage(file);
-                uploadedUrls.push(response.imageUrl);
-            }
-            return { success: true, imageUrls: uploadedUrls };
-        }
+        // Mock check removed
 
         try {
             // Upload images one by one using the existing endpoint
@@ -197,15 +203,18 @@ let hasFormChanged = false; // Track if form has been modified
 
 
 // Initialize
+/**
+ * Initialize page on load: check options, setup listeners, load initial data
+ */
 document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is authenticated
-    if (!USE_MOCK_DATA && !getAccessToken()) {
+    if (!getAccessToken()) {
         showToast('Please login to add a listing', 'error');
         setTimeout(() => window.location.href = '../templates/Login.html', 2000);
         return;
     }
 
-    if (USE_MOCK_DATA) showMockModeIndicator();
+    // Mock indicator removed
 
     setupEventListeners();
     loadGenres(); // Load available genres
@@ -213,13 +222,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 // Load user's location from profile
+/**
+ * Fetch and pre-fill user's location from profile
+ */
 async function loadUserLocation() {
     try {
-        if (USE_MOCK_DATA) {
-            // Mock location
-            document.getElementById('bookLocation').value = 'Lisbon, Portugal';
-            return;
-        }
+        // Mock location removed
 
         const accessToken = getAccessToken();
         if (!accessToken) return;
@@ -246,36 +254,24 @@ async function loadUserLocation() {
 }
 
 // Load available genres from backend
+/**
+ * Fetch available genres from backend and render checkboxes
+ */
 async function loadGenres() {
     const container = document.getElementById('availableGenres');
 
     try {
         let genres = [];
 
-        if (USE_MOCK_DATA) {
-            // Mock genres
-            genres = [
-                { GenreID: 1, GenreName: "Fantasy" },
-                { GenreID: 2, GenreName: "Science Fiction" },
-                { GenreID: 3, GenreName: "Mystery" },
-                { GenreID: 4, GenreName: "Thriller" },
-                { GenreID: 5, GenreName: "Romance" },
-                { GenreID: 6, GenreName: "Non-Fiction" },
-                { GenreID: 7, GenreName: "History" },
-                { GenreID: 8, GenreName: "Biography" },
-                { GenreID: 9, GenreName: "Horror" },
-                { GenreID: 10, GenreName: "Adventure" }
-            ];
+        // Mock genres removed
+        // Fetch from backend
+        const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
+        if (response.ok) {
+            genres = await response.json();
         } else {
-            // Fetch from backend
-            const response = await fetch(`${API_BASE_URL}/api/get_all_genres`);
-            if (response.ok) {
-                genres = await response.json();
-            } else {
-                console.error('Failed to fetch genres');
-                container.innerHTML = '<div class="error-message">Failed to load genres</div>';
-                return;
-            }
+            console.error('Failed to fetch genres');
+            container.innerHTML = '<div class="error-message">Failed to load genres</div>';
+            return;
         }
 
         // Clear loading message
@@ -313,18 +309,7 @@ async function loadGenres() {
 }
 
 
-function showMockModeIndicator() {
-    const indicator = document.createElement('div');
-    indicator.textContent = '🧪 MOCK MODE';
-    indicator.style.cssText = `
-        position: fixed; top: 10px; right: 10px;
-        background: #f39c12; color: white;
-        padding: 8px 16px; border-radius: 20px;
-        font-weight: 700; font-size: 12px;
-        z-index: 10000; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    `;
-    document.body.appendChild(indicator);
-}
+// Mock indicator function removed
 
 
 // Setup event listeners
@@ -367,6 +352,10 @@ function setupEventListeners() {
 }
 
 // Handle listing type change
+/**
+ * Toggle price field based on listing type (Sale vs Exchange/Donation)
+ * @param {Event} event - Change event
+ */
 function handleListingTypeChange(event) {
     const listingType = event.target.value;
     const priceSection = document.getElementById('priceSection');
@@ -409,6 +398,10 @@ function handleDrop(e) {
 
 
 // Handle file selection
+/**
+ * Handle new file selection via input
+ * @param {Event} e - Input change event
+ */
 function handleFileSelect(e) {
     const files = Array.from(e.target.files);
     processFiles(files);
@@ -417,6 +410,10 @@ function handleFileSelect(e) {
 
 
 // Process and validate files
+/**
+ * Validate and process selected images
+ * @param {Array<File>} files - List of selected files
+ */
 function processFiles(files) {
     const currentTotal = newImages.length;
     const availableSlots = MAX_IMAGES - currentTotal;
@@ -583,6 +580,10 @@ function formatPrice(event) {
 
 
 // Validate form
+/**
+ * Validate all form fields before submission
+ * @returns {boolean} True if valid, false otherwise
+ */
 function validateForm() {
     const errors = [];
 
@@ -719,6 +720,10 @@ async function handleFormSubmit(event) {
 
 
 // Handle AI Book Scan
+/**
+ * Use AI to scan book cover and auto-fill form
+ * @param {Event} event - File input change event
+ */
 async function handleScanBook(event) {
     const file = event.target.files[0];
     if (!file) return;

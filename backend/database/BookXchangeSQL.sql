@@ -172,4 +172,43 @@ CREATE INDEX IX_Reports_UserID ON Reports(UserID);
 CREATE INDEX IX_UserNotification_UserID ON UserNotification(UserID);
 CREATE INDEX IX_Notification_ListingID ON Notification(ListingID);
 
-Go
+GO
+
+ALTER TABLE Listings
+ADD CONSTRAINT DF_Listings_UserID DEFAULT 33 FOR UserID;
+
+GO
+
+ALTER TABLE Listings
+ADD CONSTRAINT FK_Listings_Users
+FOREIGN KEY (UserID)
+REFERENCES Users(UserID)
+ON DELETE SET DEFAULT;
+
+GO
+
+CREATE OR ALTER TRIGGER TR_Users_DeleteMessages
+ON Users
+INSTEAD OF DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Reassign SenderID
+    UPDATE m
+    SET SenderID = 33
+    FROM Messages m
+    JOIN deleted d ON m.SenderID = d.UserID;
+
+    -- Reassign ReceiverID
+    UPDATE m
+    SET ReceiverID = 33
+    FROM Messages m
+    JOIN deleted d ON m.ReceiverID = d.UserID;
+
+    -- Now it is safe to delete the users
+    DELETE u
+    FROM Users u
+    JOIN deleted d ON u.UserID = d.UserID;
+END;
+GO

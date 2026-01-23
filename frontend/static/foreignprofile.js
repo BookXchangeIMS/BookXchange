@@ -1,7 +1,5 @@
-// Require login
-if (!isLoggedIn()) {
-  window.location.href = '../templates/Login.html';
-}
+// Authentication check removed - page will check token when loading data
+// If token is missing, API calls will handle it gracefully
 
 // State
 let currentUser = null;
@@ -83,25 +81,7 @@ async function loadUserProfile(userId, accessToken) {
       }
     }
 
-    // Try to get user preferences/genres
-    try {
-      // Note: This endpoint might not exist for other users, only for current user
-      // We'll try it but catch errors gracefully
-      const preferences = await getPreferences(accessToken);
-      const interests = document.querySelector('.interests .tags');
-      if (interests && preferences && preferences.length > 0) {
-        interests.textContent = preferences.join(', ');
-      } else {
-        interests.textContent = 'No interests specified';
-      }
-    } catch (error) {
-      // If we can't get preferences (likely because endpoint is only for current user)
-      // Just show a default message
-      const interests = document.querySelector('.interests .tags');
-      if (interests) {
-        interests.textContent = 'Not available';
-      }
-    }
+    // Preferences are not shown on foreign profiles - they are only for recommendations
 
   } catch (error) {
     console.error('Error loading user profile:', error);
@@ -116,7 +96,9 @@ async function loadUserProfile(userId, accessToken) {
 async function loadUserListings(userId, accessToken) {
   try {
     const listings = await getUserListings(userId, accessToken);
-    userListings = listings;
+    // Filter out inactive listings
+    const activeListings = listings.filter(listing => listing.Status !== 'Inactive');
+    userListings = activeListings;
 
     // Update section title
     const titleElement = document.querySelector('.listings-section h2');
@@ -125,7 +107,7 @@ async function loadUserListings(userId, accessToken) {
     }
 
     // Render listings
-    renderListings(listings);
+    renderListings(activeListings);
 
   } catch (error) {
     console.error('Error loading user listings:', error);

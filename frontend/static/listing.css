@@ -141,35 +141,49 @@ body {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Thumbnail Gallery */
-.thumbnail-gallery {
+/* Swipe Indicator */
+.swipe-indicator {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(200, 76, 61, 0.9);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 30px;
     display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    max-width: 500px;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: pulseSwipe 2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 5;
 }
 
-.thumbnail {
-    width: 70px;
-    aspect-ratio: 3 / 4;
-    /* Same ratio as main image */
-    object-fit: cover;
-    border-radius: 10px;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+.swipe-indicator i {
+    font-size: 1.1rem;
+    animation: slideArrow 1.5s ease-in-out infinite;
 }
 
-.thumbnail:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+@keyframes pulseSwipe {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
 }
 
-.thumbnail.active {
-    border-color: #c84c3d;
-    box-shadow: 0 8px 20px rgba(200, 76, 61, 0.3);
+@keyframes slideArrow {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(5px);
+    }
 }
 
 /* ============================================
@@ -551,17 +565,12 @@ body {
         backdrop-filter: blur(15px);
     }
 
-    /* Thumbnails compact and centered */
-    .thumbnail-gallery {
-        padding: 12px 20px;
-        gap: 10px;
-        max-height: 10vh;
-        /* Limit thumbnail area height */
-    }
-
-    .thumbnail {
-        width: 50px;
-        height: 70px;
+    /* Swipe indicator responsive */
+    .swipe-indicator {
+        bottom: 15px;
+        right: 15px;
+        padding: 10px 16px;
+        font-size: 0.85rem;
     }
 
     /* Content section starts right after gallery */
@@ -605,16 +614,21 @@ body {
         font-size: 20px;
     }
 
-    /* Thumbnails very compact */
-    .thumbnail-gallery {
-        padding: 10px 15px;
-        gap: 8px;
-        max-height: 8vh;
+    /* Swipe indicator smaller on mobile */
+    .swipe-indicator {
+        bottom: 12px;
+        right: 12px;
+        padding: 8px 14px;
+        font-size: 0.8rem;
     }
 
-    .thumbnail {
-        width: 45px;
-        height: 60px;
+    .swipe-indicator span {
+        display: none;
+    }
+
+    .swipe-indicator i {
+        font-size: 1.2rem;
+        margin: 0;
     }
 
     /* Content section immediately visible */

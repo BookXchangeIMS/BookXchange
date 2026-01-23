@@ -111,6 +111,11 @@ main {
     background: linear-gradient(135deg, #3a5068 0%, #1f2a36 100%);
 }
 
+/* Full width when no books */
+.add-book-card.full-width {
+    grid-column: 1 / -1;
+}
+
 .add-book-content {
     text-align: center;
     color: white;

@@ -2,6 +2,8 @@ function loadHTML() {
     let headerLoaded = false;
     let footerLoaded = false;
 
+    const API_BASE_URL = (typeof ENV !== 'undefined' && ENV.API_BASE_URL) || 'http://localhost:8000';
+
     // Function to check if both components are loaded
     function checkAllLoaded() {
         if (headerLoaded && footerLoaded) {
@@ -15,39 +17,85 @@ function loadHTML() {
 
     // Load Header
     const headerPlaceholder = document.getElementById('header-placeholder');
-    if (headerPlaceholder) {
-        fetch('/BookXchange/frontend/templates/header.html')
-            .then(response => response.text())
-            .then(data => {
-                headerPlaceholder.innerHTML = data;
-                headerLoaded = true;
-                checkAllLoaded();
-            })
-            .catch(error => {
-                console.error('Error loading header:', error);
-                headerLoaded = true;
-                checkAllLoaded();
-            });
-    } else {
-        headerLoaded = true;
-    }
-
-    // Load Footer
     const footerPlaceholder = document.getElementById('footer-placeholder');
-    if (footerPlaceholder) {
-        fetch('/BookXchange/frontend/templates/footer.html')
-            .then(response => response.text())
-            .then(data => {
-                footerPlaceholder.innerHTML = data;
-                footerLoaded = true;
-                checkAllLoaded();
-            })
-            .catch(error => {
-                console.error('Error loading footer:', error);
-                footerLoaded = true;
-                checkAllLoaded();
-            });
-    } else {
+    if (API_BASE_URL !== 'http://localhost:8000') {
+        if (headerPlaceholder) {
+            fetch('/BookXchange/frontend/templates/header.html')
+                .then(response => response.text())
+                .then(data => {
+                    headerPlaceholder.innerHTML = data;
+                    headerLoaded = true;
+                    checkAllLoaded();
+                })
+                .catch(error => {
+                    console.error('Error loading header:', error);
+                    headerLoaded = true;
+                    checkAllLoaded();
+                });
+        } else {
+            headerLoaded = true;
+        }
+
+        // Load Footer
+
+        if (footerPlaceholder) {
+            fetch('/BookXchange/frontend/templates/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    footerPlaceholder.innerHTML = data;
+                    footerLoaded = true;
+                    checkAllLoaded();
+                })
+                .catch(error => {
+                    console.error('Error loading footer:', error);
+                    footerLoaded = true;
+                    checkAllLoaded();
+                });
+        } else {
+            footerLoaded = true;
+        }
+    }
+    else {
+        headerPlaceholder.innerHTML = `<header>
+    <div class="logo">
+        <div class="logo-icon" onclick="goToHome()" style="cursor: pointer;">
+            <img src="../static/resources/svg/BookLogo.svg" class="book-svg" alt="BookXchange Logo">
+        </div>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" placeholder="Find books..." id="searchInput">
+        <button class="filter-btn" id="filterBtn" aria-label="Filter search">
+            <i class="fas fa-sliders-h"></i>
+        </button>
+        <i class="fas fa-search search-icon"></i>
+    </div>
+
+    <div class="header-actions">
+        <button class="chat-btn" onclick="goToMessages()">
+            <i class="fas fa-comments"></i>
+        </button>
+        <button class="leaderboard-btn" onclick="goToLeaderboard()">
+            <i class="fas fa-trophy"></i>
+        </button>
+        <button class="profile-btn" onclick="goToProfile()">
+            <i class="fas fa-user"></i>
+        </button>
+    </div>
+</header>`;
+        footerPlaceholder.innerHTML = `<nav class="bottom-nav">
+    <button class="nav-btn" data-page="home" onclick="goToHome()">
+        <img src="../static/resources/svg/book_botton.svg" alt="BookXchange Logo" class="btn-icon-active">
+        <img src="../static/resources/svg/book_botton_inactive.svg" alt="BookXchange Logo" class="btn-icon-inactive">
+    </button>
+    <button class="nav-btn" data-page="announcements" onclick="goToAnnouncements()">
+        <i class="fas fa-plus"></i>
+    </button>
+    <button class="nav-btn" data-page="favourites" onclick="goToFavorites()">
+        <i class="fas fa-heart"></i>
+    </button>
+</nav>`;
+        headerLoaded = true;
         footerLoaded = true;
     }
 
@@ -136,23 +184,58 @@ window.SearchManager = SearchManager;
 
 // Global Navigation Functions
 function goToHome() {
+    // Allow navigation to home page without login (guest browsing allowed)
     window.location.href = '../templates/home.html';
 }
 
 function goToAnnouncements() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to create announcements. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
     window.location.href = '../templates/Announcements.html';
 }
 
 function goToFavorites() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view your favorites. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
     window.location.href = '../templates/favourites.html';
 }
 
 function goToMessages() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view your messages. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
     window.location.href = '../templates/mymessages.html';
 }
 
 function goToProfile() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view your profile. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
     window.location.href = '../templates/profile.html';
+}
+
+function goToLeaderboard() {
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view the leaderboard. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
+    window.location.href = '../templates/leaderboard.html';
 }
 
 function goToLogin() {
@@ -165,4 +248,5 @@ window.goToAnnouncements = goToAnnouncements;
 window.goToFavorites = goToFavorites;
 window.goToMessages = goToMessages;
 window.goToProfile = goToProfile;
+window.goToLeaderboard = goToLeaderboard;
 window.goToLogin = goToLogin;

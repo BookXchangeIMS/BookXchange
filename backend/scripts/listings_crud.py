@@ -3,6 +3,93 @@ from sqlalchemy import select, or_, and_, func
 
 from backend.models import *
 from backend.config.db import metadata
+from math import radians, sin, cos, sqrt, atan2
+
+# ===============================================================================================================
+# SCORING HELPER FUNCTIONS
+# ===============================================================================================================
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate the great circle distance between two points on Earth using the Haversine formula.
+    
+    :param lat1: Latitude of the first point in degrees
+    :type lat1: float
+    :param lon1: Longitude of the first point in degrees
+    :type lon1: float
+    :param lat2: Latitude of the second point in degrees
+    :type lat2: float
+    :param lon2: Longitude of the second point in degrees
+    :type lon2: float
+    :return: Distance between the two points in kilometers
+    :rtype: float
+    """
+    # Earth's radius in kilometers
+    R = 6371.0
+    
+    # Convert coordinates to radians
+    lat1_rad = radians(lat1)
+    lon1_rad = radians(lon1)
+    lat2_rad = radians(lat2)
+    lon2_rad = radians(lon2)
+    
+    # Haversine formula
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+    
+    a = sin(dlat / 2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    
+    distance = R * c
+    return distance
+
+def calculate_distance_score(distance):
+    """
+    Convert distance to a score where closer listings get higher scores.
+    
+    :param distance: Distance in kilometers
+    :type distance: float
+    :return: Score between 0 and 1, where 1 is closest
+    :rtype: float
+    """
+    # Inverse relationship: closer = higher score
+    # Using 1 / (1 + distance) so that:
+    # - 0 km -> score = 1.0
+    # - 10 km -> score ≈ 0.09
+    # - 100 km -> score ≈ 0.01
+    return 1.0 / (1.0 + distance)
+
+def calculate_genre_match_score(book_genres, user_preferences):
+    """
+    Calculate how well a book's genres match a user's preferences.
+    
+    :param book_genres: List of genre names for the book
+    :type book_genres: list[str]
+    :param user_preferences: List of genre names the user prefers
+    :type user_preferences: list[str]
+    :return: Score between 0 and 1, where 1 means perfect match
+    :rtype: float
+    """
+    if not user_preferences:
+        # User has no preferences, return neutral score
+        return 0.5
+    
+    if not book_genres:
+        # Book has no genres
+        return 0.0
+    
+    # Calculate intersection of genres
+    book_genre_set = set(book_genres)
+    user_pref_set = set(user_preferences)
+    matches = len(book_genre_set & user_pref_set)
+    
+    # Score based on what percentage of user's preferences are matched
+    return matches / len(user_pref_set)
+
+# ===============================================================================================================
+# EXISTING FUNCTIONS
+# ===============================================================================================================
+
 
 def get_authorids_by_names(author_names: str, db):
     """
@@ -512,22 +599,37 @@ def delete_new_listing(listingid: int, db):
     :raises HTTPException: If an error occurs during the deletion process, raising an exception
         with HTTP status code 500 and a message detailing the failure.
     """
-    # First, delete all associated images from ListingPhoto table
-    listingphoto = metadata.tables["ListingPhoto"]
-    img_stmt = listingphoto.delete().where(listingphoto.c.ListingID == listingid)
-    
-    # Then delete the listing itself
-    listing_stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
-    
     try:
-        # Delete images first (due to foreign key constraints)
+        # First, delete all associated images from ListingPhoto table
+        listingphoto = metadata.tables["ListingPhoto"]
+        img_stmt = listingphoto.delete().where(listingphoto.c.ListingID == listingid)
+        
+        # Delete favorites (CRITICAL: This was missing and causing foreign key constraint errors)
+        favorites_stmt = metadata.tables["Favorites"].delete().where(metadata.tables["Favorites"].c.ListingID == listingid)
+        
+        # Delete messages
+        messages_stmt = metadata.tables["Messages"].delete().where(metadata.tables["Messages"].c.ListingID == listingid)
+        
+        # Delete reports
+        reports_stmt = metadata.tables["Reports"].delete().where(metadata.tables["Reports"].c.ListingID == listingid)
+        
+        # Delete notifications
+        notifications_stmt = metadata.tables["Notification"].delete().where(metadata.tables["Notification"].c.ListingID == listingid)
+        
+        # Then delete the listing itself
+        listing_stmt = metadata.tables["Listings"].delete().where(metadata.tables["Listings"].c.ListingID == listingid)
+
+        # Execute deletions in order (respecting foreign key constraints)
         db.execute(img_stmt)
-        # Then delete the listing
+        db.execute(favorites_stmt)  # CRITICAL: Delete favorites before listing
+        db.execute(messages_stmt)
+        db.execute(reports_stmt)
+        db.execute(notifications_stmt)
         db.execute(listing_stmt)
         db.commit()
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Couldn't delete listing. Please try again later.")
+        raise HTTPException(status_code=500, detail=f"Couldn't delete listing: {str(e)}")
 
 def get_listings_by_userid(user_id: int, db):
     """
@@ -748,3 +850,114 @@ def search_listings(query: str, db, genres: list = None, min_price: float = None
     except Exception as e:
         print(f"Search Error: {e}")
         raise HTTPException(status_code=500, detail="Couldn't search listings.")
+
+def get_sorted_listings_for_user(userid: int, db):
+    """
+    Retrieves all listings sorted by relevance to the user based on:
+    1. Distance from user's location (closer is better)
+    2. Genre match with user's preferences (more matches is better)
+    
+    The function combines both scores with configurable weights to provide
+    personalized listing recommendations.
+    
+    :param userid: The ID of the user to personalize listings for
+    :type userid: int
+    :param db: The database connection object used to execute queries
+    :return: A list of all listing records sorted by relevance score (highest first)
+    :rtype: list
+    :raises HTTPException: If the database query fails for any reason
+    """
+    print(f"DEBUG: get_sorted_listings_for_user called for userid: {userid}")
+    
+    # Configurable weights for combining scores
+    GENRE_WEIGHT = 0.6  # 60% weight on genre preferences
+    DISTANCE_WEIGHT = 0.4  # 40% weight on distance
+    
+    try:
+        # Get user's location
+        users_table = metadata.tables["Users"]
+        locations_table = metadata.tables["Locations"]
+        
+        user_stmt = select(users_table).where(users_table.c.UserID == userid)
+        user_row = db.execute(user_stmt).fetchone()
+        
+        if not user_row:
+            # User not found, return unsorted listings
+            return get_all_listings(db)
+        
+        user_location_id = user_row.LocationID
+        user_location_stmt = select(locations_table).where(locations_table.c.LocationID == user_location_id)
+        user_location = db.execute(user_location_stmt).fetchone()
+        
+        if not user_location:
+            # User has no location, return unsorted listings
+            return get_all_listings(db)
+        
+        user_lat = user_location.Latitude
+        user_lon = user_location.Longitude
+        print(f"DEBUG: User location - Lat: {user_lat}, Lon: {user_lon}")
+        
+        # Get user's genre preferences
+        from backend.scripts.profile_crud import get_preferences_by_userid
+        try:
+            user_preferences = get_preferences_by_userid(userid, db)
+        except:
+            # User has no preferences
+            user_preferences = []
+        
+        print(f"DEBUG: User preferences: {user_preferences}")
+        
+        # Get all listings
+        all_listings = get_all_listings(db)
+        print(f"DEBUG: Total listings to sort: {len(all_listings)}")
+        
+        # Calculate scores for each listing
+        listings_with_scores = []
+        
+        for listing in all_listings:
+            # Get listing location
+            listing_location_stmt = select(locations_table).where(
+                locations_table.c.LocationID == listing.LocationID
+            )
+            listing_location = db.execute(listing_location_stmt).fetchone()
+            
+            # Calculate distance score
+            if listing_location:
+                distance = calculate_distance(
+                    user_lat, user_lon,
+                    listing_location.Latitude, listing_location.Longitude
+                )
+                distance_score = calculate_distance_score(distance)
+            else:
+                distance_score = 0.0
+            
+            # Get book genres for this listing
+            book_genres = get_genre_by_bookid(listing.BookID, db)
+            
+            # Calculate genre match score
+            genre_score = calculate_genre_match_score(book_genres, user_preferences)
+            
+            # Calculate combined score
+            combined_score = (GENRE_WEIGHT * genre_score) + (DISTANCE_WEIGHT * distance_score)
+            
+            listings_with_scores.append({
+                'listing': listing,
+                'score': combined_score
+            })
+        
+        # Sort by score (highest first)
+        listings_with_scores.sort(key=lambda x: x['score'], reverse=True)
+        
+        print(f"DEBUG: Sorted {len(listings_with_scores)} listings. Top 3 scores: {[item['score'] for item in listings_with_scores[:3]]}")
+        
+        # Return just the listings in sorted order
+        return [item['listing'] for item in listings_with_scores]
+        
+    except Exception as e:
+        import traceback
+        print(f"Sorting Error: {type(e).__name__}: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        # Fall back to unsorted listings on any error
+        return get_all_listings(db)
+
+

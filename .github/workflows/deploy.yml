@@ -3,7 +3,10 @@ name: Build and Deploy Docker to Azure Web App via GHCR
 on:
   push:
     branches:
-      - putting_things_online
+      - dev
+      - OAuth
+      - gamification
+      - gamification-clean
   workflow_dispatch:
 
 jobs:
@@ -12,8 +15,6 @@ jobs:
     steps: 
       - name: Check out the repo
         uses: actions/checkout@v4
-        with:
-          ref: dev
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -32,6 +33,6 @@ jobs:
           context: ./backend
           file:  ./backend/Dockerfile
           push: true
-          tags: ghcr.io/bookxchangeims/backend:${{ github.sha }}
+          tags: ghcr.io/bookxchangeims/backend:latest
 
       

@@ -33,10 +33,12 @@ body {
     animation: fadeIn 0.8s ease-out forwards;
 }
 
-/* Back Button - Below Header */
+/* Back Button - Inside Card */
 .back-btn {
-    margin: 20px 0 0 20px;
-    background-color: rgba(255, 255, 255, 0.95);
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #c84c3d;
     backdrop-filter: blur(10px);
     border: none;
     width: 50px;
@@ -48,27 +50,28 @@ body {
     justify-content: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    z-index: 10;
 }
 
 .back-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    background-color: #c84c3d;
+    background-color: rgba(255, 255, 255, 0.95);
 }
 
 .back-btn:hover i {
-    color: white;
+    color: #1a1a2e;
 }
 
 .back-btn i {
     font-size: 20px;
-    color: #1a1a2e;
+    color: white;
     transition: color 0.3s ease;
 }
 
 /* Main Content */
 .main-content {
-    padding: 0 2rem 2rem;
+    padding: 1rem 2rem 2rem;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -80,6 +83,7 @@ body {
 
 /* Profile Card */
 .profile-card {
+    position: relative;
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -306,7 +310,8 @@ body {
     .back-btn {
         width: 45px;
         height: 45px;
-        margin: 15px 0 0 15px;
+        top: 15px;
+        left: 15px;
     }
 
     .back-btn i {
@@ -314,7 +319,7 @@ body {
     }
 
     .main-content {
-        padding: 90px 1rem 1.5rem;
+        padding: 1rem 1rem 1.5rem;
     }
 
     .profile-card {

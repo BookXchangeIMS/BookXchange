@@ -32,65 +32,65 @@
 
 <body>
 
-    <main class="main-content">
-        <button class="back-btn" onclick="goBack()">
-            <i class="fas fa-arrow-left"></i>
-        </button>
-
-        <div class="content-wrapper">
-            <!-- Left Column -->
-            <aside class="profile-section">
-                <div class="profile-header">
-                    <div class="avatar-large" id="profileAvatar">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white"
-                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                    <h1 class="profile-name" id="profileName">John Doe</h1>
-                    <span id="userRoleText" class="user-role-text"></span>
+    <main class="messages-container">
+        <!-- Chat Header -->
+        <header class="chat-header">
+            <button class="back-btn-header" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            
+            <div class="user-info-header" id="userInfoHeader">
+                <div class="user-avatar-header" id="headerAvatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white"
+                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
                 </div>
-
-                <!-- Listing card WITHOUT favourites button -->
-                <div class="book-card conversation-book-card">
-                    <img id="listingImage" src="../static/resources/placeholder.jpg" alt="Book cover" class="book-image"
-                        onerror="this.src='../static/resources/placeholder.jpg'">
-                    <div class="book-info">
-                        <div class="book-title" id="listingTitle">Book title</div>
-                        <div class="book-author" id="listingAuthor">by Author</div>
-                        <div class="book-location" id="listingLocation">Location</div>
-                        <div class="book-date" id="listingDate">Posted</div>
-                        <div class="book-price" id="listingPrice">€0.00</div>
-                    </div>
+                <div class="user-details-header">
+                    <h2 class="user-name-header" id="headerName">User Name</h2>
+                    <span class="user-role-header" id="headerRole">Seller</span>
                 </div>
-            </aside>
+            </div>
+        </header>
 
-            <!-- Right Column -->
-            <section class="chat-interface">
-                <div class="chat-container">
-                    <div class="chat-messages" id="chatMessages"></div>
-
-                    <form class="chat-input-area" id="chatForm">
-                        <!-- TOGGLE DEAL BUTTON -->
-                        <button type="button" class="attach-btn deal-btn" id="dealButton" aria-label="Close Deal">
-                            <img src="../static/resources/handshake.png" width="40" height="40" alt="Handshake"
-                                class="handshake-img">
-                        </button>
-
-                        <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
-                        <button type="submit" class="send-btn" aria-label="Send message">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
-                        </button>
-                    </form>
+        <!-- Book Info Bar -->
+        <div class="book-info-bar" id="bookInfoBar">
+            <img id="bookImage" src="../static/resources/placeholder.jpg" alt="Book" class="book-thumbnail"
+                onerror="this.src='../static/resources/placeholder.jpg'">
+            <div class="book-details-compact">
+                <h3 class="book-title-compact" id="bookTitle">Book Title</h3>
+                <p class="book-author-compact" id="bookAuthor">Author Name</p>
+                <div class="book-meta-compact">
+                    <span class="book-price-compact" id="bookPrice">€0.00</span>
+                    <span class="book-condition-compact" id="bookCondition">Condition</span>
                 </div>
-            </section>
+            </div>
         </div>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-messages-area" id="chatMessages">
+            <!-- Messages will be loaded here -->
+        </div>
+
+        <!-- Chat Input -->
+        <form class="chat-input-container" id="chatForm">
+            <!-- Deal Button -->
+            <button type="button" class="deal-btn-input" id="dealButton" aria-label="Close Deal">
+                <img src="../static/resources/svg/handshake.svg" width="24" height="24" alt="Deal">
+            </button>
+
+            <input type="text" id="messageInput" class="message-input" placeholder="Type a message..." autocomplete="off">
+            
+            <button type="submit" class="send-btn-input" aria-label="Send message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </form>
     </main>
 </body>
 

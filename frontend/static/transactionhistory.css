@@ -51,6 +51,14 @@ main {
     margin-bottom: 50px;
 }
 
+.page-logo {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
 .page-title {
     font-size: 2.5rem;
     font-weight: 800;
@@ -75,6 +83,12 @@ main {
 /* ========== TRANSACTIONS SECTION ========== */
 .transactions-section {
     min-height: 400px;
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .section-title {
@@ -244,6 +258,10 @@ main {
         padding: 20px 16px;
     }
 
+    .page-logo {
+        max-width: 350px;
+    }
+
     .page-title {
         font-size: 2rem;
     }
@@ -254,6 +272,10 @@ main {
 
     .section-title {
         font-size: 1.5rem;
+    }
+
+    .transactions-section {
+        padding: 20px;
     }
 
     .transaction-card {
@@ -279,12 +301,20 @@ main {
         margin-bottom: 30px;
     }
 
+    .page-logo {
+        max-width: 280px;
+    }
+
     .page-title {
         font-size: 1.75rem;
     }
 
     .section-title {
         font-size: 1.3rem;
+    }
+
+    .transactions-section {
+        padding: 16px;
     }
 
     .transaction-title {
@@ -307,15 +337,15 @@ html {
     outline-offset: 4px;
 }
 
-/* Back Button (copied from profile.css) */
+/* ========== BACK BUTTON ========== */
 .back-btn {
-    position: fixed;
-    top: 100px;
+    position: absolute;
+    top: 140px;
     left: 40px;
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background-color: white;
+    background-color: #c84c3d;
     border: none;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -324,22 +354,19 @@ html {
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 100;
-    color: #1a1a2e;
+    color: white;
     font-size: 1.2rem;
 }
 
 .back-btn:hover {
-    transform: translateX(-5px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background-color: white;
     color: #c84c3d;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 @media (max-width: 768px) {
     .back-btn {
-        top: 90px;
-        left: 20px;
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
+        display: none;
     }
 }

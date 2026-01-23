@@ -2,10 +2,8 @@
 // EDIT PROFILE - Real Backend Integration
 // ============================================
 
-// Require login
-if (!isLoggedIn()) {
-  window.location.href = '../templates/Login.html';
-}
+// Authentication check removed - page will check token when loading data
+// If token is missing, API calls will handle it gracefully
 
 // All available genres
 const ALL_GENRES = [

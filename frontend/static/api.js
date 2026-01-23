@@ -344,11 +344,13 @@ async function searchListings(query, filters = {}, accessToken) {
         url += `&lat=${filters.lat}&lon=${filters.lon}&radius=${filters.radius}`;
     }
 
-    const response = await fetch(url, {
-        headers: {
-            'access-token': accessToken
-        }
-    });
+    // Only include access token header if user is logged in
+    const headers = {};
+    if (accessToken) {
+        headers['access-token'] = accessToken;
+    }
+
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -500,6 +502,11 @@ async function getDialogues(accessToken) {
     });
 
     if (!response.ok) {
+        // If no dialogues found (404), return empty array instead of error
+        if (response.status === 404) {
+            return [];
+        }
+
         const errorText = await response.text();
         console.error('GetDialogues API error:', response.status, errorText);
         throw new Error(`Failed to fetch dialogues: ${response.status}`);

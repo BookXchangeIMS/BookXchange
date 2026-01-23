@@ -1,12 +1,15 @@
-// Require login
-if (!isLoggedIn()) {
-    window.location.href = '../templates/Login.html';
-}
+// Guest browsing allowed - users can view home page without login
+// Authentication will be checked when trying to interact with listings
+const urlParams = new URLSearchParams(window.location.search);
+const hasOAuthTokens = urlParams.has('access_token') && urlParams.has('refresh_token');
+
+// Only redirect to login if explicitly required (not for guest browsing)
+// Individual interactions will prompt login when needed
 
 // State
 let allListings = [];
 let currentPage = 1;
-const PAGE_SIZE = 4; // Set the # of results per page here
+const PAGE_SIZE = 12; // Set the # of results per page here
 
 // DOM elements
 const booksGrid = document.getElementById('booksGrid');
@@ -25,6 +28,9 @@ document.addEventListener('componentsLoaded', function () {
 
 let searchTimeout;
 
+/**
+ * Setup search input listeners with debounce
+ */
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -32,13 +38,36 @@ function setupSearch() {
         const newSearchInput = searchInput.cloneNode(true);
         searchInput.parentNode.replaceChild(newSearchInput, searchInput);
 
+        // Add login check on focus for guest users
+        newSearchInput.addEventListener('focus', (e) => {
+            if (!isLoggedIn()) {
+                e.target.blur(); // Remove focus
+                if (confirm('You need to log in to search for books. Would you like to log in now?')) {
+                    window.location.href = '../templates/Login.html';
+                }
+                return;
+            }
+        });
+
         newSearchInput.addEventListener('input', (e) => {
+            if (!isLoggedIn()) {
+                if (confirm('You need to log in to search for books. Would you like to log in now?')) {
+                    window.location.href = '../templates/Login.html';
+                }
+                return;
+            }
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => handleSearch(e.target.value), 500);
         });
 
         // Also handle "Enter" key
         newSearchInput.addEventListener('keypress', (e) => {
+            if (!isLoggedIn()) {
+                if (confirm('You need to log in to search for books. Would you like to log in now?')) {
+                    window.location.href = '../templates/Login.html';
+                }
+                return;
+            }
             if (e.key === 'Enter') {
                 clearTimeout(searchTimeout);
                 handleSearch(e.target.value);
@@ -53,6 +82,9 @@ let selectedLat = null;
 let selectedLon = null;
 let selectedRadius = 10;
 
+/**
+ * Initialize and setup filter modal and controls
+ */
 function setupFilters() {
     const filterBtn = document.getElementById('filterBtn');
     const filterModal = document.getElementById('filterModal');
@@ -68,6 +100,13 @@ function setupFilters() {
 
         // Open Modal
         filterBtn.addEventListener('click', () => {
+            // Check if user is logged in before opening filter modal
+            if (!isLoggedIn()) {
+                if (confirm('You need to log in to use filters. Would you like to log in now?')) {
+                    window.location.href = '../templates/Login.html';
+                }
+                return;
+            }
             filterModal.classList.add('active');
             // Initialize map after modal is visible to ensure correct rendering
             setTimeout(initFilterMap, 100);
@@ -138,6 +177,9 @@ function setupFilters() {
     }
 }
 
+/**
+ * Initialize the Leaflet map for location filtering
+ */
 function initFilterMap() {
     if (filterMap) {
         filterMap.invalidateSize();
@@ -163,6 +205,10 @@ function initFilterMap() {
     });
 }
 
+/**
+ * Collect current filter values from UI
+ * @returns {Object} Filter object containing genres, price range, types, and location
+ */
 function getFilterValues() {
     const filters = {
         genres: [],
@@ -187,8 +233,13 @@ function getFilterValues() {
     return filters;
 }
 
+/**
+ * Handle search execution with current filters
+ * @param {string} query - Search query string
+ */
 async function handleSearch(query) {
-    const accessToken = getAccessToken();
+    // Get access token if logged in, otherwise null for guest browsing
+    const accessToken = isLoggedIn() ? getAccessToken() : null;
     try {
         const filters = getFilterValues();
 
@@ -203,7 +254,9 @@ async function handleSearch(query) {
         if (booksGrid) booksGrid.style.display = 'none';
 
         const results = await searchListings(query, filters, accessToken);
-        allListings = results.map(transformListingData);
+        allListings = results
+            .map(transformListingData)
+            .filter(listing => listing.status !== 'Inactive'); // Filter out inactive listings
         currentPage = 1; // Reset to page 1 on search/filter
         hideSkeletonAndShowBooks();
 
@@ -214,17 +267,23 @@ async function handleSearch(query) {
 }
 
 // Load all listings from API
+/**
+ * Load all listings from API and render them
+ */
 async function loadAllListings() {
     try {
         // Show skeleton loading state
         if (skeletonGrid) skeletonGrid.style.display = 'grid';
         if (booksGrid) booksGrid.style.display = 'none';
 
-        const accessToken = getAccessToken();
+        // Get access token if logged in, otherwise null for guest browsing
+        const accessToken = isLoggedIn() ? getAccessToken() : null;
         const apiResponse = await getAllListings(accessToken);
 
         // Transform API response to internal format using centralized function
-        allListings = apiResponse.map(transformListingData);
+        allListings = apiResponse
+            .map(transformListingData)
+            .filter(listing => listing.status !== 'Inactive'); // Filter out inactive listings
 
         currentPage = 1; // Reset to page 1
         hideSkeletonAndShowBooks();
@@ -236,6 +295,9 @@ async function loadAllListings() {
 }
 
 // Hide skeleton and show books with animation
+/**
+ * Transition from skeleton loader to actual book grid
+ */
 function hideSkeletonAndShowBooks() {
     if (skeletonGrid) skeletonGrid.style.display = 'none';
 
@@ -261,6 +323,10 @@ function hideSkeletonAndShowBooks() {
 }
 
 // Load books with pagination using shared UI components
+/**
+ * Render books grid with pagination
+ * @param {Array} books - Array of book objects to display
+ */
 function loadBooks(books) {
     if (!booksGrid) return;
 
@@ -287,7 +353,19 @@ function loadBooks(books) {
 }
 
 // Toggle favorite status
+/**
+ * Toggle favorite status for a listing
+ * @param {number|string} listingId - ID of the listing to toggle
+ */
 async function toggleFavorite(listingId) {
+    // Check if user is logged in
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to add favorites. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
+
     const book = allListings.find(b => b.id === listingId);
     if (!book) return;
 
@@ -320,7 +398,19 @@ async function toggleFavorite(listingId) {
 }
 
 // View book details
+/**
+ * Navigate to book details page
+ * @param {number|string} bookId - ID of the book listing
+ */
 function viewBookDetails(bookId) {
+    // Check if user is logged in
+    if (!isLoggedIn()) {
+        if (confirm('You need to log in to view listing details. Would you like to log in now?')) {
+            window.location.href = '../templates/Login.html';
+        }
+        return;
+    }
+
     console.log('Viewing details for book ID:', bookId);
-    window.location.href = `listing?id=${bookId}`;
+    window.location.href = `listing.html?id=${bookId}`;
 }

@@ -1,0 +1,236 @@
+/* Leaderboard Styles */
+
+body {
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+    background-image: url('resources/backgroundopacity2.png');
+    background-color: #FFF1D8;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Logo Section */
+.logo-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    min-height: 200px;
+    width: 100%;
+}
+
+.logo-img {
+    width: 600px;
+    max-width: 80%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 4px 12px rgba(200, 76, 61, 0.15));
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Container for the whole leaderboard page */
+.leaderboard-page {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+
+.leaderboard-container {
+    background-color: transparent;
+    border-radius: var(--radius-lg);
+    box-shadow: none;
+    overflow: hidden;
+    margin-top: var(--spacing-lg);
+    width: 100%;
+}
+
+.leaderboard-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px;
+    padding: 20px 30px;
+    background-color: rgba(200, 76, 61, 0.95);
+    color: var(--white);
+    font-weight: var(--font-bold);
+    font-size: 18px;
+    align-items: center;
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.leaderboard-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px;
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(200, 76, 61, 0.2);
+    align-items: center;
+    transition: background-color var(--transition-fast);
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-item:hover {
+    background-color: rgba(200, 76, 61, 0.15);
+}
+
+.rank-col {
+    font-weight: var(--font-bold);
+    font-size: 20px;
+    color: var(--text-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.rank-1 {
+    color: #FFD700;
+    font-size: 24px;
+}
+
+.rank-2 {
+    color: #C0C0C0;
+    font-size: 22px;
+}
+
+.rank-3 {
+    color: #CD7F32;
+    font-size: 22px;
+}
+
+.user-col {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.user-name {
+    font-weight: var(--font-semibold);
+    color: var(--text-dark);
+    font-size: 18px;
+}
+
+.points-col {
+    font-weight: var(--font-bold);
+    color: var(--primary-color);
+    font-size: 18px;
+    text-align: right;
+}
+
+#points-col-header {
+    color: var(--white);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .logo-section {
+        min-height: 150px;
+        margin-bottom: 15px;
+    }
+
+    .logo-img {
+        width: 90%;
+        max-width: 450px;
+    }
+
+    .leaderboard-header,
+    .leaderboard-item {
+        grid-template-columns: 60px 1fr 80px;
+        padding: 15px;
+    }
+
+    .rank-col {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
+
+    .points-col {
+        text-align: right;
+    }
+
+    .leaderboard-header {
+        font-size: 16px;
+    }
+
+    .leaderboard-item {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .leaderboard-page {
+        padding: var(--spacing-sm);
+    }
+
+    .leaderboard-header,
+    .leaderboard-item {
+        grid-template-columns: 40px 1fr 60px;
+        padding: 10px;
+    }
+
+    .rank-col {
+        width: 25px;
+        height: 25px;
+        font-size: 14px;
+    }
+
+    .user-name {
+        font-size: 16px;
+    }
+
+    .points-col {
+        font-size: 14px;
+    }
+}
+
+/* Avatar Placeholder Style */
+.user-avatar.placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c84c3d 0%, #b03a2e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 5px rgba(200, 76, 61, 0.2);
+}
+
+.user-avatar.placeholder i {
+    color: white;
+}
